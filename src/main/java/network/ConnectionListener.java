@@ -5,17 +5,17 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class SocketListener extends Thread
+public class ConnectionListener extends Thread
 {
 	private ServerSocket serverSocket;
-	private NetworkListener networkListener;
+	private ConnectionReceivedEvent networkListener;
 	private int port;
 
-	public SocketListener()
+	public ConnectionListener()
 	{
 	}
 
-	public SocketListener(NetworkListener networkListener, int port)
+	public ConnectionListener(ConnectionReceivedEvent networkListener, int port)
 	{
 		setDaemon(true);
 		this.networkListener = networkListener;
@@ -37,5 +37,10 @@ public class SocketListener extends Thread
 		}
 
 
+	}
+
+	public interface ConnectionReceivedEvent
+	{
+		abstract void receivedConnection(Socket socket);
 	}
 }

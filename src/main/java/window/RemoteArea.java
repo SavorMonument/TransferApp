@@ -30,4 +30,20 @@ public class RemoteArea implements RemoteUI
 	{
 		return null;
 	}
+
+	public boolean hasRequestedFiles()
+	{
+		return false;
+	}
+
+	public String getRequestedFile()
+	{
+		return null;
+	}
+
+	public String getDefaultDownloadLocation()
+	{
+		//TODO: Request input for this
+		return "C:\\Users\\Goia\\Desktop\\temp";
+	}
 }

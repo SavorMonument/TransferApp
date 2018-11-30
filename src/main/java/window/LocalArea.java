@@ -3,20 +3,21 @@ package window;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Pane;
 
 import java.io.File;
-import java.util.PriorityQueue;
+import java.util.ArrayList;
+import java.util.List;
 
-public class LocalArea implements LocalUI
+public class LocalArea
 {
 	private Node node;
 
-	private PriorityQueue<File> filesNotProcessed = new PriorityQueue<File>();
+	private List<File> availableFilesForTransfer = new ArrayList<File>();
+	private boolean hasTheFileListChanged = false;
 	private String connectionRequestURL;
 
 	public LocalArea(Pane pane)
@@ -27,22 +28,23 @@ public class LocalArea implements LocalUI
 		pane.setOnDragOver(dragHandler);
 		pane.setOnDragDropped(dragHandler);
 
-		TextField socketAddressTextField = new TextField();
-		Button socketAddressButton = new Button("Submit");
-		socketAddressButton.setOnAction(new SubmitButtonHandler(socketAddressTextField));
-		socketAddressButton.setLayoutX(150);
-
-		pane.getChildren().addAll(socketAddressTextField, socketAddressButton);
+//		TextField socketAddressTextField = new TextField();
+//		Button socketAddressButton = new Button("Submit");
+//		socketAddressButton.setOnAction(new SubmitButtonHandler(socketAddressTextField));
+//		socketAddressButton.setLayoutX(150);
+//
+//		pane.getChildren().addAll(socketAddressTextField, socketAddressButton);
 	}
 
-	public boolean hasUnprocessedFiles()
+	public boolean hasTheFileListChanged()
 	{
-		return !filesNotProcessed.isEmpty();
+		return hasTheFileListChanged;
 	}
 
-	public File getMarkedFile()
+	public List<File> getAvailableFiles()
 	{
-		return filesNotProcessed.poll();
+		hasTheFileListChanged = false;
+		return new ArrayList<File>(availableFilesForTransfer);
 	}
 
 	public boolean hasPendingConnectionRequest()
@@ -90,7 +92,8 @@ public class LocalArea implements LocalUI
 				{
 					if (event.getDragboard().hasFiles())
 					{
-						filesNotProcessed.addAll(event.getDragboard().getFiles());
+						availableFilesForTransfer.addAll(event.getDragboard().getFiles());
+						hasTheFileListChanged = true;
 						System.out.println("Files Dropped: " + event.getDragboard().getFiles().toString());
 						event.setDropCompleted(true);
 					} else

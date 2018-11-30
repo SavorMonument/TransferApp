@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="450.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="window.MainPresenter">
+    <children>
+        <AnchorPane id="localPane" fx:id="local" prefHeight="200.0" prefWidth="600.0" style="-fx-background-color: #53baba;" AnchorPane.bottomAnchor="250.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        </AnchorPane>
+        <AnchorPane id="remotePane" fx:id="remote" layoutY="250.0" prefHeight="200.0" prefWidth="600.0" style="-fx-background-color: #53baba;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="250.0" />
+      <AnchorPane id="ConnectionPane" fx:id="connection" layoutY="200.0" prefHeight="50.0" prefWidth="600.0" style="-fx-background-color: #5394ba;" AnchorPane.bottomAnchor="200.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="200.0">
+         </AnchorPane>
+      <Separator layoutY="200.0" prefHeight="0.0" prefWidth="600.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
+      <Separator layoutY="250.0" prefWidth="600.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
+    </children>
+</AnchorPane>

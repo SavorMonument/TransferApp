@@ -7,5 +7,8 @@ public interface RemoteUI
 	boolean shouldAcceptConnectionRequest(String path);
 	boolean showFileAsAvailable(File file);
 	File getDownloadRequest();
+	String getDefaultDownloadLocation();
 
+	boolean hasRequestedFiles();
+	String getRequestedFile();
 }

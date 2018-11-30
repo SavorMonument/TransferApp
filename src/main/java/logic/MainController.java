@@ -1,55 +1,46 @@
 package logic;
 
-import com.sun.javafx.binding.StringFormatter;
-import network.NetworkListener;
-import network.SocketConnection;
-import network.SocketListener;
+import network.*;
 import window.AppLogger;
-import window.LocalUI;
-import window.RemoteUI;
+import window.LocalUIEvents;
+import window.connection.ConnectionPresenter;
+import window.local.LocalPresenter;
 
+import java.io.File;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class MainController extends Thread
 {
-	private static final int PORT = 50001;
+	private static final Logger LOGGER = AppLogger.getInstance();
 
-	private LocalUI localUI;
-	private RemoteUI remoteUI;
+	List<File> filesAvailableForTranfer;
 
-	private SocketConnection socketConnection;
-	private SocketListener socketListener;
+	private String downloadPath;
+
+	private RemoteSocketConnection connection;
 
 	private DeltaTime deltaT = new DeltaTime(5);
 
-	public MainController(LocalUI localUI, RemoteUI remoteUI)
+	public MainController()
 	{
-		this.localUI = localUI;
-		this.remoteUI = remoteUI;
+		LocalUIEventHandler localUIHandler = new LocalUIEventHandler();
+		ConnectionPresenter.changeLocalEventHandler(localUIHandler);
+		LocalPresenter.changeLocalEventHandler(localUIHandler);
 
-		socketConnection = new SocketConnection();
-		socketListener = new SocketListener();
 		setDaemon(true);
 	}
 
 	public void run()
 	{
+		connection = new RemoteSocketConnection(new SocketEventReceiver(), new ConnectionListener());
+		filesAvailableForTranfer = new ArrayList<>();
+
 		while (true)
 		{
-			if (localUI.hasPendingConnectionRequest())
-			{
-				String URL =  localUI.getConnectionRequest();
-				socketConnection.establishConnection(URL, PORT);
-				socketListener.interrupt();
-			}
-			if (!socketConnection.isConnected() && !socketListener.isAlive())
-			{
-				socketListener = new SocketListener(new listener(), PORT);
-				socketListener.start();
-			}
-
 
 			deltaT.update();
 			if (!deltaT.enoughTimePassed())
@@ -68,16 +59,69 @@ public class MainController extends Thread
 		}
 	}
 
-	class listener implements NetworkListener
+	class LocalUIEventHandler implements LocalUIEvents
+	{
+		@Override
+		public void updateAvailableFileList(List<File> file)
+		{
+			LOGGER.log(Level.FINE, "Updating file list" + file.toString());
+
+			filesAvailableForTranfer = new ArrayList<>(file);
+		}
+
+		@Override
+		public boolean attemptConnectionToHost(String host, int port)
+		{
+			LOGGER.log(Level.FINE, "Connection request to: " + host);
+
+			return connection.attemptConnection(host);
+		}
+
+		@Override
+		public void setDownloadLocation(String path)
+		{
+			LOGGER.log(Level.FINE, "Set file download location to: " + path);
+
+			downloadPath = path;
+		}
+
+		@Override
+		public void requestFileForDownload(String fileName)
+		{
+			LOGGER.log(Level.FINE, "Request file" + fileName);
+
+		}
+	}
+
+	class SocketEventReceiver implements SocketReceivingEvents
+	{
+		@Override
+		public void updateRemoteFileList(List<String> files)
+		{
+
+		}
+
+		@Override
+		public void uploadFile(String filename)
+		{
+
+		}
+	}
+
+	class ConnectionListener implements network.ConnectionListener.ConnectionReceivedEvent
 	{
 		public void receivedConnection(Socket socket)
 		{
 			Logger logger = AppLogger.getInstance();
-			logger.log(Level.ALL, "Received connection request");
-			if (!socketConnection.isConnected())
+			logger.log(Level.ALL, "Received Connection request");
+			if (!connection.isConnected())
 			{
-				logger.log(Level.ALL, "Successfully connected to socket: " + socket.getInetAddress());
-				socketConnection.setSocket(socket);
+				logger.log(Level.ALL, "Successfully connected to socket");
+				connection.acceptConnection(socket);
+			} else
+			{
+				logger.log(Level.ALL, String.format("Could not connect to: %s, already connected to: %s",
+						connection.getSocket().getInetAddress(), socket.getInetAddress()));
 			}
 		}
 	}
