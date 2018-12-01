@@ -41,6 +41,8 @@ public class SocketReceiver extends Thread
 	{
 		while (true)
 		{
+			LOGGER.log(Level.FINEST, "Started listening for messages");
+
 			try
 			{
 				String line;

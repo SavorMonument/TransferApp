@@ -135,6 +135,7 @@ public class logicController extends Thread
 				LOGGER.log(Level.ALL, "Successfully connected to socket");
 				mainSocket = socket;
 				socketReceiver = new SocketReceiver(socket, new SocketEventReceiver());
+				socketReceiver.start();
 				socketSender = new SocketSender(socket);
 				if (connectionResolver.isListening())
 					connectionResolver.stopListening();
