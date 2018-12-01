@@ -11,6 +11,7 @@ import window.LocalUIEvents;
 
 import java.io.File;
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,7 +34,7 @@ public class LocalPresenter implements Initializable
 	@FXML
 	public void fileDragOver(DragEvent event)
 	{
-		LOGGER.log(Level.FINE, "File drag over");
+//		LOGGER.log(Level.FINE, "File drag over");
 
 		if (event.getDragboard().hasFiles())
 			event.acceptTransferModes(TransferMode.ANY);
@@ -51,8 +52,9 @@ public class LocalPresenter implements Initializable
 			items.add(file.getName());
 		}
 
-//		fileList.setItems(items);
-		localUIEvents.updateAvailableFileList(items);
+		List<File> files = items;
+
+		localUIEvents.updateAvailableFileList(files);
 	}
 
 	@FXML

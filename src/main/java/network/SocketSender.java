@@ -43,7 +43,7 @@ public class SocketSender
 		{
 			LOGGER.log(Level.WARNING,String.format("Couldn't write to the socket output stream\n%s",
 					e.getMessage()));
-//			e.printStackTrace();
+			e.printStackTrace();
 		}
 	}
 

@@ -53,13 +53,14 @@ public class logicController extends Thread
 		while (true)
 		{
 
+			//DEBUG
+			if (null != mainSocket && mainSocket.isConnected())
+				LOGGER.log(Level.FINE, "Connected to: " + mainSocket.getInetAddress());
+
+
 			deltaT.update();
 			if (!deltaT.enoughTimePassed())
 			{
-				//DEBUG
-//				if (connection.isConnected())
-//					LOGGER.log(Level.FINE, "Connected to: " + connection.getSocket().getInetAddress());
-
 				try
 				{
 					long millis = deltaT.getTimeToTick() / (long) 1e+6;
@@ -71,6 +72,7 @@ public class logicController extends Thread
 				}
 			}
 			deltaT.subtractOneTick();
+
 		}
 	}
 
@@ -84,12 +86,11 @@ public class logicController extends Thread
 			filesAvailableForTranfer = new ArrayList<>(files);
 
 			List<String> fileNames = new ArrayList<>();
-
+			
 			for (File file: files)
 			{
 				fileNames.add(file.getName());
 			}
-
 			socketSender.updateRemoteFileList(fileNames);
 		}
 

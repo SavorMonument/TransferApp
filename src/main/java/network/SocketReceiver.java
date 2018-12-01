@@ -1,6 +1,5 @@
 package network;
 
-import network.FileTransfer.FileSocketSender;
 import window.AppLogger;
 
 import java.io.BufferedReader;
