@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -97,11 +98,9 @@ public class ConnectionResolver
 				networkListener.connectionEstablished(socket);
 			} catch (IOException e)
 			{
-				e.printStackTrace();
+				LOGGER.log(Level.WARNING, "IOException while listening (expected in order to close listener on new connection)\n" + e.getMessage());
+//				e.printStackTrace();
 			}
-
-
 		}
-
 	}
 }
