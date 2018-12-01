@@ -47,7 +47,8 @@ public class ConnectionResolver
 
 		try
 		{
-			connectionListener.serverSocket.close();
+			if (!connectionListener.serverSocket.isClosed())
+				connectionListener.serverSocket.close();
 		} catch (IOException e)
 		{
 			LOGGER.log(Level.WARNING, "Could not close server socket for some reason\n" + e.getMessage());

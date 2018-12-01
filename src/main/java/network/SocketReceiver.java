@@ -28,7 +28,7 @@ public class SocketReceiver extends Thread
 			input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		} catch (IOException e)
 		{
-			LOGGER.log(Level.WARNING, "Socket receiving stream problem");
+			LOGGER.log(Level.WARNING, "Receiving Socket stream problem");
 			e.printStackTrace();
 		}
 
