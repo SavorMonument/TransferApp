@@ -1,10 +1,10 @@
 package window.remote;
 
-public interface RemoteEvents
+//TODO: Remove this, it's just the story of the program
+public interface UIEvents
 {
 	/*
-	add a file as available for transfer		-->
-	removed a file as available for transfer 	-->
+	update available file list 					-->
 
 	attempt connection to remote host 			-->
 	disconnect from host						-->

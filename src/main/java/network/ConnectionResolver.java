@@ -16,7 +16,7 @@ public class ConnectionResolver
 	public Socket establishConnection(String url, int port)
 	{
 		LOGGER.log(Level.INFO, "Received Connection establish request on URL: " + url);
-		Socket socket = null;
+		Socket socket = new Socket();
 		try
 		{
 			socket = new Socket(url, port);

@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class MainController extends Thread
+public class logicController extends Thread
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 
@@ -25,12 +25,15 @@ public class MainController extends Thread
 
 	private DeltaTime deltaT = new DeltaTime(5);
 
-	public MainController()
+	private RemoteUIEvents remoteEvents;
+
+	public logicController(RemoteUIEvents remoteEvents)
 	{
 		LocalUIEventHandler localUIHandler = new LocalUIEventHandler();
 		ConnectionPresenter.changeLocalEventHandler(localUIHandler);
 		LocalPresenter.changeLocalEventHandler(localUIHandler);
 
+		this.remoteEvents = remoteEvents;
 		setDaemon(true);
 	}
 
@@ -45,6 +48,10 @@ public class MainController extends Thread
 			deltaT.update();
 			if (!deltaT.enoughTimePassed())
 			{
+				//DEBUG
+				if (connection.isConnected())
+					LOGGER.log(Level.FINE, "Connected to: " + connection.getSocket().getInetAddress());
+
 				try
 				{
 					long millis = deltaT.getTimeToTick() / (long) 1e+6;
@@ -98,7 +105,7 @@ public class MainController extends Thread
 		@Override
 		public void updateRemoteFileList(List<String> files)
 		{
-
+			remoteEvents.updateRemoteFileList(files);
 		}
 
 		@Override
