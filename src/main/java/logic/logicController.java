@@ -27,7 +27,7 @@ public class logicController extends Thread
 
 	private DeltaTime deltaT = new DeltaTime(5);
 
-	private RemoteUIEvents remoteEvents;
+	private RemoteUIEvents remoteUIEvents;
 
 	private Socket mainSocket;
 	private SocketSender socketSender;
@@ -40,7 +40,7 @@ public class logicController extends Thread
 		LocalPresenter.changeLocalEventHandler(localUIHandler);
 
 		this.filesAvailableForTranfer = new ArrayList<>();
-		this.remoteEvents = remoteEvents;
+		this.remoteUIEvents = remoteEvents;
 		this.connectionResolver = new ConnectionResolver(new ConnectionListener());
 
 		setDaemon(true);
@@ -130,7 +130,7 @@ public class logicController extends Thread
 			assert socket.isConnected() : "Got event with unconnected socket";
 
 			LOGGER.log(Level.ALL, "Received Connection request");
-			if (remoteEvents.shouldAcceptConnectionFrom(socket.getInetAddress().toString()))
+			if (remoteUIEvents.shouldAcceptConnectionFrom(socket.getInetAddress().toString()))
 			{
 				LOGGER.log(Level.ALL, "Successfully connected to socket");
 				mainSocket = socket;
@@ -153,7 +153,8 @@ public class logicController extends Thread
 		@Override
 		public void updateRemoteFileList(List<String> files)
 		{
-			remoteEvents.updateRemoteFileList(files);
+			LOGGER.log(Level.FINE, "Received file update request: " + files);
+			remoteUIEvents.updateRemoteFileList(files);
 		}
 
 		@Override

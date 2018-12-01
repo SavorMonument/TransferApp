@@ -43,20 +43,23 @@ public class SocketReceiver extends Thread
 		{
 			try
 			{
-				String line = "";
+				String line;
 				if (input.ready())
-					line = input.readLine();
-
-				if (line.equals("SEND_FILE"))
-				{
-					String filename = input.readLine();
-					events.uploadFile(filename);
-
-				} else if (line.equals("UPDATE_FILE_LIST"))
 				{
 					line = input.readLine();
-					line = line.substring(1, line.length() - 1);
-					events.updateRemoteFileList(Arrays.asList(line.split(", ")));
+					LOGGER.log(Level.FINEST, "Received socket message" + line);
+
+					if (line.equals("SEND_FILE"))
+					{
+						String filename = input.readLine();
+						events.uploadFile(filename);
+
+					} else if (line.equals("UPDATE_FILE_LIST"))
+					{
+						line = input.readLine();
+						line = line.substring(1, line.length() - 1);
+						events.updateRemoteFileList(Arrays.asList(line.split(", ")));
+					}
 				}
 			} catch (IOException e)
 			{

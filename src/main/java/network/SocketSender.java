@@ -35,6 +35,8 @@ public class SocketSender
 	{
 		try
 		{
+			LOGGER.log(Level.FINE, "Attempting to remotely update file list");
+
 			output.write("UPDATE_FILE_LIST");
 			output.newLine();
 			output.write(files.toString());
