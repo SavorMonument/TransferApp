@@ -54,8 +54,8 @@ public class logicController extends Thread
 		{
 
 			//DEBUG
-			if (null != mainSocket && mainSocket.isConnected())
-				LOGGER.log(Level.FINE, "Connected to: " + mainSocket.getInetAddress());
+//			if (null != mainSocket && mainSocket.isConnected())
+//				LOGGER.log(Level.FINE, "Connected to: " + mainSocket.getInetAddress());
 
 
 			deltaT.update();
@@ -82,16 +82,16 @@ public class logicController extends Thread
 		public void updateAvailableFileList(List<File> files)
 		{
 			LOGGER.log(Level.FINE, "Updating file list" + files.toString());
-
 			filesAvailableForTranfer = new ArrayList<>(files);
 
 			List<String> fileNames = new ArrayList<>();
-			
-			for (File file: files)
+
+			for (int i = 0; i < files.size(); i++)
 			{
-				fileNames.add(file.getName());
+				fileNames.add(files.get(i).getName());
 			}
-			socketSender.updateRemoteFileList(fileNames);
+			if (null != socketSender)
+				socketSender.updateRemoteFileList(fileNames);
 		}
 
 		@Override

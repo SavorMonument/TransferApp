@@ -11,6 +11,7 @@ import window.LocalUIEvents;
 
 import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -21,6 +22,8 @@ public class LocalPresenter implements Initializable
 	private static final Logger LOGGER = AppLogger.getInstance();
 
 	private static LocalUIEvents localUIEvents;
+
+	private List<File> availableFiles = new ArrayList<>();
 
 	@FXML
 	private ListView fileList;
@@ -47,14 +50,10 @@ public class LocalPresenter implements Initializable
 
 		ObservableList items = fileList.getItems();
 
-		for (File file: event.getDragboard().getFiles())
-		{
-			items.add(file.getName());
-		}
+		availableFiles.addAll(event.getDragboard().getFiles());
+		items.addAll(event.getDragboard().getFiles());
 
-		List<File> files = items;
-
-		localUIEvents.updateAvailableFileList(files);
+		localUIEvents.updateAvailableFileList(availableFiles);
 	}
 
 	@FXML
