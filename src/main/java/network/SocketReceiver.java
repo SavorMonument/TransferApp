@@ -48,8 +48,10 @@ public class SocketReceiver extends Thread
 				String line;
 				if (input.ready())
 				{
+					System.out.println("Here " + input.ready());
+
 					line = input.readLine();
-					LOGGER.log(Level.FINEST, "Received socket message" + line);
+					LOGGER.log(Level.FINEST, "Received socket message: " + line);
 
 					if (line.equals("SEND_FILE"))
 					{

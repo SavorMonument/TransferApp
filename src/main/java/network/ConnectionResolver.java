@@ -76,10 +76,6 @@ public class ConnectionResolver
 		private ConnectionEvent networkListener;
 		private int port;
 
-		public ConnectionListener()
-		{
-		}
-
 		public ConnectionListener(ConnectionEvent networkListener, int port)
 		{
 			setDaemon(true);

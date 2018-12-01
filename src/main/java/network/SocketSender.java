@@ -24,6 +24,7 @@ public class SocketSender
 		try
 		{
 			output = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+
 		} catch (IOException e)
 		{
 			LOGGER.log(Level.WARNING, "Socket output stream problem" + e.getMessage());
@@ -38,9 +39,10 @@ public class SocketSender
 			LOGGER.log(Level.FINE, "Attempting to remotely update file list");
 
 			output.write("UPDATE_FILE_LIST");
-			output.newLine();
+			output.write("\n");
 			output.write(files.toString());
-			output.newLine();
+			output.write("\n");
+			output.flush();
 		} catch (IOException e)
 		{
 			LOGGER.log(Level.WARNING,String.format("Couldn't write to the socket output stream\n%s",
@@ -54,7 +56,7 @@ public class SocketSender
 		try
 		{
 			output.write("SEND_FILE");
-			output.newLine();
+			output.write("\n");
 			output.write(fileName);
 		} catch (IOException e)
 		{
