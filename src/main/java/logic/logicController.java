@@ -79,6 +79,12 @@ public class logicController extends Thread
 	class LocalUIEventHandler implements LocalUIEvents
 	{
 		@Override
+		public void testButton()
+		{
+			socketSender.testPrint("I sent this message by pressing a button");
+		}
+
+		@Override
 		public void updateAvailableFileList(List<File> files)
 		{
 			LOGGER.log(Level.FINE, "Updating file list" + files.toString());

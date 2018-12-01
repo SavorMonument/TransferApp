@@ -27,6 +27,11 @@ public class ConnectionPresenter implements Initializable
 		AppLogger.getInstance().log(Level.FINE, "Initializing " + getClass().getName());
 	}
 
+	public void testButtonClick()
+	{
+		localUIEvents.testButton();
+	}
+
 	public void connectButtonClicked()
 	{
 		if (isLocalEventsInitialized())

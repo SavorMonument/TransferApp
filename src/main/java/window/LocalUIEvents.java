@@ -5,6 +5,8 @@ import java.util.List;
 
 public interface LocalUIEvents
 {
+	void testButton();
+
 	void updateAvailableFileList(List<File> file);
 	default boolean attemptConnectionToHost(String host)
 	{

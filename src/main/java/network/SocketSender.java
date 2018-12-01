@@ -26,8 +26,8 @@ public class SocketSender
 			output = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 		} catch (IOException e)
 		{
-			LOGGER.log(Level.WARNING, "Socket output stream problem");
-			e.printStackTrace();
+			LOGGER.log(Level.WARNING, "Socket output stream problem" + e.getMessage());
+//			e.printStackTrace();
 		}
 	}
 
@@ -45,7 +45,7 @@ public class SocketSender
 		{
 			LOGGER.log(Level.WARNING,String.format("Couldn't write to the socket output stream\n%s",
 					e.getMessage()));
-			e.printStackTrace();
+//			e.printStackTrace();
 		}
 	}
 
@@ -56,6 +56,20 @@ public class SocketSender
 			output.write("SEND_FILE");
 			output.newLine();
 			output.write(fileName);
+		} catch (IOException e)
+		{
+//			e.printStackTrace();
+		}
+	}
+
+	//DEBUG ONLY
+	public void testPrint(String str)
+	{
+		try
+		{
+			LOGGER.log(Level.ALL, String.format("Printing -- %s -- on the output stream", str));
+			output.write(str);
+			output.newLine();
 		} catch (IOException e)
 		{
 			e.printStackTrace();

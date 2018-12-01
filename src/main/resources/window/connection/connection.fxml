@@ -26,6 +26,7 @@
                </GridPane.margin>
             </TextField>
               <Button fx:id="connectButton" blendMode="LIGHTEN" mnemonicParsing="false" onAction="#connectButtonClicked" prefHeight="25.0" prefWidth="80.0" text="Connect" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
+            <Button mnemonicParsing="false" onAction="#testButtonClick" prefHeight="25.0" prefWidth="219.0" text="TestButton" GridPane.columnIndex="1" />
          </children>
       </GridPane>
     </children>
