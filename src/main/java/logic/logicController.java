@@ -16,16 +16,22 @@ import java.util.logging.Logger;
 public class logicController extends Thread
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
+	private static final int PORT = 50001;
+
 
 	List<File> filesAvailableForTranfer;
 
 	private String downloadPath;
 
-	private RemoteSocketConnection connection;
+	private ConnectionResolver connectionResolver;
 
 	private DeltaTime deltaT = new DeltaTime(5);
 
 	private RemoteUIEvents remoteEvents;
+
+	private Socket mainSocket;
+	private SocketSender socketSender;
+	private SocketReceiver socketReceiver;
 
 	public logicController(RemoteUIEvents remoteEvents)
 	{
@@ -33,14 +39,16 @@ public class logicController extends Thread
 		ConnectionPresenter.changeLocalEventHandler(localUIHandler);
 		LocalPresenter.changeLocalEventHandler(localUIHandler);
 
+		this.filesAvailableForTranfer = new ArrayList<>();
 		this.remoteEvents = remoteEvents;
+		this.connectionResolver = new ConnectionResolver(new ConnectionListener());
+
 		setDaemon(true);
 	}
 
 	public void run()
 	{
-		connection = new RemoteSocketConnection(new SocketEventReceiver(), new ConnectionListener());
-		filesAvailableForTranfer = new ArrayList<>();
+		connectionResolver.startListening(PORT);
 
 		while (true)
 		{
@@ -49,8 +57,8 @@ public class logicController extends Thread
 			if (!deltaT.enoughTimePassed())
 			{
 				//DEBUG
-				if (connection.isConnected())
-					LOGGER.log(Level.FINE, "Connected to: " + connection.getSocket().getInetAddress());
+//				if (connection.isConnected())
+//					LOGGER.log(Level.FINE, "Connected to: " + connection.getSocket().getInetAddress());
 
 				try
 				{
@@ -69,19 +77,32 @@ public class logicController extends Thread
 	class LocalUIEventHandler implements LocalUIEvents
 	{
 		@Override
-		public void updateAvailableFileList(List<File> file)
+		public void updateAvailableFileList(List<File> files)
 		{
-			LOGGER.log(Level.FINE, "Updating file list" + file.toString());
+			LOGGER.log(Level.FINE, "Updating file list" + files.toString());
 
-			filesAvailableForTranfer = new ArrayList<>(file);
+			filesAvailableForTranfer = new ArrayList<>(files);
+
+			List<String> fileNames = new ArrayList<>();
+
+			for (File file: files)
+			{
+				fileNames.add(file.getName());
+			}
+
+			socketSender.updateRemoteFileList(fileNames);
 		}
 
 		@Override
 		public boolean attemptConnectionToHost(String host, int port)
 		{
+			assert null == mainSocket : "Already connected to something";
+
 			LOGGER.log(Level.FINE, "Connection request to: " + host);
 
-			return connection.attemptConnection(host);
+			connectionResolver.attemptConnection(host, port);
+
+			return true;
 		}
 
 		@Override
@@ -100,6 +121,32 @@ public class logicController extends Thread
 		}
 	}
 
+	class ConnectionListener implements ConnectionResolver.ConnectionEvent
+	{
+		public void connectionEstablished(Socket socket)
+		{
+			assert null == mainSocket || mainSocket.isClosed() : "Got connection request while connected";
+			assert socket.isConnected() : "Got event with unconnected socket";
+
+			LOGGER.log(Level.ALL, "Received Connection request");
+			if (remoteEvents.shouldAcceptConnectionFrom(socket.getInetAddress().toString()))
+			{
+				LOGGER.log(Level.ALL, "Successfully connected to socket");
+				mainSocket = socket;
+				socketReceiver = new SocketReceiver(socket, new SocketEventReceiver());
+				socketSender = new SocketSender(socket);
+				if (connectionResolver.isListening())
+					connectionResolver.stopListening();
+			} else
+			{
+				LOGGER.log(Level.ALL, String.format("Could not connect to: %s, already connected to: %s",
+						socket.getInetAddress(), socket.getInetAddress()));
+				if (!connectionResolver.isListening())
+					connectionResolver.startListening(PORT);
+			}
+		}
+	}
+
 	class SocketEventReceiver implements SocketReceivingEvents
 	{
 		@Override
@@ -115,21 +162,4 @@ public class logicController extends Thread
 		}
 	}
 
-	class ConnectionListener implements network.ConnectionListener.ConnectionReceivedEvent
-	{
-		public void receivedConnection(Socket socket)
-		{
-			Logger logger = AppLogger.getInstance();
-			logger.log(Level.ALL, "Received Connection request");
-			if (!connection.isConnected())
-			{
-				logger.log(Level.ALL, "Successfully connected to socket");
-				connection.acceptConnection(socket);
-			} else
-			{
-				logger.log(Level.ALL, String.format("Could not connect to: %s, already connected to: %s",
-						connection.getSocket().getInetAddress(), socket.getInetAddress()));
-			}
-		}
-	}
 }
