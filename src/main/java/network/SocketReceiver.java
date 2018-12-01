@@ -39,10 +39,10 @@ public class SocketReceiver extends Thread
 	@Override
 	public void run()
 	{
+		LOGGER.log(Level.FINEST, "Started listening for messages");
+
 		while (true)
 		{
-			LOGGER.log(Level.FINEST, "Started listening for messages");
-
 			try
 			{
 				String line;
