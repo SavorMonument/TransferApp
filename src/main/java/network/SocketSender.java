@@ -2,6 +2,7 @@ package network;
 
 import window.AppLogger;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -15,66 +16,26 @@ public class SocketSender
 	private static final Logger LOGGER = AppLogger.getInstance();
 
 	private Socket socket;
-	private BufferedWriter output;
+	private BufferedOutputStream output;
 
-	public SocketSender(Socket socket)
+	public SocketSender(Socket socket) throws IOException
 	{
+		assert null != socket && socket.isConnected() : "Need valid socket";
+
 		this.socket = socket;
 
-		try
-		{
-			output = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-
-		} catch (IOException e)
-		{
-			LOGGER.log(Level.WARNING, "Socket output stream problem" + e.getMessage());
-//			e.printStackTrace();
-		}
+		output = new BufferedOutputStream(socket.getOutputStream());
 	}
 
-	public void updateRemoteFileList(List<String> files)
+	public void transmitMessage(String message)
 	{
 		try
 		{
-			LOGGER.log(Level.FINE, "Attempting to remotely update file list");
-
-			output.write("UPDATE_FILE_LIST");
-			output.write("\n");
-			output.write(files.toString());
-			output.write("\n");
+			output.write(message.getBytes());
 			output.flush();
 		} catch (IOException e)
 		{
-			LOGGER.log(Level.WARNING,String.format("Couldn't write to the socket output stream\n%s",
-					e.getMessage()));
-//			e.printStackTrace();
-		}
-	}
-
-	public void requestFileTransfer(String fileName)
-	{
-		try
-		{
-			output.write("SEND_FILE");
-			output.write("\n");
-			output.write(fileName);
-		} catch (IOException e)
-		{
-//			e.printStackTrace();
-		}
-	}
-
-	//DEBUG ONLY
-	public void testPrint(String str)
-	{
-		try
-		{
-			LOGGER.log(Level.ALL, String.format("Printing -- %s -- on the output stream", str));
-			output.write(str);
-			output.newLine();
-		} catch (IOException e)
-		{
-			e.printStackTrace();
+			LOGGER.log(Level.WARNING, "Could not send message to remote socket: " + message);
 		}
 	}
 }

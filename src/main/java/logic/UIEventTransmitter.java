@@ -3,7 +3,7 @@ package logic;
 import java.io.File;
 import java.util.List;
 
-public interface RemoteUIEvents
+public interface UIEventTransmitter
 {
 	boolean updateRemoteFileList(List<String> fileNames);
 	boolean shouldAcceptConnectionFrom(String url);

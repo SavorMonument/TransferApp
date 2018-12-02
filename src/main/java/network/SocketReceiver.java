@@ -7,68 +7,51 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class SocketReceiver extends Thread
+public class SocketReceiver
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 
-	private SocketReceivingEvents events;
-	private Socket socket;
 	private BufferedReader input;
 
-	public SocketReceiver(Socket socket, SocketReceivingEvents events)
+	public SocketReceiver(Socket socket) throws IOException
 	{
-		assert null != socket : "Need valid socket";
+		assert null != socket && socket.isConnected() : "Need valid socket";
 
-		this.socket = socket;
-		try
-		{
-			input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-		} catch (IOException e)
-		{
-			LOGGER.log(Level.WARNING, "Receiving Socket stream problem");
-			e.printStackTrace();
-		}
-
-		this.events = events;
-		setDaemon(true);
+		input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 	}
 
-	@Override
-	public void run()
+	public boolean hasMessage()
 	{
-		LOGGER.log(Level.FINEST, "Started listening for messages");
+		try
+		{
+			return input.ready();
+		} catch (IOException e)
+		{
+			LOGGER.log(Level.WARNING, "Socket input stream problem " + e.getMessage());
+//			e.printStackTrace();
+		}
+		return false;
+	}
 
-		while (true)
+	public String getLine()
+	{
+		if (hasMessage())
 		{
 			try
 			{
-				String line;
-				if (input.ready())
-				{
-					System.out.println("Here " + input.ready());
-
-					line = input.readLine();
-					LOGGER.log(Level.FINEST, "Received socket message: " + line);
-
-					if (line.equals("SEND_FILE"))
-					{
-						String filename = input.readLine();
-						events.uploadFile(filename);
-
-					} else if (line.equals("UPDATE_FILE_LIST"))
-					{
-						line = input.readLine();
-						line = line.substring(1, line.length() - 1);
-						events.updateRemoteFileList(Arrays.asList(line.split(", ")));
-					}
-				}
+				return input.readLine();
 			} catch (IOException e)
 			{
-				e.printStackTrace();
+				LOGGER.log(Level.WARNING, "Socket input stream problem " + e.getMessage());
+//				e.printStackTrace();
 			}
-		}
+		}else
+			LOGGER.log(Level.WARNING, "Called get line with no message pending");
+
+		return null;
 	}
 }

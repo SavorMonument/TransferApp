@@ -8,7 +8,6 @@ import window.local.LocalPresenter;
 
 import java.io.File;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,29 +17,25 @@ public class logicController extends Thread
 	private static final Logger LOGGER = AppLogger.getInstance();
 	private static final int PORT = 50001;
 
-
-	List<File> filesAvailableForTranfer;
-
 	private String downloadPath;
 
 	private ConnectionResolver connectionResolver;
 
 	private DeltaTime deltaT = new DeltaTime(5);
 
-	private RemoteUIEvents remoteUIEvents;
-
+	private UIEventTransmitter UIEventTransmitter;
 	private Socket mainSocket;
-	private SocketSender socketSender;
-	private SocketReceiver socketReceiver;
 
-	public logicController(RemoteUIEvents remoteEvents)
+	private SenderController senderController;
+	private ReceiverController receiverController;
+
+	public logicController(UIEventTransmitter UIEventTransmitter)
 	{
-		LocalUIEventHandler localUIHandler = new LocalUIEventHandler();
+		UIEventReceiver localUIHandler = new UIEventReceiver();
 		ConnectionPresenter.changeLocalEventHandler(localUIHandler);
 		LocalPresenter.changeLocalEventHandler(localUIHandler);
 
-		this.filesAvailableForTranfer = new ArrayList<>();
-		this.remoteUIEvents = remoteEvents;
+		this.UIEventTransmitter = UIEventTransmitter;
 		this.connectionResolver = new ConnectionResolver(new ConnectionListener());
 
 		setDaemon(true);
@@ -76,28 +71,12 @@ public class logicController extends Thread
 		}
 	}
 
-	class LocalUIEventHandler implements LocalUIEvents
+	class UIEventReceiver implements LocalUIEvents
 	{
-		@Override
-		public void testButton()
-		{
-			socketSender.testPrint("I sent this message by pressing a button");
-		}
-
 		@Override
 		public void updateAvailableFileList(List<File> files)
 		{
-			LOGGER.log(Level.FINE, "Updating file list" + files.toString());
-			filesAvailableForTranfer = new ArrayList<>(files);
-
-			List<String> fileNames = new ArrayList<>();
-
-			for (int i = 0; i < files.size(); i++)
-			{
-				fileNames.add(files.get(i).getName());
-			}
-			if (null != socketSender)
-				socketSender.updateRemoteFileList(fileNames);
+			senderController.updateAvailableFileList(files);
 		}
 
 		@Override
@@ -136,38 +115,23 @@ public class logicController extends Thread
 			assert socket.isConnected() : "Got event with unconnected socket";
 
 			LOGGER.log(Level.ALL, "Received Connection request");
-			if (remoteUIEvents.shouldAcceptConnectionFrom(socket.getInetAddress().toString()))
+			if (UIEventTransmitter.shouldAcceptConnectionFrom(socket.getInetAddress().toString()))
 			{
 				LOGGER.log(Level.ALL, "Successfully connected to socket");
 				mainSocket = socket;
-				socketReceiver = new SocketReceiver(socket, new SocketEventReceiver());
-				socketReceiver.start();
-				socketSender = new SocketSender(socket);
+				receiverController = new ReceiverController(socket, UIEventTransmitter);
+				senderController = new SenderController(socket);
+
 				if (connectionResolver.isListening())
 					connectionResolver.stopListening();
 			} else
 			{
 				LOGGER.log(Level.ALL, String.format("Could not connect to: %s, already connected to: %s",
 						socket.getInetAddress(), socket.getInetAddress()));
+
 				if (!connectionResolver.isListening())
 					connectionResolver.startListening(PORT);
 			}
-		}
-	}
-
-	class SocketEventReceiver implements SocketReceivingEvents
-	{
-		@Override
-		public void updateRemoteFileList(List<String> files)
-		{
-			LOGGER.log(Level.FINE, "Received file update request: " + files);
-			remoteUIEvents.updateRemoteFileList(files);
-		}
-
-		@Override
-		public void uploadFile(String filename)
-		{
-
 		}
 	}
 

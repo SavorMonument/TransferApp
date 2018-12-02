@@ -5,7 +5,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ListView;
 import logic.logicController;
-import logic.RemoteUIEvents;
+import logic.UIEventTransmitter;
 import window.AppLogger;
 
 import java.net.URL;
@@ -28,11 +28,12 @@ public class RemotePresenter implements Initializable
 		new logicController(new RemoteUIEventsHandler()).start();
 	}
 
-	class RemoteUIEventsHandler implements RemoteUIEvents
+	class RemoteUIEventsHandler implements UIEventTransmitter
 	{
 		@Override
 		public boolean updateRemoteFileList(List<String> fileNames)
 		{
+			LOGGER.log(Level.ALL, "Updating UI's remote file list");
 			ObservableList<String> files = (ObservableList<String>) fileNames;
 			fileList.setItems(files);
 			return false;

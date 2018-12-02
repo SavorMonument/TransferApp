@@ -24,10 +24,12 @@ public class SocketSenderTest
 	@Before
 	public void setUp() throws Exception
 	{
-		byteArrayOutputStream = new ByteArrayOutputStream();
-
 		mockSocket = Mockito.mock(Socket.class);
-		Mockito.when(mockSocket.getOutputStream()).thenReturn(new BufferedOutputStream(byteArrayOutputStream));
+		Mockito.when(mockSocket.isConnected()).thenReturn(true);
+
+		byteArrayOutputStream = new ByteArrayOutputStream();
+		Mockito.when(mockSocket.getOutputStream()).thenReturn(byteArrayOutputStream);
+
 
 		socketSender = new SocketSender(mockSocket);
 	}
@@ -41,25 +43,12 @@ public class SocketSenderTest
 	}
 
 	@Test
-	public void updateRemoteFileList()
+	public void transmitMessage()
 	{
-		StringBuilder expected = new StringBuilder();
-		List<String> testNames = new ArrayList<>();
-		testNames.add("A");
-		testNames.add("B");
+		String message = "Test";
 
-		socketSender.updateRemoteFileList(testNames);
+		socketSender.transmitMessage(message);
 
-		expected.append("UPDATE_FILE_LIST")
-				.append("\n")
-				.append(testNames.toString())
-				.append("\n");
-
-		assertEquals(expected.toString(), byteArrayOutputStream.toString());
-	}
-
-	@Test
-	public void requestFileTransfer()
-	{
+		assertEquals(message, byteArrayOutputStream.toString());
 	}
 }
