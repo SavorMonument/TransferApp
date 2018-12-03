@@ -64,6 +64,6 @@ public class TransmitterController
 		NetworkMessage networkMessage = new NetworkMessage(NetworkMessage.MessageType.SEND_FILE, fileName);
 		socketMessageTransmitter.transmitMessage(networkMessage);
 
-		new FileReceiverController(downloadPath, fileName, mainSocket.getPort() + 5).start();
+		new FileReceiverController(downloadPath, fileName, 60_000).start();
 	}
 }

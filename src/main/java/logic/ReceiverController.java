@@ -72,7 +72,7 @@ public class ReceiverController implements Closeable
 							filePath, mainSocket.getInetAddress().toString(), mainSocket.getPort() + 1));
 
 					new FileTransmitterController(filePath,
-							mainSocket.getInetAddress().toString().substring(1), mainSocket.getPort() + 1).start();
+							mainSocket.getInetAddress().toString().substring(1), 60_000).start();
 				}
 				break;
 			}
