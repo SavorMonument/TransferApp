@@ -27,16 +27,16 @@ public class ConnectionResolver
 
 	public void attemptConnection(String url, int port)
 	{
-		LOGGER.log(Level.INFO, "Received Connection establish request on URL: " + url);
+		LOGGER.log(Level.INFO, String.format("Received Connection establish request on URL: %s, port: %d", url, port));
 		Socket socket;
 		try
 		{
 			socket = new Socket(url, port);
-			LOGGER.log(Level.INFO, String.format("Connection successful on URL: %s", url));
+			LOGGER.log(Level.ALL, String.format("Connection successful on URL: %s", url));
 			connectionEvent.connectionEstablished(socket);
 		} catch (IOException e)
 		{
-			LOGGER.log(Level.INFO, String.format("Connection unsuccessful on URL: %s\n%s", url, e.getMessage()));
+			LOGGER.log(Level.WARNING, String.format("Connection unsuccessful on URL: %s\n%s", url, e.getMessage()));
 		}
 	}
 
@@ -132,7 +132,7 @@ public class ConnectionResolver
 			try
 			{
 				serverSocket = new ServerSocket(port);
-				System.out.println("Started listening on: " + InetAddress.getLocalHost());
+				System.out.println("Started listening on: " + InetAddress.getLocalHost() + ":" + port);
 				Socket socket = serverSocket.accept();
 				networkListener.connectionEstablished(socket);
 			} catch (IOException e)
