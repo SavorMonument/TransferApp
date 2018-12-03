@@ -131,8 +131,8 @@ public class ConnectionResolver
 		{
 			try
 			{
-				serverSocket = new ServerSocket(port);
-				System.out.println("Started listening on: " + InetAddress.getLocalHost() + ":" + port);
+				serverSocket = new ServerSocket(port - 5);
+				System.out.println("Started listening on: " + InetAddress.getLocalHost() + ":" + (port - 5));
 				Socket socket = serverSocket.accept();
 				LOGGER.log(Level.ALL, String.format("Connection successful on URL: %s, port: %d",
 						socket.getInetAddress(), socket.getPort()));
