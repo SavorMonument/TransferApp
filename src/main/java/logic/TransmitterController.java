@@ -16,6 +16,7 @@ import java.util.logging.Logger;
 public class TransmitterController
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
+	private static final int FILE_PORT = 59_901;
 
 	private Socket mainSocket;
 	private SocketMessageTransmitter socketMessageTransmitter;
@@ -64,6 +65,6 @@ public class TransmitterController
 		NetworkMessage networkMessage = new NetworkMessage(NetworkMessage.MessageType.SEND_FILE, fileName);
 		socketMessageTransmitter.transmitMessage(networkMessage);
 
-		new FileReceiverController(downloadPath, fileName, mainSocket.getPort() + 1).start();
+		new FileReceiverController(downloadPath, fileName, FILE_PORT).start();
 	}
 }

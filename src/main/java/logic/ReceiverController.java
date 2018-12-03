@@ -15,6 +15,8 @@ import java.util.logging.Logger;
 public class ReceiverController implements Closeable
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
+	//TODO: Have this passed trough the main socket(so you can have multiple file transferring at the sam time)
+	private static final int FILE_PORT = 59_901;
 
 	private SocketMessageReceiver socketMessageReceiver;
 	private BusinessEvents businessEvents;
@@ -69,10 +71,10 @@ public class ReceiverController implements Closeable
 
 					LOGGER.log(Level.FINE, String.format("Received file transfer request\n " +
 							"Starting file transmitter with file: %s on address: %s, port%d",
-							filePath, mainSocket.getInetAddress().toString(), mainSocket.getPort() + 1));
+							filePath, mainSocket.getInetAddress().toString(), FILE_PORT));
 
 					new FileTransmitterController(filePath,
-							mainSocket.getInetAddress().toString().substring(1), mainSocket.getPort() + 1).start();
+							mainSocket.getInetAddress().toString().substring(1), FILE_PORT).start();
 				}
 				break;
 			}
