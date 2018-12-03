@@ -32,7 +32,7 @@ public class ConnectionResolver
 		try
 		{
 			socket = new Socket(url, port);
-			LOGGER.log(Level.ALL, String.format("Connection successful on URL: %s", url));
+			LOGGER.log(Level.ALL, String.format("Connection successful on URL: %s, port: %d", url, port));
 			connectionEvent.connectionEstablished(socket);
 		} catch (IOException e)
 		{
