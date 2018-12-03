@@ -42,7 +42,7 @@ public class FileTransmitterController extends Thread
 			}
 		});
 
-		resolver.attemptConnection(socketURL, transmittingPort);
+		resolver.attemptConnection(socketURL, transmittingPort, transmittingPort);
 
 		if (null != mainSocket){
 

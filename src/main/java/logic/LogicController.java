@@ -74,7 +74,7 @@ public class LogicController extends Thread
 			assert null == mainSocket : "Already connected to something";
 
 			LOGGER.log(Level.FINE, "Connection request to: " + host);
-			connectionResolver.attemptConnection(host, port);
+			connectionResolver.attemptConnection(host, port, port);
 
 			return true;
 		}

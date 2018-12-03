@@ -44,7 +44,7 @@ public class FileReceiverController extends Thread
 		resolver.startListening(listeningPort, CONNECTION_TIMEOUT_MILLIS);
 		try
 		{
-			Thread.sleep(50);
+			Thread.sleep(100);
 		} catch (InterruptedException e)
 		{
 			e.printStackTrace();

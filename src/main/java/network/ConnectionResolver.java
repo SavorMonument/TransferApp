@@ -25,13 +25,13 @@ public class ConnectionResolver
 		this.connectionEvent = connectionEvent;
 	}
 
-	public void attemptConnection(String url, int port)
+	public void attemptConnection(String url, int port, int localPort)
 	{
 		LOGGER.log(Level.INFO, String.format("Received Connection establish request on URL: %s, port: %d", url, port));
 		Socket socket;
 		try
 		{
-			socket = new Socket(url, port, null, port - 2);
+			socket = new Socket(url, port, null, localPort);
 			LOGGER.log(Level.ALL, String.format("Connection successful on URL: %s, port: %d", url, port));
 			connectionEvent.connectionEstablished(socket);
 		} catch (IOException e)
@@ -88,11 +88,11 @@ public class ConnectionResolver
 	}
 
 
-	public void startListening(int port)
+	public void startListening(int localPort)
 	{
 		assert !isListening();
 
-		connectionListener = new ConnectionListener(connectionEvent, port);
+		connectionListener = new ConnectionListener(connectionEvent, localPort);
 		connectionListener.start();
 	}
 

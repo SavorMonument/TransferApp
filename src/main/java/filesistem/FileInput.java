@@ -54,7 +54,7 @@ public class FileInput implements Closeable
 
 		if (inputStream.available() < bytesToRead)
 			return inputStream.read(bytes, 0, inputStream.available());
-		else 
+		else
 			return inputStream.read(bytes, 0, bytesToRead);
 	}
 
