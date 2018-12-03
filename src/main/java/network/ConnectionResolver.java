@@ -137,7 +137,7 @@ public class ConnectionResolver
 				networkListener.connectionEstablished(socket);
 			} catch (IOException e)
 			{
-				LOGGER.log(Level.WARNING, "IOException while listening (expected in order to close listener on new connection)\n" + e.getMessage());
+				LOGGER.log(Level.WARNING, "Socket stopped from listening\n");
 //				e.printStackTrace();
 			}
 		}

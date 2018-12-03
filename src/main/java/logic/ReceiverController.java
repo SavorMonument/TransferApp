@@ -69,10 +69,10 @@ public class ReceiverController implements Closeable
 
 					LOGGER.log(Level.FINE, String.format("Received file transfer request\n " +
 							"Starting file transmitter with file: %s on address: %s, port%d",
-							filePath + fileName, mainSocket.getInetAddress().toString(), mainSocket.getPort() + 1));
+							filePath, mainSocket.getInetAddress().toString(), mainSocket.getPort() + 1));
 
-					new FileTransmitterController(filePath, fileName,
-							mainSocket.getInetAddress().toString(), mainSocket.getPort() + 1).start();
+					new FileTransmitterController(filePath,
+							mainSocket.getInetAddress().toString().substring(1), mainSocket.getPort() + 1).start();
 				}
 				break;
 			}

@@ -7,18 +7,16 @@ public class FileInput implements Closeable
 	private File file;
 	private BufferedInputStream inputStream;
 
-	private String fileName;
-	private String path;
+	private String filePath;
 
-	public FileInput(String fileName, String path)
+	public FileInput(String filePath)
 	{
-		this.fileName = fileName;
-		this.path = path;
+		this.filePath = filePath;
 	}
 
 	public boolean open()
 	{
-		file = new File(path + "/" + fileName);
+		file = new File(filePath);
 		boolean successful = file.exists();
 
 		try

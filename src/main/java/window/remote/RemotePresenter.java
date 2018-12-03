@@ -41,14 +41,14 @@ public class RemotePresenter implements Initializable, UIBeanRepository.UIBean
 
 		if ((index =  fileList.getSelectionModel().getSelectedIndex()) != -1)
 		{
+			LOGGER.log(Level.ALL, "Download button pressed on: " + elem);
+
 			elem = (String) fileList.getItems().get(index);
 			for (UIEvents event: localUIEventHandlers)
 			{
 				event.requestFileForDownload(elem);
 			}
 		}
-
-		LOGGER.log(Level.ALL, "Download button pressed on: " + elem);
 	}
 
 	public void updateRemoteFileList(List<String> fileNames)

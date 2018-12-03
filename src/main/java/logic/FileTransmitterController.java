@@ -20,12 +20,10 @@ public class FileTransmitterController extends Thread
 	private String socketURL;
 	private int transmittingPort;
 	private String filePath;
-	private String fileName;
 
-	public FileTransmitterController(String filePath, String fileName, String URL,  int transmittingPort)
+	public FileTransmitterController(String filePath, String URL,  int transmittingPort)
 	{
 		this.filePath = filePath;
-		this.fileName = fileName;
 		this.socketURL = URL;
 		this.transmittingPort = transmittingPort;
 
@@ -48,7 +46,7 @@ public class FileTransmitterController extends Thread
 
 		if (null != mainSocket){
 
-			FileInput fileInput = new FileInput(fileName, filePath);
+			FileInput fileInput = new FileInput(filePath);
 
 			if (fileInput.open())
 			{
@@ -83,7 +81,7 @@ public class FileTransmitterController extends Thread
 			}else
 			{
 				LOGGER.log(Level.WARNING,
-						String.format("Couldn't find file name: %s, path: %s", fileName, filePath));
+						String.format("Couldn't find file name: %s, path: %s", filePath));
 			}
 		}else
 		{
