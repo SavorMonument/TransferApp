@@ -65,7 +65,7 @@ public class FileReceiverController extends Thread
 				while (receiver.available() > 0)
 				{
 					dt = new DeltaTime();
-					while (receiver.available() < BUFFER_SIZE && dt.getElipsedTimeMillis() < CONNECTION_TIMEOUT_MILLIS)
+					while (receiver.available() < BUFFER_SIZE && dt.getElapsedTimeMillis() < CONNECTION_TIMEOUT_MILLIS)
 					{
 						Thread.sleep(1000);
 					}
@@ -77,6 +77,7 @@ public class FileReceiverController extends Thread
 						break;
 				}
 				fileOutput.finishFile();
+				LOGGER.log(Level.ALL, "File receiving done");
 			} catch (IOException e)
 			{
 				e.printStackTrace();

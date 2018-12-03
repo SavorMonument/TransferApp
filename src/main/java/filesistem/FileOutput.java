@@ -1,9 +1,6 @@
 package filesistem;
 
-import sun.misc.Regexp;
-
 import java.io.*;
-import java.net.URI;
 import java.util.Arrays;
 
 public class FileOutput implements Closeable
@@ -38,6 +35,7 @@ public class FileOutput implements Closeable
 
 	public boolean writeToFile(byte[] bytes, int amount)
 	{
+		System.out.println("Bytes amount: " + amount);
 		if (bytes.length == amount)
 			return writeToFile(bytes);
 		else

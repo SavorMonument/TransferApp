@@ -78,7 +78,8 @@ public class ConnectionResolver
 				{
 					e.printStackTrace();
 				}
-				stopListening();
+				if (isListening())
+					stopListening();
 			}
 		});
 

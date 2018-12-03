@@ -62,7 +62,7 @@ public class FileTransmitterController extends Thread
 						bytesRead = fileInput.read(buffer, BUFFER_SIZE);
 						transmitter.transmitBytes(buffer);
 					}
-
+					LOGGER.log(Level.ALL, "File transmission done");
 				} catch (IOException e)
 				{
 					LOGGER.log(Level.WARNING, "File transmitting failed " + e.getMessage());

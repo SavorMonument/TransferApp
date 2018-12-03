@@ -28,7 +28,7 @@ public class FileInput implements Closeable
 			e.printStackTrace();
 		}
 
-		return  successful;
+		return successful;
 	}
 
 	public boolean ready()
@@ -52,7 +52,10 @@ public class FileInput implements Closeable
 	{
 		assert null != inputStream : "Input stream uninitialized";
 
-		return 	inputStream.read(bytes, 0, bytesToRead);
+		if (inputStream.available() < bytesToRead)
+			return inputStream.read(bytes, 0, inputStream.available());
+		else 
+			return inputStream.read(bytes, 0, bytesToRead);
 	}
 
 	private int available() throws IOException

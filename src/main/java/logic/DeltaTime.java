@@ -9,7 +9,7 @@ public class DeltaTime
 		startTime = System.nanoTime();
 	}
 
-	public int getElipsedTimeMillis()
+	public int getElapsedTimeMillis()
 	{
 		return (int) getElapsedTimeNano() / (int) 1e+6;
 	}
