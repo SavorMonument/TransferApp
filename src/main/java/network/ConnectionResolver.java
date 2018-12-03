@@ -31,7 +31,7 @@ public class ConnectionResolver
 		Socket socket;
 		try
 		{
-			socket = new Socket(url, port);
+			socket = new Socket(url, port, null, port);
 			LOGGER.log(Level.ALL, String.format("Connection successful on URL: %s, port: %d", url, port));
 			connectionEvent.connectionEstablished(socket);
 		} catch (IOException e)
@@ -134,6 +134,8 @@ public class ConnectionResolver
 				serverSocket = new ServerSocket(port);
 				System.out.println("Started listening on: " + InetAddress.getLocalHost() + ":" + port);
 				Socket socket = serverSocket.accept();
+				LOGGER.log(Level.ALL, String.format("Connection successful on URL: %s, port: %d",
+						socket.getInetAddress(), socket.getPort()));
 				networkListener.connectionEstablished(socket);
 			} catch (IOException e)
 			{
