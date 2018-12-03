@@ -5,13 +5,14 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import window.AppLogger;
-import window.LocalUIEvents;
+import window.UIEvents;
+import window.handle.UIBeanRepository;
 
 import java.net.URL;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 
-public class ConnectionPresenter implements Initializable
+public class ConnectionPresenter implements Initializable, UIBeanRepository.UIBean
 {
 	@FXML
 	private Button connectButton;
@@ -19,7 +20,7 @@ public class ConnectionPresenter implements Initializable
 	@FXML
 	private TextField addressField;
 
-	private static LocalUIEvents localUIEvents;
+	private static UIEvents localUIEvents;
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources)
@@ -40,7 +41,7 @@ public class ConnectionPresenter implements Initializable
 		return null != localUIEvents;
 	}
 
-	public static void changeLocalEventHandler(LocalUIEvents localUIEvents)
+	public static void changeLocalEventHandler(UIEvents localUIEvents)
 	{
 		ConnectionPresenter.localUIEvents = localUIEvents;
 	}

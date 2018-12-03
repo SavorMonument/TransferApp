@@ -9,14 +9,29 @@ import java.util.logging.Level;
 
 public class FXMLView
 {
-	public Parent getView()
+	private String FXMLFilePath;
+
+	protected FXMLLoader loader;
+
+	public FXMLView()
 	{
 		String[] packages = (getClass().getPackage().getName() + '.').split("[.]");
-		String FXMLFilePath = packages[packages.length - 1]  + ".fxml";
+		FXMLFilePath = packages[packages.length - 1]  + ".fxml";
+
+		loader = new FXMLLoader(getClass().getResource(FXMLFilePath));
+	}
+
+	public <T> T getPresenter()
+	{
+		return loader.getController();
+	}
+
+	public Parent getView()
+	{
 		Parent parent = null;
 		try
 		{
-			parent = FXMLLoader.load(getClass().getResource(FXMLFilePath));
+			parent = loader.load();
 		} catch (Exception e)
 		{
 

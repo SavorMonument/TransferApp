@@ -1,15 +1,13 @@
 package network;
 
+import com.sun.xml.internal.messaging.saaj.util.ByteInputStream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -37,20 +35,16 @@ public class SocketReceiverTest
 	{
 		String message = "test";
 
-		Mockito.when(mockSocket.getInputStream()).thenReturn(new BufferedInputStream(new StringBufferInputStream(message)));
-		socketReceiver = new SocketReceiver(mockSocket);
+		socketReceiver = new SocketReceiver(new StringBufferInputStream(message));
 
-		assertTrue(socketReceiver.hasMessage());
+		assertTrue(socketReceiver.hasBytes());
 	}
 
 	@Test
 	public void getLine() throws IOException, InterruptedException
 	{
-		String message = "test";
+		socketReceiver = new SocketReceiver(new ByteInputStream(new byte[]{1}, 1));
 
-		Mockito.when(mockSocket.getInputStream()).thenReturn(new BufferedInputStream(new StringBufferInputStream(message)));
-		socketReceiver = new SocketReceiver(mockSocket);
-
-		assertEquals(message, socketReceiver.getLine());
+		assertEquals((int) 1, socketReceiver.read());
 	}
 }

@@ -1,5 +1,8 @@
 package network;
 
+import javafx.scene.Parent;
+import sun.net.NetworkClient;
+import sun.net.NetworkServer;
 import window.AppLogger;
 
 import java.io.IOException;
@@ -57,12 +60,52 @@ public class ConnectionResolver
 		}
 	}
 
+	public void startListening(int port, long timeOutMillis)
+	{
+		assert timeOutMillis > 0 : "Negative timeOut";
+		assert port >=0 && port < ((Short.MAX_VALUE * 2) + 2) : "Invalid port number";
+
+		Thread countingThread = new Thread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				startListening(port);
+				try
+				{
+					Thread.sleep(timeOutMillis);
+				} catch (InterruptedException e)
+				{
+					e.printStackTrace();
+				}
+				stopListening();
+			}
+		});
+
+		countingThread.setDaemon(true);
+		countingThread.start();
+	}
+
+
 	public void startListening(int port)
 	{
 		assert !isListening();
 
 		connectionListener = new ConnectionListener(connectionEvent, port);
 		connectionListener.start();
+	}
+
+	public void joinListener(Thread thread)
+	{
+		assert isListening();
+
+		try
+		{
+			connectionListener.join();
+		} catch (InterruptedException e)
+		{
+			e.printStackTrace();
+		}
 	}
 
 	public interface ConnectionEvent

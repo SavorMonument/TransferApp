@@ -1,5 +1,7 @@
 package logic;
 
+import network.NetworkMessage;
+import network.SocketMessageReceiver;
 import network.SocketReceiver;
 import window.AppLogger;
 
@@ -7,7 +9,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Arrays;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -15,21 +16,23 @@ public class ReceiverController implements Closeable
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 
-	private SocketReceiver socketReceiver;
-	private UIEventTransmitter eventTransmitter;
+	private SocketMessageReceiver socketMessageReceiver;
+	private BusinessEvents businessEvents;
 
+	private Socket mainSocket;
 	private SocketReceiverListener listener;
 
 
-	public ReceiverController(Socket socket, UIEventTransmitter eventTransmitter)
+	public ReceiverController(Socket socket, BusinessEvents eventTransmitter)
 	{
 		assert null != socket && socket.isConnected(): "Invalid socket for construction";
-		assert null != eventTransmitter : "Invalid UIEventTransmitter for construction";
+		assert null != eventTransmitter : "Invalid BusinessEvents for construction";
 
-		this.eventTransmitter = eventTransmitter;
+		this.mainSocket = socket;
+		this.businessEvents = eventTransmitter;
 		try
 		{
-			this.socketReceiver = new SocketReceiver(socket);
+			this.socketMessageReceiver = new SocketMessageReceiver(new SocketReceiver(socket.getInputStream()));
 		} catch (IOException e)
 		{
 			LOGGER.log(Level.WARNING, "Failed to construct a SocketReceiver" + e.getMessage());
@@ -39,28 +42,40 @@ public class ReceiverController implements Closeable
 		startListening();
 	}
 
-	private void messagesPending()
+	private void checkMessages()
 	{
-		String message = socketReceiver.getLine();
+		NetworkMessage networkMessage = socketMessageReceiver.pullMessage();
 
-		switch (message)
+		if (null != networkMessage)
 		{
-			case "UPDATE_FILE_LIST":
+			switch (networkMessage.getType())
 			{
-				String line = socketReceiver.getLine();
-				LOGGER.log(Level.ALL, "Received remote file list update: " + line);
+				case UPDATE_FILE_LIST:
+				{
+					LOGGER.log(Level.ALL, "Received remote file list update: " + networkMessage.getMessage());
 
-				line = line.substring(1, line.length() - 1);
-				eventTransmitter.updateRemoteFileList(Arrays.asList(line.split(", ")));
+					//The files come as a string of comma separated values so this splits and parses them to a list
+					//ex. [a, b, c]
+					String message = networkMessage.getMessage();
+					message = message.substring(1, message.length() - 1);
+					businessEvents.updateRemoteFileList(Arrays.asList(message.split(", ")));
 
+				}
+				break;
+				case SEND_FILE:
+				{
+					String fileName = networkMessage.getMessage();
+					String filePath = businessEvents.getLocalFilePath(fileName);
+
+					LOGGER.log(Level.FINE, String.format("Received file transfer request\n " +
+							"Starting file transmitter with file: %s on address: %s, port%d",
+							filePath + fileName, mainSocket.getInetAddress().toString(), mainSocket.getPort() + 1));
+
+					new FileTransmitterController(filePath, fileName,
+							mainSocket.getInetAddress().toString(), mainSocket.getPort() + 1).start();
+				}
+				break;
 			}
-			break;
-			case "SEND_FILE":
-			{
-				String line = socketReceiver.getLine();
-				LOGGER.log(Level.ALL, "Received remote file request: " + line);
-			}
-			break;
 		}
 	}
 
@@ -88,11 +103,10 @@ public class ReceiverController implements Closeable
 		@Override
 		public void run()
 		{
+			LOGGER.log(Level.ALL, "Started listening for messages on the socket");
 			while (!isInterrupted())
 			{
-				if (socketReceiver.hasMessage())
-					messagesPending();
-
+				checkMessages();
 				try
 				{
 					Thread.sleep(1000);

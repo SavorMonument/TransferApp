@@ -1,55 +1,21 @@
 package logic;
 
-import window.AppLogger;
-
-import java.util.logging.Level;
-
 public class DeltaTime
 {
-	private long elapsedTime;
-	private long last;
-	private long nsPerTick;
+	private long startTime;
 
-	public DeltaTime(int TicksPerSecond)
+	public DeltaTime()
 	{
-		last = System.nanoTime();
-		nsPerTick = (long) 1e+9 / TicksPerSecond;
+		startTime = System.nanoTime();
 	}
 
-	public void update()
+	public int getElipsedTimeMillis()
 	{
-		long now = System.nanoTime();
-
-		elapsedTime += now - last;
-		last = now;
-
-//		AppLogger.getInstance().log(Level.FINEST,
-//				"Nr of ticks extra(should be 0 else the app can't keep up): " + elapsedTime / nsPerTick);
+		return (int) getElapsedTimeNano() / (int) 1e+6;
 	}
 
-	/**
-	 * Enough time has passed to count as tick
-	 */
-	public boolean enoughTimePassed()
+	public long getElapsedTimeNano()
 	{
-		if (elapsedTime > nsPerTick)
-		{
-			return true;
-		}
-		return false;
-	}
-
-	/**
-	 * How many ns have to pass in order to count as a tick
-	 */
-	public long getTimeToTick()
-	{
-        return nsPerTick - elapsedTime;
-	}
-
-	public void subtractOneTick()
-	{
-		elapsedTime -= nsPerTick;
+		return System.nanoTime() - startTime;
 	}
 }
-

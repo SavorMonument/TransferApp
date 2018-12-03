@@ -3,7 +3,7 @@ package window;
 import java.io.File;
 import java.util.List;
 
-public interface LocalUIEvents
+public interface UIEvents
 {
 	void updateAvailableFileList(List<File> file);
 	default boolean attemptConnectionToHost(String host)

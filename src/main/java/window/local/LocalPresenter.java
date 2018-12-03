@@ -1,29 +1,29 @@
 package window.local;
 
-import javafx.collections.ObservableList;
+import com.sun.javafx.collections.ObservableListWrapper;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ListView;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.TransferMode;
 import window.AppLogger;
-import window.LocalUIEvents;
+import window.UIEvents;
+import window.handle.UIBeanRepository;
 
 import java.io.File;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.util.*;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class LocalPresenter implements Initializable
+public class LocalPresenter implements Initializable, UIBeanRepository.UIBean
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 
-	private static LocalUIEvents localUIEvents;
+	private static UIEvents UIEventHandler;
 
-	private List<File> availableFiles = new ArrayList<>();
+	private Set<File> availableFiles = new HashSet<>();
 
 	@FXML
 	private ListView fileList;
@@ -47,29 +47,44 @@ public class LocalPresenter implements Initializable
 	public void fileDragDropped(DragEvent event)
 	{
 		LOGGER.log(Level.FINE, "File drag dropped");
+		event.getDragboard().getFiles().forEach(file ->
+		{
+			if (!file.isDirectory())
+				availableFiles.add(file);
+		});
 
-		ObservableList items = fileList.getItems();
+		List<File> itemList = new ArrayList<>(availableFiles);
+		UIEventHandler.updateAvailableFileList(itemList);
 
-		availableFiles.addAll(event.getDragboard().getFiles());
-		items.addAll(event.getDragboard().getFiles());
-
-		localUIEvents.updateAvailableFileList(availableFiles);
+		fileList.setItems(new ObservableListWrapper(itemList));
 	}
 
 	@FXML
 	public void fileDragEntered()
 	{
-		LOGGER.log(Level.FINE, "File drag entered");
+//		LOGGER.log(Level.FINE, "File drag entered");
 	}
 
+	public String getFilePath(String fileName)
+	{
+		String path = "";
+
+		for(File file: availableFiles)
+		{
+			if (file.getName().equals(fileName))
+				path = file.getAbsolutePath();
+		}
+
+		return path;
+	}
 
 	private static boolean isLocalEventsInitialized()
 	{
-		return null != localUIEvents;
+		return null != UIEventHandler;
 	}
 
-	public static void changeLocalEventHandler(LocalUIEvents localUIEvents)
+	public static void setUIEventHandler(UIEvents localUIEvents)
 	{
-		LocalPresenter.localUIEvents = localUIEvents;
+		LocalPresenter.UIEventHandler = localUIEvents;
 	}
 }

@@ -1,12 +1,9 @@
 package network;
 
-import org.mockito.Mock;
 import org.mockito.Mockito;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.junit.Before;
 import org.junit.After;
@@ -16,28 +13,20 @@ import static org.junit.Assert.*;
 
 public class SocketSenderTest
 {
-	private Socket mockSocket;
-
-	private SocketSender socketSender;
+	private SocketTransmitter socketSender;
 	private ByteArrayOutputStream byteArrayOutputStream;
 
 	@Before
 	public void setUp() throws Exception
 	{
-		mockSocket = Mockito.mock(Socket.class);
-		Mockito.when(mockSocket.isConnected()).thenReturn(true);
 
 		byteArrayOutputStream = new ByteArrayOutputStream();
-		Mockito.when(mockSocket.getOutputStream()).thenReturn(byteArrayOutputStream);
-
-
-		socketSender = new SocketSender(mockSocket);
+		socketSender = new SocketTransmitter(byteArrayOutputStream);
 	}
 
 	@After
 	public void tearDown() throws Exception
 	{
-		mockSocket = null;
 		socketSender = null;
 		byteArrayOutputStream = null;
 	}
@@ -45,10 +34,23 @@ public class SocketSenderTest
 	@Test
 	public void transmitMessage()
 	{
-		String message = "Test";
+		byte[] bytes = "Test".getBytes();
 
-		socketSender.transmitMessage(message);
+		socketSender.transmitBytes(bytes);
 
-		assertEquals(message, byteArrayOutputStream.toString());
+		assertArrayEquals(bytes, byteArrayOutputStream.toByteArray());
+	}
+
+	@Test
+	public void temp() throws IOException
+	{
+		SocketReceiver socketReceiver = new SocketReceiver(new StringBufferInputStream("AAaajl;hjkkkkkkkkkk"));
+		BufferedReader reader = new BufferedReader(new InputStreamReader(socketReceiver));
+
+		System.out.println(reader.read());
+		System.out.println(reader.readLine());
+
+
+		System.out.println("Here");
 	}
 }
