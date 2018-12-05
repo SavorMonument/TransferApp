@@ -8,6 +8,7 @@ import window.AppLogger;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -16,7 +17,9 @@ public class FileTransmitter extends Thread
 	private static final Logger LOGGER = AppLogger.getInstance();
 	private static final int BUFFER_SIZE = 4096;
 
+	private int socketBufferSize;
 	private SocketTransmitter socketTransmitter;
+	private SocketReceiver socketReceiver;
 
 	private String socketURL;
 	private int transmittingPort;
@@ -61,30 +64,41 @@ public class FileTransmitter extends Thread
 	private void readBytesAndTransmitThemOverSocket(FileInput fileInput) throws IOException
 	{
 		byte[] buffer = new byte[BUFFER_SIZE];
+		int bytesSentSinceLastSignal = 0;
 
 		int bytesRead = BUFFER_SIZE;
 		while (bytesRead == BUFFER_SIZE)
 		{
-			bytesRead = fileInput.read(buffer, BUFFER_SIZE);
-			socketTransmitter.transmitBytes(buffer, bytesRead);
+			if (bytesSentSinceLastSignal + BUFFER_SIZE < socketBufferSize)
+			{
+				bytesRead = fileInput.read(buffer, BUFFER_SIZE);
+				socketTransmitter.transmitBytes(buffer, bytesRead);
+				bytesSentSinceLastSignal += BUFFER_SIZE;
+			}
+			if (socketReceiver.available() > 0)
+			{
+				socketReceiver.read();
+				bytesSentSinceLastSignal = 0;
+			}
 		}
 	}
 
 	private void attemptConnection()
 	{
-		try
-		{
-			Thread.sleep(1000);
-		} catch (InterruptedException e)
-		{
-			e.printStackTrace();
-		}
 		ConnectionResolver resolver = new ConnectionResolver(new ConnectionResolver.ConnectionEvent()
 		{
 			@Override
 			public void connectionEstablished(Socket socket, SocketTransmitter socketTransmitter, SocketReceiver socketReceiver)
 			{
 				FileTransmitter.this.socketTransmitter = socketTransmitter;
+				FileTransmitter.this.socketReceiver = socketReceiver;
+				try
+				{
+					socketBufferSize = socket.getSendBufferSize();
+				} catch (SocketException e)
+				{
+					e.printStackTrace();
+				}
 			}
 		});
 		resolver.attemptConnection(socketURL, transmittingPort, transmittingPort);

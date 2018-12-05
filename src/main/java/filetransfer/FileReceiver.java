@@ -18,6 +18,7 @@ public class FileReceiver extends Thread
 	private static final int BUFFER_SIZE = 4096;
 
 	private SocketReceiver socketReceiver;
+	private SocketTransmitter socketTransmitter;
 
 	private int listeningPort;
 	private String downloadPath;
@@ -38,7 +39,7 @@ public class FileReceiver extends Thread
 		awaitConnection();
 		if (null != socketReceiver)
 		{
-			try(FileOutput fileOutput = new FileOutput(fileName, downloadPath))
+			try (FileOutput fileOutput = new FileOutput(fileName, downloadPath))
 			{
 				fileOutput.createTempFile();
 				receiveBytesAndWriteToFile(fileOutput);
@@ -48,7 +49,7 @@ public class FileReceiver extends Thread
 			} catch (IOException | InterruptedException e)
 			{
 				e.printStackTrace();
-			}finally
+			} finally
 			{
 				socketReceiver.close();
 			}
@@ -63,20 +64,30 @@ public class FileReceiver extends Thread
 	{
 		byte[] buffer = new byte[BUFFER_SIZE];
 
-		DeltaTime dt;
-		while (socketReceiver.available() > 0)
+		//TODO: Better way to determine when a file is done or not, can't rely on a timer
+		DeltaTime lastSuccessfulTransmission = new DeltaTime();
+		while (lastSuccessfulTransmission.getElapsedTimeMillis() < CONNECTION_TIMEOUT_MILLIS)
 		{
-			dt = new DeltaTime();
-			while (socketReceiver.available() < BUFFER_SIZE && dt.getElapsedTimeMillis() < CONNECTION_TIMEOUT_MILLIS)
+			if (socketReceiver.available() == 0)
 			{
-				Thread.sleep(1000);
+				//Send a byte to let the transmitter know it can transmit
+				socketTransmitter.transmitByte(1);
+				Thread.sleep(2000);
+			} else
+			{
+				while (socketReceiver.available() >= BUFFER_SIZE)
+				{
+					int amountRead = socketReceiver.read(buffer);
+					fileOutput.writeToFile(buffer, amountRead);
+				}
+				lastSuccessfulTransmission = new DeltaTime();
 			}
+		}
+		//Write the last bit that is smaller than BUFFER_SIZE
+		if (socketReceiver.available() > 0)
+		{
 			int amountRead = socketReceiver.read(buffer);
 			fileOutput.writeToFile(buffer, amountRead);
-
-			//TODO: Make stopping solution better can't rely on the networks mercy
-			if (amountRead < BUFFER_SIZE)
-				break;
 		}
 	}
 
@@ -89,6 +100,7 @@ public class FileReceiver extends Thread
 			public void connectionEstablished(Socket socket, SocketTransmitter socketTransmitter, SocketReceiver socketReceiver)
 			{
 				FileReceiver.this.socketReceiver = socketReceiver;
+				FileReceiver.this.socketTransmitter = socketTransmitter;
 			}
 		});
 
