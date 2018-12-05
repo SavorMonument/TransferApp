@@ -58,6 +58,7 @@ public class FileTransmitter extends Thread
 			if (bytesSentSinceLastSignal + BUFFER_SIZE < MAX_TRANSFER_AT_ONCE)
 			{
 				bytesRead = fileInput.read(buffer, BUFFER_SIZE);
+				System.out.println(bytesRead);
 				socketTransmitter.transmitBytes(buffer, bytesRead);
 				bytesSentSinceLastSignal += BUFFER_SIZE;
 			}

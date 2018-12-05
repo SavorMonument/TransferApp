@@ -15,7 +15,7 @@ import java.util.logging.Logger;
 public class FileReceiver extends Thread
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
-	private static final int CONNECTION_TIMEOUT_MILLIS = 10_000;
+	private static final int CONNECTION_TIMEOUT_MILLIS = 5_000;
 	private static final int BUFFER_SIZE = 4096;
 
 	private TransferFileOutput fileOutput;
@@ -67,11 +67,11 @@ public class FileReceiver extends Thread
 		DeltaTime lastSuccessfulTransmission = new DeltaTime();
 		while (lastSuccessfulTransmission.getElapsedTimeMillis() < CONNECTION_TIMEOUT_MILLIS)
 		{
-			if (socketReceiver.available() == 0)
+			if (socketReceiver.available() < BUFFER_SIZE)
 			{
 				//Send a byte to let the transmitter know it can transmit
 				socketTransmitter.transmitByte(1);
-				Thread.sleep(100);
+				Thread.sleep(1000);
 			} else
 			{
 				while (socketReceiver.available() >= BUFFER_SIZE)
