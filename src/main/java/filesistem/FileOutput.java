@@ -1,9 +1,11 @@
 package filesistem;
 
+import filetransfer.TransferFileOutput;
+
 import java.io.*;
 import java.util.Arrays;
 
-public class FileOutput implements Closeable
+public class FileOutput implements Closeable, TransferFileOutput
 {
 	private File tempFile;
 	private BufferedOutputStream outputStream;

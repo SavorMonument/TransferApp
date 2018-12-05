@@ -1,10 +1,15 @@
 package logic;
 
+import filesistem.FileOutput;
 import filetransfer.FileReceiver;
+import network.ConnectionResolver;
 import network.SocketMessageTransmitter;
+import network.SocketReceiver;
+import network.SocketTransmitter;
 import window.AppLogger;
 
 import java.io.File;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -53,6 +58,16 @@ public class TransmitterController
 		NetworkMessage networkMessage = new NetworkMessage(NetworkMessage.MessageType.SEND_FILE, fileName);
 		messageTransmitter.transmitMessage(networkMessage);
 
-		new FileReceiver(downloadPath, fileName, FILE_PORT).start();
+		new ConnectionResolver(new ConnectionResolver.ConnectionEvent()
+		{
+			@Override
+			public void connectionEstablished(
+					Socket socket, SocketTransmitter socketTransmitter, SocketReceiver socketReceiver)
+			{
+				new FileReceiver(socketReceiver, socketTransmitter, new FileOutput(fileName, downloadPath))
+				.start();
+			}
+		}).startListeningBlocking(FILE_PORT, 10_000);
+
 	}
 }

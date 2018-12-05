@@ -38,7 +38,7 @@ public class SocketReceiverTest
 		Mockito.when(mockSocket.getInputStream()).thenReturn(new StringBufferInputStream(message));
 		socketReceiver = new SocketReceiver(mockSocket);
 
-		assertTrue(socketReceiver.hasBytes());
+		assertTrue(socketReceiver.available() > 0);
 	}
 
 	@Test

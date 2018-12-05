@@ -1,5 +1,6 @@
 package network;
 
+import filetransfer.TransferInput;
 import window.AppLogger;
 
 import java.io.*;
@@ -7,7 +8,7 @@ import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class SocketReceiver extends SocketStream
+public class SocketReceiver extends SocketStream implements TransferInput
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 
@@ -23,19 +24,6 @@ public class SocketReceiver extends SocketStream
 		{
 			e.printStackTrace();
 		}
-	}
-
-	public boolean hasBytes()
-	{
-		try
-		{
-			return inputStream.available() > 0;
-		} catch (IOException e)
-		{
-			LOGGER.log(Level.WARNING, "Socket inputStream stream problem " + e.getMessage());
-//			e.printStackTrace();
-		}
-		return false;
 	}
 
 	public int read(byte[] b, int off, int len) throws IOException

@@ -19,18 +19,21 @@ public class ConnectionResolver
 		this.connectionEvent = connectionEvent;
 	}
 
-	public void attemptConnection(String url, int port, int localPort)
+	public void attemptConnection(InetAddress address, int port, int localPort)
 	{
-		LOGGER.log(Level.INFO, String.format("Attempting connection to URL: %s, port: %d", url, port));
+		LOGGER.log(Level.INFO, String.format("Attempting connection to URL: %s, port: %d",
+				address.getHostAddress(), port));
 		Socket socket;
 		try
 		{
-			socket = new Socket(url, port, null, localPort);
-			LOGGER.log(Level.ALL, String.format("Connection successful to URL: %s, port: %d", url, port));
+			socket = new Socket(address, port, null, localPort);
+			LOGGER.log(Level.ALL, String.format("Connection successful to URL: %s, port: %d",
+					address.getHostAddress(), port));
 			callEvent(socket);
 		} catch (IOException e)
 		{
-			LOGGER.log(Level.WARNING, String.format("Connection unsuccessful to URL: %s\n%s", url, e.getMessage()));
+			LOGGER.log(Level.WARNING, String.format("Connection unsuccessful to URL: %s\n%s",
+					address.getHostAddress(), e.getMessage()));
 		}
 	}
 

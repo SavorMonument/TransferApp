@@ -1,8 +1,10 @@
 package filesistem;
 
+import filetransfer.TransferFileInput;
+
 import java.io.*;
 
-public class FileInput implements Closeable
+public class FileInput implements TransferFileInput
 {
 	private File file;
 	private BufferedInputStream inputStream;

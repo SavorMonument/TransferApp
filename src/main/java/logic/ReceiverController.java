@@ -1,10 +1,15 @@
 package logic;
 
+import filesistem.FileInput;
 import filetransfer.FileTransmitter;
+import network.ConnectionResolver;
 import network.SocketMessageReceiver;
+import network.SocketMessageTransmitter;
 import window.AppLogger;
 
 import java.io.Closeable;
+import java.net.InetAddress;
+import java.net.Socket;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -60,12 +65,24 @@ public class ReceiverController implements Closeable
 							"Starting file transmitter with file: %s on address: %s, port%d",
 							filePath, messageReceiver.getSocketIPAddress(), FILE_PORT));
 
-					new FileTransmitter(filePath,
-							messageReceiver.getSocketIPAddress().substring(1), FILE_PORT).start();
+					attemptBuildFileTransfer(filePath, messageReceiver.getSocketIPAddress(), FILE_PORT);
 				}
 				break;
 			}
 		}
+	}
+
+	private void attemptBuildFileTransfer(String filePath, InetAddress socketIPAddress, int filePort)
+	{
+		new ConnectionResolver(new ConnectionResolver.ConnectionEvent()
+		{
+			@Override
+			public void connectionEstablished(Socket socket, SocketMessageTransmitter messageTransmitter,
+											  SocketMessageReceiver messageReceiver)
+			{
+				new FileTransmitter(messageTransmitter, messageReceiver, new FileInput(filePath)).start();
+			}
+		}).attemptConnection(socketIPAddress, filePort, filePort);
 	}
 
 	private void startListening()

@@ -1,5 +1,6 @@
 package filetransfer;
 
+import com.sun.istack.internal.NotNull;
 import filesistem.FileOutput;
 import network.ConnectionResolver;
 import network.SocketReceiver;
@@ -17,18 +18,16 @@ public class FileReceiver extends Thread
 	private static final int CONNECTION_TIMEOUT_MILLIS = 10_000;
 	private static final int BUFFER_SIZE = 4096;
 
-	private SocketReceiver socketReceiver;
-	private SocketTransmitter socketTransmitter;
+	private TransferFileOutput fileOutput;
+	private TransferInput socketReceiver;
+	private TransferOutput socketTransmitter;
 
-	private int listeningPort;
-	private String downloadPath;
-	private String fileName;
-
-	public FileReceiver(String downloadPath, String fileName, int listeningPort)
+	public FileReceiver(@NotNull TransferInput socketReceiver,@NotNull TransferOutput socketTransmitter,
+					 	@NotNull TransferFileOutput fileOutput)
 	{
-		this.downloadPath = downloadPath;
-		this.fileName = fileName;
-		this.listeningPort = listeningPort;
+		this.fileOutput = fileOutput;
+		this.socketReceiver = socketReceiver;
+		this.socketTransmitter = socketTransmitter;
 
 		setDaemon(true);
 	}
@@ -36,10 +35,10 @@ public class FileReceiver extends Thread
 	@Override
 	public void run()
 	{
-		awaitConnection();
+//		awaitConnection();
 		if (null != socketReceiver)
 		{
-			try (FileOutput fileOutput = new FileOutput(fileName, downloadPath))
+			try
 			{
 				fileOutput.createTempFile();
 				receiveBytesAndWriteToFile(fileOutput);
@@ -60,7 +59,7 @@ public class FileReceiver extends Thread
 
 	}
 
-	private void receiveBytesAndWriteToFile(FileOutput fileOutput) throws IOException, InterruptedException
+	private void receiveBytesAndWriteToFile(TransferFileOutput fileOutput) throws IOException, InterruptedException
 	{
 		byte[] buffer = new byte[BUFFER_SIZE];
 
@@ -72,7 +71,7 @@ public class FileReceiver extends Thread
 			{
 				//Send a byte to let the transmitter know it can transmit
 				socketTransmitter.transmitByte(1);
-				Thread.sleep(2000);
+				Thread.sleep(100);
 			} else
 			{
 				while (socketReceiver.available() >= BUFFER_SIZE)
@@ -91,19 +90,19 @@ public class FileReceiver extends Thread
 		}
 	}
 
-	private void awaitConnection()
-	{
-		ConnectionResolver resolver = new ConnectionResolver(new ConnectionResolver.ConnectionEvent()
-		{
-
-			@Override
-			public void connectionEstablished(Socket socket, SocketTransmitter socketTransmitter, SocketReceiver socketReceiver)
-			{
-				FileReceiver.this.socketReceiver = socketReceiver;
-				FileReceiver.this.socketTransmitter = socketTransmitter;
-			}
-		});
-
-		resolver.startListeningBlocking(listeningPort, CONNECTION_TIMEOUT_MILLIS);
-	}
+//	private void awaitConnection()
+//	{
+//		ConnectionResolver resolver = new ConnectionResolver(new ConnectionResolver.ConnectionEvent()
+//		{
+//
+//			@Override
+//			public void connectionEstablished(Socket socket, SocketTransmitter socketTransmitter, SocketReceiver socketReceiver)
+//			{
+//				FileReceiver.this.socketReceiver = socketReceiver;
+//				FileReceiver.this.socketTransmitter = socketTransmitter;
+//			}
+//		});
+//
+//		resolver.startListeningBlocking(listeningPort, CONNECTION_TIMEOUT_MILLIS);
+//	}
 }

@@ -1,5 +1,6 @@
 package network;
 
+import filetransfer.TransferOutput;
 import window.AppLogger;
 
 import java.io.*;
@@ -7,7 +8,7 @@ import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class SocketTransmitter extends SocketStream
+public class SocketTransmitter extends SocketStream implements TransferOutput
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 

@@ -8,7 +8,7 @@ import window.local.LocalController;
 import window.remote.RemoteController;
 
 import java.io.File;
-import java.net.Socket;
+import java.net.*;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -71,12 +71,22 @@ public class LogicController extends Thread
 		@Override
 		public boolean attemptConnectionToHost(String host, int port)
 		{
-			assert null == mainSocket : "Already connected to something";
+			if (null == mainSocket)
+			{
+				LOGGER.log(Level.FINE, "Connection request to: " + host);
+				try
+				{
+					connectionResolver.attemptConnection(InetAddress.getByName(host), port, port + 1);
+					return true;
+				} catch (UnknownHostException e)
+				{
+					LOGGER.log(Level.FINE, "Invalid address: " + host);
+//					e.printStackTrace();
+				}
+			} else
+				LOGGER.log(Level.FINE, "Connection request denied: Already connected");
 
-			LOGGER.log(Level.FINE, "Connection request to: " + host);
-			connectionResolver.attemptConnection(host, port, port + 1);
-
-			return true;
+			return false;
 		}
 
 		@Override

@@ -2,6 +2,7 @@ package network;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.Socket;
 
 public abstract class SocketStream implements Closeable
@@ -25,9 +26,9 @@ public abstract class SocketStream implements Closeable
 		return socket.getLocalPort();
 	}
 
-	public String getSocketIPAddress()
+	public InetAddress getSocketIPAddress()
 	{
-		return socket.getInetAddress().toString();
+		return socket.getInetAddress();
 	}
 
 	@Override
