@@ -31,7 +31,11 @@ public class ConnectionController implements Initializable
 	{
 		if (isLocalEventsInitialized())
 		{
-			localUIEvents.attemptConnectionToHost(addressField.getCharacters().toString());
+			//DEBUG ONLY
+			if (addressField.getCharacters().toString().equals(""))
+				localUIEvents.attemptConnectionToHost("192.168.0.100");
+			else
+				localUIEvents.attemptConnectionToHost(addressField.getCharacters().toString());
 		}
 	}
 

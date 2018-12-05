@@ -38,7 +38,7 @@ public class SocketTransmitter extends SocketStream
 			outputStream.flush();
 		} catch (IOException e)
 		{
-			LOGGER.log(Level.WARNING, "Could not send message to outputStream stream");
+			LOGGER.log(Level.WARNING, "Could not send message to outputStream stream " + e.getMessage());
 		}
 	}
 
