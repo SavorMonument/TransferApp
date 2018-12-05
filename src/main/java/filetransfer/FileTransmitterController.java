@@ -72,6 +72,13 @@ public class FileTransmitterController extends Thread
 
 	private void attemptConnection()
 	{
+		try
+		{
+			Thread.sleep(2000);
+		} catch (InterruptedException e)
+		{
+			e.printStackTrace();
+		}
 		ConnectionResolver resolver = new ConnectionResolver(new ConnectionResolver.ConnectionEvent()
 		{
 			@Override

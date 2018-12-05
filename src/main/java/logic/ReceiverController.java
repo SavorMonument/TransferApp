@@ -61,7 +61,7 @@ public class ReceiverController implements Closeable
 							filePath, messageReceiver.getSocketIPAddress(), FILE_PORT));
 
 					new FileTransmitterController(filePath,
-							messageReceiver.getSocketIPAddress(), FILE_PORT).start();
+							messageReceiver.getSocketIPAddress().substring(1), FILE_PORT).start();
 				}
 				break;
 			}

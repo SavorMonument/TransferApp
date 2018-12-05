@@ -28,6 +28,8 @@ public class FileReceiverController extends Thread
 		this.downloadPath = downloadPath;
 		this.fileName = fileName;
 		this.listeningPort = listeningPort;
+
+		setDaemon(true);
 	}
 
 	@Override
