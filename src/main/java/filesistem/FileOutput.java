@@ -44,14 +44,12 @@ public class FileOutput implements Closeable
 	public boolean finishFile()
 	{
 		assert null != tempFile : "The file has to be created";
-		close();
 		isFinnished = true;
 		return tempFile.renameTo(new File(tempFile.getAbsolutePath().replace(".tmp", "")));
 	}
 
-	public void abort()
+	private void abort()
 	{
-		close();
 		if (tempFile.exists())
 		{
 			tempFile.delete();
