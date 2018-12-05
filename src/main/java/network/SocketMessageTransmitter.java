@@ -1,16 +1,20 @@
 package network;
 
+import logic.NetworkMessage;
+
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.net.Socket;
 
-public class SocketMessageTransmitter
+public class SocketMessageTransmitter extends SocketTransmitter
 {
-	private BufferedWriter output;
+	private BufferedWriter outputWriter;
 
-	public SocketMessageTransmitter(SocketTransmitter transmitter)
+	public SocketMessageTransmitter(Socket socket)
 	{
-		this.output = new BufferedWriter(new OutputStreamWriter(transmitter));
+		super(socket);
+		this.outputWriter = new BufferedWriter(new OutputStreamWriter(outputStream));
 	}
 
 	public void transmitMessage(NetworkMessage networkMessage)
@@ -23,8 +27,8 @@ public class SocketMessageTransmitter
 
 		try
 		{
-			output.write(message.toString());
-			output.flush();
+			outputWriter.write(message.toString());
+			outputWriter.flush();
 		} catch (IOException e)
 		{
 			e.printStackTrace();

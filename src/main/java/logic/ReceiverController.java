@@ -1,13 +1,10 @@
 package logic;
 
-import network.NetworkMessage;
+import filetransfer.FileTransmitterController;
 import network.SocketMessageReceiver;
-import network.SocketReceiver;
 import window.AppLogger;
 
 import java.io.Closeable;
-import java.io.IOException;
-import java.net.Socket;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,35 +15,25 @@ public class ReceiverController implements Closeable
 	//TODO: Have this passed trough the main socket(so you can have multiple file transferring at the sam time)
 	private static final int FILE_PORT = 59_901;
 
-	private SocketMessageReceiver socketMessageReceiver;
+	private SocketMessageReceiver messageReceiver;
 	private BusinessEvents businessEvents;
 
-	private Socket mainSocket;
 	private SocketReceiverListener listener;
 
 
-	public ReceiverController(Socket socket, BusinessEvents eventTransmitter)
+	public ReceiverController(SocketMessageReceiver messageReceiver, BusinessEvents eventTransmitter)
 	{
-		assert null != socket && socket.isConnected(): "Invalid socket for construction";
 		assert null != eventTransmitter : "Invalid BusinessEvents for construction";
 
-		this.mainSocket = socket;
 		this.businessEvents = eventTransmitter;
-		try
-		{
-			this.socketMessageReceiver = new SocketMessageReceiver(new SocketReceiver(socket.getInputStream()));
-		} catch (IOException e)
-		{
-			LOGGER.log(Level.WARNING, "Failed to construct a SocketReceiver" + e.getMessage());
-//			e.printStackTrace();
-		}
+		this.messageReceiver = messageReceiver;
 
 		startListening();
 	}
 
 	private void checkMessages()
 	{
-		NetworkMessage networkMessage = socketMessageReceiver.pullMessage();
+		NetworkMessage networkMessage = messageReceiver.pullMessage();
 
 		if (null != networkMessage)
 		{
@@ -71,10 +58,10 @@ public class ReceiverController implements Closeable
 
 					LOGGER.log(Level.FINE, String.format("Received file transfer request\n " +
 							"Starting file transmitter with file: %s on address: %s, port%d",
-							filePath, mainSocket.getInetAddress().toString(), FILE_PORT));
+							filePath, messageReceiver.getSocketIPAddress(), FILE_PORT));
 
 					new FileTransmitterController(filePath,
-							mainSocket.getInetAddress().toString().substring(1), FILE_PORT).start();
+							messageReceiver.getSocketIPAddress(), FILE_PORT).start();
 				}
 				break;
 			}

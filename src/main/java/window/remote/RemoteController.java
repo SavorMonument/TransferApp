@@ -7,10 +7,12 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ListView;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
 import window.AppLogger;
 import window.UIEvents;
-import window.handle.UIBeanRepository;
 
+import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +20,7 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class RemotePresenter implements Initializable, UIBeanRepository.UIBean
+public class RemoteController implements Initializable
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 
@@ -49,6 +51,20 @@ public class RemotePresenter implements Initializable, UIBeanRepository.UIBean
 				event.requestFileForDownload(elem);
 			}
 		}
+	}
+
+	@FXML
+	public void chooseFile(ActionEvent actionEvent)
+	{
+		DirectoryChooser chooser = new DirectoryChooser();
+		chooser.setTitle("Chose location");
+		File directory = chooser.showDialog(fileList.getScene().getWindow());
+
+		if (null != directory)
+			for (UIEvents event: localUIEventHandlers)
+			{
+				event.setDownloadLocation(directory.getAbsolutePath());
+			}
 	}
 
 	public void updateRemoteFileList(List<String> fileNames)

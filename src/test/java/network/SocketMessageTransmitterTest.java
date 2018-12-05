@@ -1,15 +1,19 @@
 package network;
 
+import logic.NetworkMessage;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.io.ByteArrayOutputStream;
+import java.net.Socket;
 
 import static org.junit.Assert.*;
 
 public class SocketMessageTransmitterTest
 {
+	Socket socket;
 	SocketMessageTransmitter socketMessageTransmitter;
 	ByteArrayOutputStream outputStream;
 
@@ -17,7 +21,12 @@ public class SocketMessageTransmitterTest
 	public void setUp() throws Exception
 	{
 		outputStream = new ByteArrayOutputStream();
-		socketMessageTransmitter = new SocketMessageTransmitter(new SocketTransmitter(outputStream));
+
+		socket = Mockito.mock(Socket.class);
+		Mockito.when(socket.getOutputStream()).thenReturn(outputStream);
+		Mockito.when(socket.isConnected()).thenReturn(true);
+
+		socketMessageTransmitter = new SocketMessageTransmitter(socket);
 	}
 
 	@After

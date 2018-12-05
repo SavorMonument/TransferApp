@@ -6,13 +6,12 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import window.AppLogger;
 import window.UIEvents;
-import window.handle.UIBeanRepository;
 
 import java.net.URL;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 
-public class ConnectionPresenter implements Initializable, UIBeanRepository.UIBean
+public class ConnectionController implements Initializable
 {
 	@FXML
 	private Button connectButton;
@@ -43,6 +42,6 @@ public class ConnectionPresenter implements Initializable, UIBeanRepository.UIBe
 
 	public static void changeLocalEventHandler(UIEvents localUIEvents)
 	{
-		ConnectionPresenter.localUIEvents = localUIEvents;
+		ConnectionController.localUIEvents = localUIEvents;
 	}
 }

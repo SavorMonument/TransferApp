@@ -3,9 +3,9 @@ package logic;
 import network.*;
 import window.AppLogger;
 import window.UIEvents;
-import window.connection.ConnectionPresenter;
-import window.local.LocalPresenter;
-import window.remote.RemotePresenter;
+import window.connection.ConnectionController;
+import window.local.LocalController;
+import window.remote.RemoteController;
 
 import java.io.File;
 import java.net.Socket;
@@ -31,9 +31,9 @@ public class LogicController extends Thread
 	public LogicController(BusinessEvents businessEvents)
 	{
 		UIEvents localUIHandler = new UIEventReceiver();
-		ConnectionPresenter.changeLocalEventHandler(localUIHandler);
-		LocalPresenter.setUIEventHandler(localUIHandler);
-		RemotePresenter.addLocalEventHandler(localUIHandler);
+		ConnectionController.changeLocalEventHandler(localUIHandler);
+		LocalController.setUIEventHandler(localUIHandler);
+		RemoteController.addLocalEventHandler(localUIHandler);
 
 		this.businessEvents = businessEvents;
 		this.connectionResolver = new ConnectionResolver(new ConnectionListener());
@@ -96,9 +96,9 @@ public class LogicController extends Thread
 		}
 	}
 
-	class ConnectionListener implements ConnectionResolver.ConnectionEvent
+	class ConnectionListener extends ConnectionResolver.ConnectionEvent
 	{
-		public void connectionEstablished(Socket socket)
+		public void connectionEstablished(Socket socket, SocketMessageTransmitter messageTransmitter, SocketMessageReceiver messageReceiver)
 		{
 			assert null == mainSocket || mainSocket.isClosed() : "Got connection request while connected";
 			assert socket.isConnected() : "Got event with unconnected socket";
@@ -108,8 +108,8 @@ public class LogicController extends Thread
 			{
 				LOGGER.log(Level.ALL, "Successfully connected to socket");
 				mainSocket = socket;
-				receiverController = new ReceiverController(socket, businessEvents);
-				transmitterController = new TransmitterController(socket, businessEvents);
+				receiverController = new ReceiverController(messageReceiver, businessEvents);
+				transmitterController = new TransmitterController(messageTransmitter, businessEvents);
 
 				if (connectionResolver.isListening())
 					connectionResolver.stopListening();

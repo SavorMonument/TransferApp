@@ -1,21 +1,27 @@
 package network;
 
+import logic.NetworkMessage;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.io.*;
+import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 
 import static org.junit.Assert.*;
 
 public class SocketMessageReceiverTest
 {
+	Socket socket;
 	SocketMessageReceiver socketMessageReceiver;
-	SocketReceiver socketReceiver;
 
 	@Before
 	public void setUp() throws Exception
 	{
+		socket = Mockito.mock(Socket.class);
+		Mockito.when(socket.isConnected()).thenReturn(true);
 	}
 
 	@After
@@ -31,8 +37,8 @@ public class SocketMessageReceiverTest
 		String message = "Test";
 		NetworkMessage networkMessage = new NetworkMessage(type, message);
 
-		SocketReceiver socketReceiver = new SocketReceiver(new StringBufferInputStream(networkMessage.toString()));
-		socketMessageReceiver = new SocketMessageReceiver(socketReceiver);
+		Mockito.when(socket.getInputStream()).thenReturn(new StringBufferInputStream(networkMessage.toString()));
+		socketMessageReceiver = new SocketMessageReceiver(socket);
 
 		assertEquals(networkMessage.toString(), socketMessageReceiver.pullMessage().toString());
 	}
@@ -42,8 +48,8 @@ public class SocketMessageReceiverTest
 	{
 		String testMessage = "Test";
 
-		socketReceiver = new SocketReceiver(new StringBufferInputStream(testMessage));
-		socketMessageReceiver = new SocketMessageReceiver(socketReceiver);
+		Mockito.when(socket.getInputStream()).thenReturn(new StringBufferInputStream(testMessage));
+		socketMessageReceiver = new SocketMessageReceiver(socket);
 
 		assertNull(socketMessageReceiver.pullMessage());
 	}

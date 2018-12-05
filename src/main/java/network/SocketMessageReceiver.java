@@ -1,29 +1,27 @@
 package network;
 
-import network.NetworkMessage.MessageType;
+import logic.NetworkMessage;
+import logic.NetworkMessage.MessageType;
 import window.AppLogger;
 
 import java.io.*;
+import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class SocketMessageReceiver
+public class SocketMessageReceiver extends SocketReceiver
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 
-	private BufferedReader input;
+	private BufferedReader inputReader;
 
-	public SocketMessageReceiver(SocketReceiver socketReceiver)
+	public SocketMessageReceiver(Socket socket)
 	{
-		input = new BufferedReader(new InputStreamReader(socketReceiver, StandardCharsets.UTF_8));
-	}
+		super(socket);
 
-	public SocketMessageReceiver(InputStream stream)
-	{
-		input = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
+		inputReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
 	}
-
 
 	public NetworkMessage pullMessage()
 	{
@@ -31,18 +29,18 @@ public class SocketMessageReceiver
 		try
 		{
 			String line;
-			if (input.ready())
+			if (inputReader.ready())
 			{
-				line = input.readLine();
+				line = inputReader.readLine();
 				MessageType type = MessageType.valueOf(line);
-				line = input.readLine();
+				line = inputReader.readLine();
 				message = new NetworkMessage(type, line);
 			}
 
 		}catch (IllegalArgumentException e)
 		{
 			LOGGER.log(Level.WARNING, "Received invalid message");
-			e.printStackTrace();
+//			e.printStackTrace();
 			message = null;
 		} catch (IOException e)
 		{
@@ -56,8 +54,8 @@ public class SocketMessageReceiver
 		String message = "";
 		try
 		{
-			if (input.ready())
-				message = input.readLine();
+			if (inputReader.ready())
+				message = inputReader.readLine();
 		} catch (IOException e)
 		{
 			e.printStackTrace();

@@ -4,40 +4,50 @@ import window.AppLogger;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class SocketTransmitter extends OutputStream
+public class SocketTransmitter extends SocketStream
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 
-	private BufferedOutputStream output;
+	protected BufferedOutputStream outputStream;
 
-	public SocketTransmitter(OutputStream stream) throws IOException
+	public SocketTransmitter(Socket socket)
 	{
-		output = new BufferedOutputStream(stream);
+		super(socket);
+		try
+		{
+			outputStream = new BufferedOutputStream(socket.getOutputStream());
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
 	}
 
 	public void transmitBytes(byte[] bytes)
 	{
-		try
-		{
-			output.write(bytes);
-			output.flush();
-		} catch (IOException e)
-		{
-			LOGGER.log(Level.WARNING, "Could not send message to output stream");
-		}
+		transmitBytes(bytes, bytes.length);
 	}
 
-	@Override
-	public void write(int b)
+	public void transmitBytes(byte[] bytes, int numOfBytes)
 	{
 		try
 		{
-			output.write(b);
-			output.flush();
+			outputStream.write(bytes, 0, numOfBytes);
+			outputStream.flush();
+		} catch (IOException e)
+		{
+			LOGGER.log(Level.WARNING, "Could not send message to outputStream stream");
+		}
+	}
+
+	public void transmitByte(int b)
+	{
+		try
+		{
+			outputStream.write(b);
+			outputStream.flush();
 		} catch (IOException e)
 		{
 			e.printStackTrace();

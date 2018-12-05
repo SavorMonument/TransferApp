@@ -13,15 +13,20 @@ import static org.junit.Assert.*;
 
 public class SocketSenderTest
 {
-	private SocketTransmitter socketSender;
-	private ByteArrayOutputStream byteArrayOutputStream;
+	Socket mockSocket;
+	SocketTransmitter socketSender;
+	ByteArrayOutputStream byteArrayOutputStream;
 
 	@Before
 	public void setUp() throws Exception
 	{
-
 		byteArrayOutputStream = new ByteArrayOutputStream();
-		socketSender = new SocketTransmitter(byteArrayOutputStream);
+
+		mockSocket = Mockito.mock(Socket.class);
+		Mockito.when(mockSocket.isConnected()).thenReturn(true);
+		Mockito.when(mockSocket.getOutputStream()).thenReturn(byteArrayOutputStream);
+
+		socketSender = new SocketTransmitter(mockSocket);
 	}
 
 	@After
@@ -39,18 +44,5 @@ public class SocketSenderTest
 		socketSender.transmitBytes(bytes);
 
 		assertArrayEquals(bytes, byteArrayOutputStream.toByteArray());
-	}
-
-	@Test
-	public void temp() throws IOException
-	{
-		SocketReceiver socketReceiver = new SocketReceiver(new StringBufferInputStream("AAaajl;hjkkkkkkkkkk"));
-		BufferedReader reader = new BufferedReader(new InputStreamReader(socketReceiver));
-
-		System.out.println(reader.read());
-		System.out.println(reader.readLine());
-
-
-		System.out.println("Here");
 	}
 }

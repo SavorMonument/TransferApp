@@ -1,15 +1,9 @@
 package network;
 
-import javafx.scene.Parent;
-import sun.net.NetworkClient;
-import sun.net.NetworkServer;
 import window.AppLogger;
 
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketException;
+import java.net.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,16 +21,16 @@ public class ConnectionResolver
 
 	public void attemptConnection(String url, int port, int localPort)
 	{
-		LOGGER.log(Level.INFO, String.format("Received Connection establish request on URL: %s, port: %d", url, port));
+		LOGGER.log(Level.INFO, String.format("Received Connection request to URL: %s, port: %d", url, port));
 		Socket socket;
 		try
 		{
 			socket = new Socket(url, port, null, localPort);
-			LOGGER.log(Level.ALL, String.format("Connection successful on URL: %s, port: %d", url, port));
-			connectionEvent.connectionEstablished(socket);
+			LOGGER.log(Level.ALL, String.format("Connection successful to URL: %s, port: %d", url, port));
+			callEvent(socket);
 		} catch (IOException e)
 		{
-			LOGGER.log(Level.WARNING, String.format("Connection unsuccessful on URL: %s\n%s", url, e.getMessage()));
+			LOGGER.log(Level.WARNING, String.format("Connection unsuccessful to URL: %s\n%s", url, e.getMessage()));
 		}
 	}
 
@@ -60,6 +54,56 @@ public class ConnectionResolver
 		}
 	}
 
+	/**
+	 * Listens for a connection on the calling thread with a timeout
+	 *
+	 * Calls connectionEstablished event on connection
+	 */
+	public void startListeningBlocking(int port, long timeOutMillis)
+	{
+		assert timeOutMillis > 0 : "Negative timeOut";
+		assert port >=0 && port < ((Short.MAX_VALUE * 2) + 2) : "Invalid port number";
+
+		Thread countingThread = new Thread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				try
+				{
+					Thread.sleep(timeOutMillis);
+				} catch (InterruptedException e)
+				{
+					e.printStackTrace();
+				}
+				if (isListening())
+					stopListening();
+			}
+		});
+
+		countingThread.setDaemon(true);
+		countingThread.start();
+		startListeningBlocking(port);
+	}
+
+	/**
+	 * Listens for a connection on the calling thread
+	 *
+	 * Calls connectionEstablished event on connection
+	 */
+	public void startListeningBlocking(int localPort)
+	{
+		assert !isListening();
+
+		connectionListener = new ConnectionListener(localPort);
+		connectionListener.run();
+	}
+
+	/**
+	 * Issues a new thread and listens for a connection on it with a timeout
+	 *
+	 * Calls connectionEstablished event on connection
+	 */
 	public void startListening(int port, long timeOutMillis)
 	{
 		assert timeOutMillis > 0 : "Negative timeOut";
@@ -87,43 +131,41 @@ public class ConnectionResolver
 		countingThread.start();
 	}
 
-
+	/**
+	 * Issues a new thread and listens for a connection on it
+	 *
+	 * Calls connectionEstablished event on connection
+	 */
 	public void startListening(int localPort)
 	{
 		assert !isListening();
 
-		connectionListener = new ConnectionListener(connectionEvent, localPort);
+		connectionListener = new ConnectionListener(localPort);
 		connectionListener.start();
 	}
 
-	public void joinListener(Thread thread)
+	private void callEvent(Socket socket)
 	{
-		assert isListening();
-
-		try
-		{
-			connectionListener.join();
-		} catch (InterruptedException e)
-		{
-			e.printStackTrace();
-		}
+		connectionEvent.connectionEstablished(socket);
+		connectionEvent.connectionEstablished(socket, new SocketTransmitter(socket), new SocketReceiver(socket));
+		connectionEvent.connectionEstablished(socket, new SocketMessageTransmitter(socket), new SocketMessageReceiver(socket));
 	}
 
-	public interface ConnectionEvent
+	public static abstract class ConnectionEvent
 	{
-		void connectionEstablished(Socket socket);
+		public void connectionEstablished(Socket socket){}
+		public void connectionEstablished(Socket socket, SocketTransmitter socketTransmitter, SocketReceiver socketReceiver){}
+		public void connectionEstablished(Socket socket, SocketMessageTransmitter messageTransmitter, SocketMessageReceiver messageReceiver){}
 	}
 
-	public static class ConnectionListener extends Thread
+	private class ConnectionListener extends Thread
 	{
 		private ServerSocket serverSocket;
-		private ConnectionEvent networkListener;
 		private int port;
 
-		public ConnectionListener(ConnectionEvent networkListener, int port)
+		public ConnectionListener(int port)
 		{
 			setDaemon(true);
-			this.networkListener = networkListener;
 			this.port = port;
 		}
 
@@ -135,12 +177,12 @@ public class ConnectionResolver
 				serverSocket = new ServerSocket(port);
 				System.out.println("Started listening on: " + InetAddress.getLocalHost() + ":" + port);
 				Socket socket = serverSocket.accept();
-				LOGGER.log(Level.ALL, String.format("Connection successful on URL: %s, port: %d",
+				LOGGER.log(Level.ALL, String.format("Connection successful to URL: %s, port: %d",
 						socket.getInetAddress(), socket.getPort()));
-				networkListener.connectionEstablished(socket);
+				callEvent(socket);
 			} catch (IOException e)
 			{
-				LOGGER.log(Level.WARNING, "Socket stopped from listening\n");
+				LOGGER.log(Level.WARNING, "Socket stopped from listening\n" + e.getMessage());
 //				e.printStackTrace();
 			}
 		}

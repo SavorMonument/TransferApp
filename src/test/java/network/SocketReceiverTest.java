@@ -35,7 +35,8 @@ public class SocketReceiverTest
 	{
 		String message = "test";
 
-		socketReceiver = new SocketReceiver(new StringBufferInputStream(message));
+		Mockito.when(mockSocket.getInputStream()).thenReturn(new StringBufferInputStream(message));
+		socketReceiver = new SocketReceiver(mockSocket);
 
 		assertTrue(socketReceiver.hasBytes());
 	}
@@ -43,7 +44,8 @@ public class SocketReceiverTest
 	@Test
 	public void getLine() throws IOException, InterruptedException
 	{
-		socketReceiver = new SocketReceiver(new ByteInputStream(new byte[]{1}, 1));
+		Mockito.when(mockSocket.getInputStream()).thenReturn(new ByteInputStream(new byte[]{1}, 1));
+		socketReceiver = new SocketReceiver(mockSocket);
 
 		assertEquals((int) 1, socketReceiver.read());
 	}

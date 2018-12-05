@@ -4,69 +4,58 @@ import window.AppLogger;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.Arrays;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class SocketReceiver extends InputStream
+public class SocketReceiver extends SocketStream
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 
-	private BufferedInputStream input;
+	protected BufferedInputStream inputStream;
 
-	public SocketReceiver(InputStream stream) throws IOException
+	public SocketReceiver(Socket socket)
 	{
-		input = new BufferedInputStream(stream);
+		super(socket);
+		try
+		{
+			inputStream = new BufferedInputStream(socket.getInputStream());
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
 	}
 
 	public boolean hasBytes()
 	{
 		try
 		{
-			return input.available() > 0;
+			return inputStream.available() > 0;
 		} catch (IOException e)
 		{
-			LOGGER.log(Level.WARNING, "Socket input stream problem " + e.getMessage());
+			LOGGER.log(Level.WARNING, "Socket inputStream stream problem " + e.getMessage());
 //			e.printStackTrace();
 		}
 		return false;
 	}
 
-	@Override
 	public int read(byte[] b, int off, int len) throws IOException
 	{
-		return input.read(b, off, len);
+		return inputStream.read(b, off, len);
 	}
 
-	@Override
 	public int read(byte[] b) throws IOException
 	{
-		return input.read(b);
+		return inputStream.read(b);
 	}
 
 
-	@Override
 	public int read() throws IOException
 	{
-		return input.read();
+		return inputStream.read();
 	}
 
-	@Override
 	public int available() throws IOException
 	{
-		return input.available();
-	}
-
-	@Override
-	public void close()
-	{
-		try
-		{
-			input.close();
-		} catch (IOException e)
-		{
-			e.printStackTrace();
-		}
+		return inputStream.available();
 	}
 }

@@ -1,13 +1,10 @@
 package logic;
 
-import network.NetworkMessage;
+import filetransfer.FileReceiverController;
 import network.SocketMessageTransmitter;
-import network.SocketTransmitter;
 import window.AppLogger;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -18,20 +15,11 @@ public class TransmitterController
 	private static final Logger LOGGER = AppLogger.getInstance();
 	private static final int FILE_PORT = 59_901;
 
-	private Socket mainSocket;
-	private SocketMessageTransmitter socketMessageTransmitter;
+	private SocketMessageTransmitter messageTransmitter;
 
-	public TransmitterController(Socket socket, BusinessEvents businessEvents)
+	public TransmitterController(SocketMessageTransmitter messageTransmitter, BusinessEvents businessEvents)
 	{
-		this.mainSocket = socket;
-		try
-		{
-			this.socketMessageTransmitter = new SocketMessageTransmitter(new SocketTransmitter(socket.getOutputStream()));
-		} catch (IOException e)
-		{
-			LOGGER.log(Level.WARNING, "Failed to construct a SocketTransmitter" + e.getMessage());
-//			e.printStackTrace();
-		}
+			this.messageTransmitter = messageTransmitter;
 	}
 
 	public void updateAvailableFileList(List<File> files)
@@ -42,7 +30,7 @@ public class TransmitterController
 		NetworkMessage networkMessage = new NetworkMessage(NetworkMessage.MessageType.UPDATE_FILE_LIST,
 				fileNames.toString());
 
-		socketMessageTransmitter.transmitMessage(networkMessage);
+		messageTransmitter.transmitMessage(networkMessage);
 
 	}
 
@@ -63,7 +51,7 @@ public class TransmitterController
 		LOGGER.log(Level.FINE, "Sending file download request: " + fileName);
 
 		NetworkMessage networkMessage = new NetworkMessage(NetworkMessage.MessageType.SEND_FILE, fileName);
-		socketMessageTransmitter.transmitMessage(networkMessage);
+		messageTransmitter.transmitMessage(networkMessage);
 
 		new FileReceiverController(downloadPath, fileName, FILE_PORT).start();
 	}

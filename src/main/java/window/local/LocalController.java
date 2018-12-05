@@ -8,16 +8,14 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.TransferMode;
 import window.AppLogger;
 import window.UIEvents;
-import window.handle.UIBeanRepository;
 
 import java.io.File;
 import java.net.URL;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class LocalPresenter implements Initializable, UIBeanRepository.UIBean
+public class LocalController implements Initializable
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 
@@ -85,6 +83,6 @@ public class LocalPresenter implements Initializable, UIBeanRepository.UIBean
 
 	public static void setUIEventHandler(UIEvents localUIEvents)
 	{
-		LocalPresenter.UIEventHandler = localUIEvents;
+		LocalController.UIEventHandler = localUIEvents;
 	}
 }

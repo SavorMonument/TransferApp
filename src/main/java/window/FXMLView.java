@@ -21,7 +21,7 @@ public class FXMLView
 		loader = new FXMLLoader(getClass().getResource(FXMLFilePath));
 	}
 
-	public <T> T getPresenter()
+	public <T> T getController()
 	{
 		return loader.getController();
 	}

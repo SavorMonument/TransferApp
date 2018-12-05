@@ -14,38 +14,14 @@ public class FileInput implements Closeable
 		this.filePath = filePath;
 	}
 
-	public boolean open()
+	public boolean open() throws FileNotFoundException
 	{
 		file = new File(filePath);
 		boolean successful = file.exists();
 
-		try
-		{
-			inputStream = new BufferedInputStream(new FileInputStream(file));
-		} catch (FileNotFoundException e)
-		{
-			successful = false;
-			e.printStackTrace();
-		}
+		inputStream = new BufferedInputStream(new FileInputStream(file));
 
 		return successful;
-	}
-
-	public boolean ready()
-	{
-		assert null != inputStream : "Input stream uninitialized";
-
-		boolean ready = false;
-
-		try
-		{
-			ready = inputStream.available() > 0;
-		} catch (IOException e)
-		{
-			e.printStackTrace();
-		}
-
-		return ready;
 	}
 
 	public int read(byte[] bytes, int bytesToRead) throws IOException
