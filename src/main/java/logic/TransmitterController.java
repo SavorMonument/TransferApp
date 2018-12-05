@@ -1,6 +1,6 @@
 package logic;
 
-import filetransfer.FileReceiverController;
+import filetransfer.FileReceiver;
 import network.SocketMessageTransmitter;
 import window.AppLogger;
 
@@ -53,6 +53,6 @@ public class TransmitterController
 		NetworkMessage networkMessage = new NetworkMessage(NetworkMessage.MessageType.SEND_FILE, fileName);
 		messageTransmitter.transmitMessage(networkMessage);
 
-		new FileReceiverController(downloadPath, fileName, FILE_PORT).start();
+		new FileReceiver(downloadPath, fileName, FILE_PORT).start();
 	}
 }

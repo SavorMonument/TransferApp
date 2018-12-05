@@ -11,7 +11,7 @@ public class DeltaTime
 
 	public int getElapsedTimeMillis()
 	{
-		return (int) getElapsedTimeNano() / (int) 1e+6;
+		return (int) (getElapsedTimeNano() / (long) 1e+6);
 	}
 
 	public long getElapsedTimeNano()

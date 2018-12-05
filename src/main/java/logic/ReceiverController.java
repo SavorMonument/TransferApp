@@ -1,6 +1,6 @@
 package logic;
 
-import filetransfer.FileTransmitterController;
+import filetransfer.FileTransmitter;
 import network.SocketMessageReceiver;
 import window.AppLogger;
 
@@ -60,7 +60,7 @@ public class ReceiverController implements Closeable
 							"Starting file transmitter with file: %s on address: %s, port%d",
 							filePath, messageReceiver.getSocketIPAddress(), FILE_PORT));
 
-					new FileTransmitterController(filePath,
+					new FileTransmitter(filePath,
 							messageReceiver.getSocketIPAddress().substring(1), FILE_PORT).start();
 				}
 				break;

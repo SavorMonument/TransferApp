@@ -11,7 +11,7 @@ import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class FileTransmitterController extends Thread
+public class FileTransmitter extends Thread
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 	private static final int BUFFER_SIZE = 4096;
@@ -22,7 +22,7 @@ public class FileTransmitterController extends Thread
 	private int transmittingPort;
 	private String filePath;
 
-	public FileTransmitterController(String filePath, String URL,  int transmittingPort)
+	public FileTransmitter(String filePath, String URL, int transmittingPort)
 	{
 		this.filePath = filePath;
 		this.socketURL = URL;
@@ -72,19 +72,12 @@ public class FileTransmitterController extends Thread
 
 	private void attemptConnection()
 	{
-		try
-		{
-			Thread.sleep(2000);
-		} catch (InterruptedException e)
-		{
-			e.printStackTrace();
-		}
 		ConnectionResolver resolver = new ConnectionResolver(new ConnectionResolver.ConnectionEvent()
 		{
 			@Override
 			public void connectionEstablished(Socket socket, SocketTransmitter socketTransmitter, SocketReceiver socketReceiver)
 			{
-				FileTransmitterController.this.socketTransmitter = socketTransmitter;
+				FileTransmitter.this.socketTransmitter = socketTransmitter;
 			}
 		});
 		resolver.attemptConnection(socketURL, transmittingPort, transmittingPort);

@@ -21,7 +21,7 @@ public class ConnectionResolver
 
 	public void attemptConnection(String url, int port, int localPort)
 	{
-		LOGGER.log(Level.INFO, String.format("Received Connection request to URL: %s, port: %d", url, port));
+		LOGGER.log(Level.INFO, String.format("Attempting connection to URL: %s, port: %d", url, port));
 		Socket socket;
 		try
 		{

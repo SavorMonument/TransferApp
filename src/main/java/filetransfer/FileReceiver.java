@@ -11,7 +11,7 @@ import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class FileReceiverController extends Thread
+public class FileReceiver extends Thread
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 	private static final int CONNECTION_TIMEOUT_MILLIS = 10_000;
@@ -23,7 +23,7 @@ public class FileReceiverController extends Thread
 	private String downloadPath;
 	private String fileName;
 
-	public FileReceiverController(String downloadPath, String fileName, int listeningPort)
+	public FileReceiver(String downloadPath, String fileName, int listeningPort)
 	{
 		this.downloadPath = downloadPath;
 		this.fileName = fileName;
@@ -88,7 +88,7 @@ public class FileReceiverController extends Thread
 			@Override
 			public void connectionEstablished(Socket socket, SocketTransmitter socketTransmitter, SocketReceiver socketReceiver)
 			{
-				FileReceiverController.this.socketReceiver = socketReceiver;
+				FileReceiver.this.socketReceiver = socketReceiver;
 			}
 		});
 
