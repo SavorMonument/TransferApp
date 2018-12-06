@@ -59,7 +59,7 @@ public class MainController implements Initializable, BusinessEvents
 	{
 		LOGGER.log(Level.ALL,String.format(
 				"Business event: %s with %s", this.getClass().getEnclosingMethod(), fileNames.toString()));
-
+		System.out.println(fileNames.size());
 		remotePresenter.updateRemoteFileList(fileNames);
 	}
 

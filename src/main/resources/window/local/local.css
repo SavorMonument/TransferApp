@@ -14,29 +14,20 @@
     -fx-effect: dropshadow(one-pass-box, rgba(36, 73, 56, 0.493), 2, 1, 0.4, 0);
 }
 
-.download-button
+.file-list:focused
+{
+    -fx-background-color: rgb(221, 221, 221);
+    -fx-focus-color: rgba(255, 255, 255, 0);
+    -fx-background-insets: -1.4, 0, 1, 2;
+}
+
+.remove-button
 {
     -fx-background-color: #6c757d;
     -fx-border-color: #6c757d;
 }
 
-.download-button:hover { 
-    -fx-background-color: #576b7c;
-
-}
-
-.choose-label
-{
-    -fx-text-fill: #666366;
-}
-
-.choose-button
-{
-    -fx-background-color: #6c757d;
-    -fx-border-color:  #6c757d;
-}
-
-.choose-button:hover { 
+.remove-button:hover { 
     -fx-background-color: #576b7c;
 
 }

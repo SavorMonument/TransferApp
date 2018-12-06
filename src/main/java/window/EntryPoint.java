@@ -1,6 +1,7 @@
 package window;
 
 import javafx.application.Application;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
@@ -14,10 +15,15 @@ public class EntryPoint extends Application
 	@Override
 	public void start(Stage primaryStage)
 	{
-		primaryStage.setTitle("Place Holder");
+		primaryStage.setTitle("J");
 
-		Scene mainScene = new Scene(new MainView().getView());
+		Parent mainView = new MainView().getView();
+		Scene mainScene = new Scene(mainView);
 
+		primaryStage.setMinWidth(mainView.minWidth(-1) + 10);
+		primaryStage.setMinHeight(mainView.minHeight(-1) + 20);
+
+		System.out.println(primaryStage.getHeight());
 		primaryStage.setScene(mainScene);
 		primaryStage.show();
 	}

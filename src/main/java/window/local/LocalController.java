@@ -3,12 +3,14 @@ package window.local;
 import com.sun.javafx.collections.ObservableListWrapper;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.control.ListView;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.TransferMode;
 import window.AppLogger;
 import window.UIEvents;
 
+import java.awt.event.ActionEvent;
 import java.io.File;
 import java.net.URL;
 import java.util.*;
@@ -20,7 +22,6 @@ public class LocalController implements Initializable
 	private static final Logger LOGGER = AppLogger.getInstance();
 
 	private static UIEvents UIEventHandler;
-
 	private Set<File> availableFiles = new HashSet<>();
 
 	@FXML
@@ -52,15 +53,36 @@ public class LocalController implements Initializable
 		});
 
 		List<File> itemList = new ArrayList<>(availableFiles);
-		UIEventHandler.updateAvailableFileList(itemList);
 
 		fileList.setItems(new ObservableListWrapper(itemList));
+		UIEventHandler.updateAvailableFileList(itemList);
 	}
 
 	@FXML
 	public void fileDragEntered()
 	{
 //		LOGGER.log(Level.FINE, "File drag entered");
+	}
+
+	@FXML
+	public void triggerRemove()
+	{
+		int index;
+
+		if ((index =  fileList.getSelectionModel().getSelectedIndex()) != -1)
+		{
+			File file = (File) fileList.getItems().get(index);
+			LOGGER.log(Level.ALL, "Removing file: " + file.getName());
+
+			availableFiles.remove(file);
+			List<File> itemList = new ArrayList<>(availableFiles);
+
+			//TODO: Change this to take a set
+			UIEventHandler.updateAvailableFileList(itemList);
+
+			fileList.setItems(new ObservableListWrapper(itemList));
+			UIEventHandler.updateAvailableFileList(new ArrayList<>(availableFiles));
+		}
 	}
 
 	public String getFilePath(String fileName)

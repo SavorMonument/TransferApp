@@ -1,0 +1,16 @@
+
+.local-pane
+{
+    -fx-backgroud-color: #F2F2F2;
+}
+
+.connection-pane
+{
+    -fx-background-color:  #5394ba;
+    /* -fx-effect: dropshadow(one-pass-box, rgba(16, 70, 105, 0.774), 2, 1, 0, 0); */
+}
+
+.remote-pane
+{
+    -fx-backgroud-color: #F2F2F2;
+}

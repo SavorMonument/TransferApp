@@ -17,6 +17,9 @@ public class ConnectionController implements Initializable
 	private Button connectButton;
 
 	@FXML
+	private Button disconnectButton;
+
+	@FXML
 	private TextField addressField;
 
 	private static UIEvents localUIEvents;
@@ -27,6 +30,7 @@ public class ConnectionController implements Initializable
 		AppLogger.getInstance().log(Level.FINE, "Initializing " + getClass().getName());
 	}
 
+	@FXML
 	public void connectButtonClicked()
 	{
 		if (isLocalEventsInitialized())
@@ -37,6 +41,12 @@ public class ConnectionController implements Initializable
 			else
 				localUIEvents.attemptConnectionToHost(addressField.getCharacters().toString());
 		}
+	}
+
+	@FXML
+	public void disconnectButtonClicked()
+	{
+		localUIEvents.disconnect();
 	}
 
 	private static boolean isLocalEventsInitialized()

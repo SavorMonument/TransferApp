@@ -24,13 +24,12 @@ public class FileTransmitter extends Thread
 		this.socketReceiver = socketReceiver;
 		this.fileInput = fileInput;
 
-//		setDaemon(true);
+		setDaemon(true);
 	}
 
 	@Override
 	public void run()
 	{
-//		attemptConnection();
 		try
 		{
 			fileInput.open();
@@ -42,7 +41,7 @@ public class FileTransmitter extends Thread
 //					e.printStackTrace();
 		} finally
 		{
-			fileInput.close();
+			System.out.println();
 			socketTransmitter.close();
 		}
 	}
@@ -58,7 +57,6 @@ public class FileTransmitter extends Thread
 			if (bytesSentSinceLastSignal + BUFFER_SIZE < MAX_TRANSFER_AT_ONCE)
 			{
 				bytesRead = fileInput.read(buffer, BUFFER_SIZE);
-				System.out.println(bytesRead);
 				socketTransmitter.transmitBytes(buffer, bytesRead);
 				bytesSentSinceLastSignal += BUFFER_SIZE;
 			}
@@ -69,25 +67,4 @@ public class FileTransmitter extends Thread
 			}
 		}
 	}
-
-//	private void attemptConnection()
-//	{
-//		ConnectionResolver resolver = new ConnectionResolver(new ConnectionResolver.ConnectionEvent()
-//		{
-//			@Override
-//			public void connectionEstablished(Socket socket, SocketTransmitter socketTransmitter, SocketReceiver socketReceiver)
-//			{
-//				FileTransmitter.this.socketTransmitter = socketTransmitter;
-//				FileTransmitter.this.socketReceiver = socketReceiver;
-//				try
-//				{
-//					socketBufferSize = socket.getSendBufferSize();
-//				} catch (SocketException e)
-//				{
-//					e.printStackTrace();
-//				}
-//			}
-//		});
-//		resolver.attemptConnection(socketURL, transmittingPort, transmittingPort);
-//	}
 }

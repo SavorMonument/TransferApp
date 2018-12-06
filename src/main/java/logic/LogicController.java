@@ -8,6 +8,7 @@ import window.local.LocalController;
 import window.remote.RemoteController;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.*;
 import java.util.List;
 import java.util.logging.Level;
@@ -62,31 +63,55 @@ public class LogicController extends Thread
 	class UIEventReceiver implements UIEvents
 	{
 		@Override
-		public void updateAvailableFileList(List<File> files)
-		{
-
-			transmitterController.updateAvailableFileList(files);
-		}
-
-		@Override
 		public boolean attemptConnectionToHost(String host, int port)
 		{
 			if (null == mainSocket)
 			{
-				LOGGER.log(Level.FINE, "Connection request to: " + host);
+				LOGGER.log(Level.ALL, "Connection request to: " + host);
 				try
 				{
 					connectionResolver.attemptConnection(InetAddress.getByName(host), port, port + 1);
 					return true;
 				} catch (UnknownHostException e)
 				{
-					LOGGER.log(Level.FINE, "Invalid address: " + host);
+					LOGGER.log(Level.ALL, "Invalid address: " + host);
 //					e.printStackTrace();
 				}
 			} else
-				LOGGER.log(Level.FINE, "Connection request denied: Already connected");
+				LOGGER.log(Level.ALL, "Connection request denied: Already connected");
 
 			return false;
+		}
+
+		@Override
+		public void disconnect()
+		{
+			if (null != mainSocket)
+			{
+				LOGGER.log(Level.ALL, "Disconnecting: " + mainSocket.getInetAddress().toString());
+
+				receiverController.close();
+
+				transmitterController = null;
+				receiverController = null;
+				try
+				{
+					mainSocket.close();
+				} catch (IOException e)
+				{
+					LOGGER.log(Level.WARNING, "Exception while closing socket " + e.getMessage());
+//					e.printStackTrace();
+				}
+				mainSocket = null;
+			}else
+				LOGGER.log(Level.ALL, "Disconnect request denied, not connected");
+		}
+
+		@Override
+		public void updateAvailableFileList(List<File> files)
+		{
+
+			transmitterController.updateAvailableFileList(files);
 		}
 
 		@Override

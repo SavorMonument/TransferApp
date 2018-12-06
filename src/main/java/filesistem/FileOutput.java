@@ -3,13 +3,12 @@ package filesistem;
 import filetransfer.TransferFileOutput;
 
 import java.io.*;
-import java.util.Arrays;
 
 public class FileOutput implements Closeable, TransferFileOutput
 {
 	private File tempFile;
 	private BufferedOutputStream outputStream;
-	private boolean isFinnished = false;
+	private boolean isFinished = false;
 
 	private String fileName;
 	private String path;
@@ -46,7 +45,7 @@ public class FileOutput implements Closeable, TransferFileOutput
 	public boolean finishFile()
 	{
 		assert null != tempFile : "The file has to be created";
-		isFinnished = true;
+		isFinished = true;
 		return tempFile.renameTo(new File(tempFile.getAbsolutePath().replace(".tmp", "")));
 	}
 
@@ -77,7 +76,7 @@ public class FileOutput implements Closeable, TransferFileOutput
 			}
 		}
 
-		if (!isFinnished)
+		if (!isFinished)
 			abort();
 	}
 }

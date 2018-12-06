@@ -2,15 +2,32 @@
 
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="450.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="window.MainController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="450.0" minWidth="600.0" prefHeight="450.0" prefWidth="600.0" stylesheets="@window.css" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="window.MainController">
     <children>
-        <AnchorPane id="localPane" fx:id="local" prefHeight="200.0" prefWidth="600.0" style="-fx-background-color: #53baba;" AnchorPane.bottomAnchor="250.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <GridPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <columnConstraints>
+          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+        </columnConstraints>
+        <rowConstraints>
+          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+          <RowConstraints minHeight="10.0" percentHeight="15.0" prefHeight="30.0" vgrow="SOMETIMES" />
+          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+        </rowConstraints>
+         <children>
+              <AnchorPane id="remotePane" fx:id="remote" prefHeight="200.0" prefWidth="600.0" styleClass="remote-pane" GridPane.rowIndex="2" />
+              <AnchorPane id="localPane" fx:id="local" prefHeight="200.0" prefWidth="600.0" styleClass="local-pane">
         </AnchorPane>
-        <AnchorPane id="remotePane" fx:id="remote" layoutY="250.0" prefHeight="200.0" prefWidth="600.0" style="-fx-background-color: #53baba;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="250.0" />
-      <AnchorPane id="ConnectionPane" fx:id="connection" layoutY="200.0" prefHeight="50.0" prefWidth="600.0" style="-fx-background-color: #5394ba;" AnchorPane.bottomAnchor="200.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="200.0">
-         </AnchorPane>
-      <Separator layoutY="200.0" prefHeight="0.0" prefWidth="600.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
-      <Separator layoutY="250.0" prefWidth="600.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
+            <AnchorPane id="ConnectionPane" fx:id="connection" prefHeight="50.0" prefWidth="600.0" styleClass="connection-pane" GridPane.rowIndex="1">
+               <children>
+                  <Separator prefHeight="3.0" prefWidth="600.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                  <Separator prefHeight="0.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
+               </children>
+            </AnchorPane>
+         </children>
+      </GridPane>
     </children>
 </AnchorPane>

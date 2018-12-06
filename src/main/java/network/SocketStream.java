@@ -36,6 +36,8 @@ public abstract class SocketStream implements Closeable
 	{
 		try
 		{
+			System.out.println( String.format("Closing socket on port: %d to port: %d",
+					socket.getLocalPort(), socket.getPort()));
 			socket.close();
 		} catch (IOException e)
 		{

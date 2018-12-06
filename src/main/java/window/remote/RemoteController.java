@@ -43,9 +43,8 @@ public class RemoteController implements Initializable
 
 		if ((index =  fileList.getSelectionModel().getSelectedIndex()) != -1)
 		{
-			LOGGER.log(Level.ALL, "Download button pressed on: " + elem);
-
 			elem = (String) fileList.getItems().get(index);
+			LOGGER.log(Level.ALL, "Download button pressed on: " + elem);
 			for (UIEvents event: localUIEventHandlers)
 			{
 				event.requestFileForDownload(elem);

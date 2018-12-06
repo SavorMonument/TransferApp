@@ -1,14 +1,9 @@
 package filetransfer;
 
 import com.sun.istack.internal.NotNull;
-import filesistem.FileOutput;
-import network.ConnectionResolver;
-import network.SocketReceiver;
-import network.SocketTransmitter;
 import window.AppLogger;
 
 import java.io.IOException;
-import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -35,7 +30,6 @@ public class FileReceiver extends Thread
 	@Override
 	public void run()
 	{
-//		awaitConnection();
 		if (null != socketReceiver)
 		{
 			try
@@ -50,6 +44,7 @@ public class FileReceiver extends Thread
 				e.printStackTrace();
 			} finally
 			{
+				System.out.println("Closing socket");
 				socketReceiver.close();
 			}
 		} else
@@ -71,7 +66,7 @@ public class FileReceiver extends Thread
 			{
 				//Send a byte to let the transmitter know it can transmit
 				socketTransmitter.transmitByte(1);
-				Thread.sleep(1000);
+				Thread.sleep(10);
 			} else
 			{
 				while (socketReceiver.available() >= BUFFER_SIZE)
@@ -89,20 +84,4 @@ public class FileReceiver extends Thread
 			fileOutput.writeToFile(buffer, amountRead);
 		}
 	}
-
-//	private void awaitConnection()
-//	{
-//		ConnectionResolver resolver = new ConnectionResolver(new ConnectionResolver.ConnectionEvent()
-//		{
-//
-//			@Override
-//			public void connectionEstablished(Socket socket, SocketTransmitter socketTransmitter, SocketReceiver socketReceiver)
-//			{
-//				FileReceiver.this.socketReceiver = socketReceiver;
-//				FileReceiver.this.socketTransmitter = socketTransmitter;
-//			}
-//		});
-//
-//		resolver.startListeningBlocking(listeningPort, CONNECTION_TIMEOUT_MILLIS);
-//	}
 }

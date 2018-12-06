@@ -21,14 +21,14 @@ public class ConnectionResolver
 
 	public void attemptConnection(InetAddress address, int port, int localPort)
 	{
-		LOGGER.log(Level.INFO, String.format("Attempting connection to URL: %s, port: %d",
-				address.getHostAddress(), port));
+		LOGGER.log(Level.ALL, String.format("Attempting connection to URL: %s, port: %d",
+				address, port));
 		Socket socket;
 		try
 		{
 			socket = new Socket(address, port, null, localPort);
 			LOGGER.log(Level.ALL, String.format("Connection successful to URL: %s, port: %d",
-					address.getHostAddress(), port));
+					address, port));
 			callEvent(socket);
 		} catch (IOException e)
 		{

@@ -13,6 +13,7 @@ public class AppLogger
 		handler.setLevel(Level.ALL);
 		LOGGER.addHandler(handler);
 		LOGGER.setLevel(Level.ALL);
+		LOGGER.setUseParentHandlers(false);
 	}
 
 	public static Logger getInstance()

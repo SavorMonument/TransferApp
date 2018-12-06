@@ -10,6 +10,7 @@ import window.AppLogger;
 import java.io.Closeable;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -52,7 +53,10 @@ public class ReceiverController implements Closeable
 					//ex. [a, b, c]
 					String message = networkMessage.getMessage();
 					message = message.substring(1, message.length() - 1);
-					businessEvents.updateRemoteFileList(Arrays.asList(message.split(", ")));
+					if (message.equals(""))
+						businessEvents.updateRemoteFileList(new ArrayList<>());
+					else
+						businessEvents.updateRemoteFileList(Arrays.asList(message.split(", ")));
 
 				}
 				break;
@@ -118,7 +122,7 @@ public class ReceiverController implements Closeable
 					Thread.sleep(1000);
 				} catch (InterruptedException e)
 				{
-					e.printStackTrace();
+//					e.printStackTrace();
 				}
 			}
 		}
