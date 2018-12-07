@@ -39,13 +39,9 @@ public class FileReceiver extends Thread
 				fileOutput.finishFile();
 
 				LOGGER.log(Level.ALL, "File receiving done");
-			} catch (IOException | InterruptedException e)
+			} catch (IOException e)
 			{
 				e.printStackTrace();
-			} finally
-			{
-				System.out.println("Closing socket");
-				socketReceiver.close();
 			}
 		} else
 		{
@@ -54,7 +50,7 @@ public class FileReceiver extends Thread
 
 	}
 
-	private void receiveBytesAndWriteToFile(TransferFileOutput fileOutput) throws IOException, InterruptedException
+	private void receiveBytesAndWriteToFile(TransferFileOutput fileOutput) throws IOException
 	{
 		int inputBufferSize = socketReceiver.getBufferSize();
 		byte[] buffer = new byte[BUFFER_SIZE];

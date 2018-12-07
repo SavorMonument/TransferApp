@@ -38,10 +38,6 @@ public class FileTransmitter extends Thread
 		{
 			LOGGER.log(Level.WARNING, "File transmitting failed " + e.getMessage());
 //					e.printStackTrace();
-		} finally
-		{
-			System.out.println();
-			socketTransmitter.close();
 		}
 	}
 
@@ -52,9 +48,11 @@ public class FileTransmitter extends Thread
 		int bytesRead = BUFFER_SIZE;
 		while (bytesRead == BUFFER_SIZE)
 		{
+			System.out.println("Here");
 			if (socketReceiver.read() > -1)
 			{
 				bytesRead = fileInput.read(buffer, BUFFER_SIZE);
+				System.out.println("Sending: " + bytesRead + "bytes");
 				socketTransmitter.transmitBytes(buffer, bytesRead);
 			}
 		}

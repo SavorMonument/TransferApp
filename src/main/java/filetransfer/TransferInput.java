@@ -9,7 +9,4 @@ public interface TransferInput extends Closeable
 	int read() throws IOException;
 	int read(byte[] buffer) throws IOException;
 	int getBufferSize();
-
-	@Override
-	void close();
 }

@@ -74,7 +74,7 @@ public class ReceiverController implements Closeable
 							filePath, fileReceivingConnection.getRemoteAddress(), fileReceivingConnection.getRemotePort()));
 
 					new FileTransmitter((TransferOutput) fileReceivingConnection.getMessageTransmitter(),
-							(TransferInput) fileReceivingConnection.getMessageReceiver(), new FileInput(filePath));
+							(TransferInput) fileReceivingConnection.getMessageReceiver(), new FileInput(filePath)).start();
 				}
 				break;
 			}
