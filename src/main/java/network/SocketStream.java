@@ -4,6 +4,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.SocketException;
 
 public abstract class SocketStream implements Closeable
 {
@@ -29,6 +30,19 @@ public abstract class SocketStream implements Closeable
 	public InetAddress getSocketIPAddress()
 	{
 		return socket.getInetAddress();
+	}
+
+	public int getBufferSize()
+	{
+		try
+		{
+			return socket.getReceiveBufferSize();
+		} catch (SocketException e)
+		{
+//			e.printStackTrace();
+		}
+
+		return 0;
 	}
 
 	@Override

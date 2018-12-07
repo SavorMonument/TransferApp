@@ -11,7 +11,7 @@ public class FileReceiver extends Thread
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 	private static final int CONNECTION_TIMEOUT_MILLIS = 5_000;
-	private static final int BUFFER_SIZE = 4096;
+	private static final int BUFFER_SIZE = 8192;
 
 	private TransferFileOutput fileOutput;
 	private TransferInput socketReceiver;
@@ -56,18 +56,20 @@ public class FileReceiver extends Thread
 
 	private void receiveBytesAndWriteToFile(TransferFileOutput fileOutput) throws IOException, InterruptedException
 	{
+		int inputBufferSize = socketReceiver.getBufferSize();
 		byte[] buffer = new byte[BUFFER_SIZE];
 
 		//TODO: Better way to determine when a file is done or not, can't rely on a timer
 		DeltaTime lastSuccessfulTransmission = new DeltaTime();
 		while (lastSuccessfulTransmission.getElapsedTimeMillis() < CONNECTION_TIMEOUT_MILLIS)
 		{
-			if (socketReceiver.available() < BUFFER_SIZE)
+			if (socketReceiver.available() < inputBufferSize / 2)
 			{
-				//Send a byte to let the transmitter know it can transmit
-				socketTransmitter.transmitByte(1);
-				Thread.sleep(10);
-			} else
+				int times = (inputBufferSize - socketReceiver.available()) / BUFFER_SIZE;
+				socketTransmitter.transmitBytes(new byte[times], times);
+			}
+
+			if (socketReceiver.available() >= BUFFER_SIZE)
 			{
 				while (socketReceiver.available() >= BUFFER_SIZE)
 				{

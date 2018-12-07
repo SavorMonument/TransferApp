@@ -8,7 +8,7 @@ import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class SocketReceiver extends SocketStream
+public class SocketReceiver extends SocketStream implements TransferInput
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 
@@ -35,7 +35,6 @@ public class SocketReceiver extends SocketStream
 	{
 		return inputStream.read(b);
 	}
-
 
 	public int read() throws IOException
 	{

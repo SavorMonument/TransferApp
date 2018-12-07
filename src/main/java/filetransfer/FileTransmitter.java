@@ -10,8 +10,7 @@ import java.util.logging.Logger;
 public class FileTransmitter extends Thread
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
-	private static final int BUFFER_SIZE = 4096;
-	private static final int MAX_TRANSFER_AT_ONCE = BUFFER_SIZE * 10;
+	private static final int BUFFER_SIZE = 8192;
 
 	private TransferOutput socketTransmitter;
 	private TransferInput socketReceiver;
@@ -49,21 +48,14 @@ public class FileTransmitter extends Thread
 	private void readBytesAndTransmitThemOverSocket(TransferFileInput fileInput) throws IOException
 	{
 		byte[] buffer = new byte[BUFFER_SIZE];
-		int bytesSentSinceLastSignal = 0;
 
 		int bytesRead = BUFFER_SIZE;
 		while (bytesRead == BUFFER_SIZE)
 		{
-			if (bytesSentSinceLastSignal + BUFFER_SIZE < MAX_TRANSFER_AT_ONCE)
+			if (socketReceiver.read() > -1)
 			{
 				bytesRead = fileInput.read(buffer, BUFFER_SIZE);
 				socketTransmitter.transmitBytes(buffer, bytesRead);
-				bytesSentSinceLastSignal += BUFFER_SIZE;
-			}
-			if (socketReceiver.available() > 0)
-			{
-				socketReceiver.read();
-				bytesSentSinceLastSignal = 0;
 			}
 		}
 	}

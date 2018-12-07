@@ -12,8 +12,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class SocketMessageReceiver extends SocketReceiver implements Connection.MessageReceiver, TransferInput
+public class SocketMessageReceiver extends SocketReceiver implements Connection.MessageReceiver
 {
+
 	private static final Logger LOGGER = AppLogger.getInstance();
 
 	private BufferedReader inputReader;
