@@ -24,7 +24,8 @@ public class NetworkMessage
 	public enum MessageType
 	{
 		UPDATE_FILE_LIST,
-		SEND_FILE;
+		SEND_FILE,
+		DISCONNECT;
 	}
 
 	@Override

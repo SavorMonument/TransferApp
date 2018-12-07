@@ -1,6 +1,7 @@
 package logic;
 
 import network.*;
+import org.omg.CORBA.TIMEOUT;
 import window.AppLogger;
 import window.UIEvents;
 import window.connection.ConnectionController;
@@ -18,8 +19,8 @@ public class LogicController extends Thread
 	private static final Logger LOGGER = AppLogger.getInstance();
 	private static final int CONNECTION_TIMEOUT_MILLIS = 10_000;
 	private static final int MAIN_PORT = 53222;
-	private static final int TRANSMITTING_PORT = 53223;
-	private static final int RECEIVING_PORT = 53224;
+	private static final int PORT_ONE = 53223;
+	private static final int PORT_TWO = 53224;
 
 	private String downloadPath = "C:\\Users\\Goia\\Desktop\\test_folder";
 
@@ -64,7 +65,7 @@ public class LogicController extends Thread
 
 			try
 			{
-				Thread.sleep(1000);
+				Thread.sleep(3000);
 			} catch (InterruptedException e)
 			{
 				e.printStackTrace();
@@ -87,8 +88,8 @@ public class LogicController extends Thread
 				try
 				{
 					connectionResolver.attemptConnection(InetAddress.getByName(host), MAIN_PORT);
-					connectionResolver.attemptConnection(InetAddress.getByName(host), TRANSMITTING_PORT);
-					connectionResolver.attemptConnection(InetAddress.getByName(host), RECEIVING_PORT);
+					connectionResolver.attemptConnection(InetAddress.getByName(host), PORT_ONE);
+					connectionResolver.attemptConnection(InetAddress.getByName(host), PORT_TWO);
 
 					if (null != mainConnection && null != receivingConnection && null != transmittingConnection)
 					{
@@ -156,7 +157,6 @@ public class LogicController extends Thread
 
 		receiverController = new ReceiverController(mainConnection, receivingConnection, businessEvents);
 		transmitterController = new TransmittingController(mainConnection, transmittingConnection, businessEvents);
-		System.out.println("Once");
 		receiverController.startListening();
 	}
 
@@ -195,7 +195,29 @@ public class LogicController extends Thread
 		{
 			assert null != connection && connection.isConnected() : "Received Invalid connection";
 
-			assignConnectionBasedOnPort(connection, connection.getRemotePort());
+			assignConnectionAsClient(connection);
+		}
+
+		private void assignConnectionAsClient(Connection connection)
+		{
+			switch (connection.getRemotePort())
+			{
+				case MAIN_PORT:
+				{
+					mainConnection = connection;
+				}
+				break;
+				case PORT_ONE:
+				{
+					transmittingConnection = connection;
+				}
+				break;
+				case PORT_TWO:
+				{
+					receivingConnection = connection;
+				}
+				break;
+			}
 		}
 
 		public void connectionReceivedOnListener(Connection connection)
@@ -203,52 +225,68 @@ public class LogicController extends Thread
 			assert null != connection && connection.isConnected() : "Received invalid connection";
 
 			state = State.CONNECTING;
-			assignConnectionBasedOnPort(connection, connection.getLocalPort());
+			assignConnectionAsServer(connection);
 
-			if (null == transmittingConnection)
-				connectionResolver.startListeningBlocking(TRANSMITTING_PORT, CONNECTION_TIMEOUT_MILLIS);
-			else
+			if (null == receivingConnection)
 			{
-				if (null == receivingConnection)
-					connectionResolver.startListeningBlocking(RECEIVING_PORT, CONNECTION_TIMEOUT_MILLIS);
-				else
-				{
-					System.out.println("Here " + Thread.currentThread().getName());
-					if (null != mainConnection && null != receivingConnection && null != transmittingConnection)
-					{
-						constructControllers();
-						state = State.CONNECTED;
-					} else
-					{
-						closeConnections();
-						state = State.DISCONNECTED;
-						connectionResolver.startListening(MAIN_PORT);
-					}
-				}
-			}
-		}
-
-		private void assignConnectionBasedOnPort(Connection connection, int remotePort)
-		{
-			switch (remotePort)
+				connectionResolver.startListening(PORT_ONE, CONNECTION_TIMEOUT_MILLIS);
+			} else
 			{
-				case MAIN_PORT:
+				if (null == transmittingConnection)
 				{
-					mainConnection = connection;
-				}
-				break;
-				case TRANSMITTING_PORT:
+					connectionResolver.startListening(PORT_TWO, CONNECTION_TIMEOUT_MILLIS);
+				} else
 				{
-					transmittingConnection = connection;
+					constructControllers();
+					state = State.CONNECTED;
 				}
-				break;
-				case RECEIVING_PORT:
-				{
-					receivingConnection = connection;
-				}
-				break;
 			}
 		}
 	}
 
+	private void assignConnectionAsServer(Connection connection)
+	{
+		switch (connection.getLocalPort())
+		{
+			case MAIN_PORT:
+			{
+				//Patchwork
+				//TODO: REDO this
+				new Thread(new Runnable()
+				{
+					@Override
+					public void run()
+					{
+						try
+						{
+							Thread.sleep(CONNECTION_TIMEOUT_MILLIS + 1_000);
+						} catch (InterruptedException e)
+						{
+//							e.printStackTrace();
+						}
+						if (state == State.CONNECTING)
+						{
+							closeConnections();
+							state = State.DISCONNECTED;
+							connectionResolver.startListening(MAIN_PORT);
+						}
+						
+					}
+				}).start();
+				mainConnection = connection;
+			}
+			break;
+			case PORT_ONE:
+			{
+				receivingConnection = connection;
+			}
+			break;
+			case PORT_TWO:
+			{
+				transmittingConnection = connection;
+			}
+			break;
+		}
+	}
 }
+
