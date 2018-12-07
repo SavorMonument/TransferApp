@@ -21,7 +21,6 @@ import java.util.logging.Logger;
 public class TransmittingController
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
-	private static final int FILE_PORT = 59_901;
 
 	private Connection mainConnection;
 	private Connection fileTransmittingConnection;
@@ -70,6 +69,9 @@ public class TransmittingController
 
 		NetworkMessage networkMessage = new NetworkMessage(NetworkMessage.MessageType.SEND_FILE, fileName);
 		messageTransmitter.transmitMessage(networkMessage);
+
+		LOGGER.log(Level.FINE, String.format("Starting file receiver with file: %s from address: %s, port%d",
+				fileName, fileTransmittingConnection.getRemoteAddress(), fileTransmittingConnection.getRemotePort()));
 
 		new FileReceiver((TransferInput) fileTransmittingConnection.getMessageReceiver(),
 				(TransferOutput) fileTransmittingConnection.getMessageTransmitter(), new FileOutput(fileName, downloadPath)).start();

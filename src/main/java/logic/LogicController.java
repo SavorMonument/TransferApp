@@ -270,7 +270,7 @@ public class LogicController extends Thread
 							state = State.DISCONNECTED;
 							connectionResolver.startListening(MAIN_PORT);
 						}
-						
+
 					}
 				}).start();
 				mainConnection = connection;
