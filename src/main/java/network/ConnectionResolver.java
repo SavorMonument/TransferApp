@@ -1,5 +1,6 @@
 package network;
 
+import logic.Connection;
 import window.AppLogger;
 
 import java.io.IOException;
@@ -19,17 +20,17 @@ public class ConnectionResolver
 		this.connectionEvent = connectionEvent;
 	}
 
-	public void attemptConnection(InetAddress address, int port, int localPort)
+	public void attemptConnection(InetAddress address, int port)
 	{
 		LOGGER.log(Level.ALL, String.format("Attempting connection to URL: %s, port: %d",
 				address, port));
 		Socket socket;
 		try
 		{
-			socket = new Socket(address, port, null, localPort);
+			socket = new Socket(address, port);
 			LOGGER.log(Level.ALL, String.format("Connection successful to URL: %s, port: %d",
 					address, port));
-			callEvent(socket);
+			connectionEvent.connectionAttemptSuccessful(new NetworkConnection(socket, new SocketMessageTransmitter(socket), new SocketMessageReceiver(socket)));
 		} catch (IOException e)
 		{
 			LOGGER.log(Level.WARNING, String.format("Connection unsuccessful to URL: %s\n%s",
@@ -147,18 +148,10 @@ public class ConnectionResolver
 		connectionListener.start();
 	}
 
-	private void callEvent(Socket socket)
+	public interface ConnectionEvent
 	{
-		connectionEvent.connectionEstablished(socket);
-		connectionEvent.connectionEstablished(socket, new SocketTransmitter(socket), new SocketReceiver(socket));
-		connectionEvent.connectionEstablished(socket, new SocketMessageTransmitter(socket), new SocketMessageReceiver(socket));
-	}
-
-	public static abstract class ConnectionEvent
-	{
-		public void connectionEstablished(Socket socket){}
-		public void connectionEstablished(Socket socket, SocketTransmitter socketTransmitter, SocketReceiver socketReceiver){}
-		public void connectionEstablished(Socket socket, SocketMessageTransmitter messageTransmitter, SocketMessageReceiver messageReceiver){}
+		void connectionAttemptSuccessful(Connection connection);
+		void connectionReceivedOnListener(Connection connection);
 	}
 
 	private class ConnectionListener extends Thread
@@ -178,11 +171,13 @@ public class ConnectionResolver
 			try
 			{
 				serverSocket = new ServerSocket(port);
+
 				System.out.println("Started listening on: " + InetAddress.getLocalHost() + ":" + port);
 				Socket socket = serverSocket.accept();
 				LOGGER.log(Level.ALL, String.format("Connection successful to URL: %s, port: %d",
 						socket.getInetAddress(), socket.getPort()));
-				callEvent(socket);
+
+				connectionEvent.connectionReceivedOnListener(new NetworkConnection(socket, new SocketMessageTransmitter(socket), new SocketMessageReceiver(socket)));
 			} catch (IOException e)
 			{
 				LOGGER.log(Level.WARNING, "Socket stopped from listening\n" + e.getMessage());

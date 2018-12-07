@@ -1,5 +1,7 @@
 package network;
 
+import filetransfer.TransferInput;
+import logic.Connection;
 import logic.NetworkMessage;
 import logic.NetworkMessage.MessageType;
 import window.AppLogger;
@@ -10,7 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class SocketMessageReceiver extends SocketReceiver
+public class SocketMessageReceiver extends SocketReceiver implements Connection.MessageReceiver, TransferInput
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 
@@ -41,7 +43,6 @@ public class SocketMessageReceiver extends SocketReceiver
 		{
 			LOGGER.log(Level.WARNING, "Received invalid message");
 //			e.printStackTrace();
-			message = null;
 		} catch (IOException e)
 		{
 			e.printStackTrace();

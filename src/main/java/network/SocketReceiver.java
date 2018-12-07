@@ -8,7 +8,7 @@ import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class SocketReceiver extends SocketStream implements TransferInput
+public class SocketReceiver extends SocketStream
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 

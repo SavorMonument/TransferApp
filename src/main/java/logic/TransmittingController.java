@@ -1,7 +1,10 @@
 package logic;
 
+import com.sun.istack.internal.NotNull;
 import filesistem.FileOutput;
 import filetransfer.FileReceiver;
+import filetransfer.TransferInput;
+import filetransfer.TransferOutput;
 import network.ConnectionResolver;
 import network.SocketMessageTransmitter;
 import network.SocketReceiver;
@@ -15,16 +18,26 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class TransmitterController
+public class TransmittingController
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 	private static final int FILE_PORT = 59_901;
 
-	private SocketMessageTransmitter messageTransmitter;
+	private Connection mainConnection;
+	private Connection fileTransmittingConnection;
 
-	public TransmitterController(SocketMessageTransmitter messageTransmitter, BusinessEvents businessEvents)
+	private Connection.MessageTransmitter messageTransmitter;
+
+	public TransmittingController(@NotNull Connection mainConnection, @NotNull Connection fileTransmittingConnection, @NotNull BusinessEvents businessEvents)
 	{
-			this.messageTransmitter = messageTransmitter;
+		assert null != mainConnection && mainConnection.isConnected() : "Invalid main connection";
+		assert null != fileTransmittingConnection && fileTransmittingConnection.isConnected() : "Invalid main connection";
+		assert null != businessEvents : "Invalid BusinessEvents";
+
+		this.mainConnection = mainConnection;
+		this.fileTransmittingConnection = fileTransmittingConnection;
+
+		this.messageTransmitter = mainConnection.getMessageTransmitter();
 	}
 
 	public void updateAvailableFileList(List<File> files)
@@ -58,16 +71,7 @@ public class TransmitterController
 		NetworkMessage networkMessage = new NetworkMessage(NetworkMessage.MessageType.SEND_FILE, fileName);
 		messageTransmitter.transmitMessage(networkMessage);
 
-		new ConnectionResolver(new ConnectionResolver.ConnectionEvent()
-		{
-			@Override
-			public void connectionEstablished(
-					Socket socket, SocketTransmitter socketTransmitter, SocketReceiver socketReceiver)
-			{
-				new FileReceiver(socketReceiver, socketTransmitter, new FileOutput(fileName, downloadPath))
-				.start();
-			}
-		}).startListeningBlocking(FILE_PORT, 10_000);
-
+		new FileReceiver((TransferInput) fileTransmittingConnection.getMessageReceiver(),
+				(TransferOutput) fileTransmittingConnection.getMessageTransmitter(), new FileOutput(fileName, downloadPath)).start();
 	}
 }

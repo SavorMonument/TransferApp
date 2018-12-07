@@ -8,7 +8,6 @@ import window.local.LocalController;
 import window.remote.RemoteController;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.*;
 import java.util.List;
 import java.util.logging.Level;
@@ -17,16 +16,30 @@ import java.util.logging.Logger;
 public class LogicController extends Thread
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
-	private static final int PORT = 50001;
+	private static final int CONNECTION_TIMEOUT_MILLIS = 10_000;
+	private static final int MAIN_PORT = 53222;
+	private static final int TRANSMITTING_PORT = 53223;
+	private static final int RECEIVING_PORT = 53224;
 
 	private String downloadPath = "C:\\Users\\Goia\\Desktop\\test_folder";
 
+	private enum State
+	{
+		CONNECTED,
+		CONNECTING,
+		DISCONNECTED;
+	}
+
+	private State state = State.DISCONNECTED;
+
 	private ConnectionResolver connectionResolver;
+	private Connection mainConnection;
+	private Connection transmittingConnection;
+	private Connection receivingConnection;
 
 	private BusinessEvents businessEvents;
-	private Socket mainSocket;
 
-	private TransmitterController transmitterController;
+	private TransmittingController transmitterController;
 	private ReceiverController receiverController;
 
 	public LogicController(BusinessEvents businessEvents)
@@ -39,7 +52,7 @@ public class LogicController extends Thread
 		this.businessEvents = businessEvents;
 		this.connectionResolver = new ConnectionResolver(new ConnectionListener());
 
-		connectionResolver.startListening(PORT);
+		connectionResolver.startListening(MAIN_PORT);
 		setDaemon(true);
 	}
 
@@ -63,47 +76,46 @@ public class LogicController extends Thread
 	class UIEventReceiver implements UIEvents
 	{
 		@Override
-		public boolean attemptConnectionToHost(String host, int port)
+		public void attemptConnectionToHost(String host)
 		{
-			if (null == mainSocket)
+			if (state == State.DISCONNECTED)
 			{
 				LOGGER.log(Level.ALL, "Connection request to: " + host);
+
+				connectionResolver.stopListening();
+				state = State.CONNECTING;
 				try
 				{
-					connectionResolver.attemptConnection(InetAddress.getByName(host), port, port + 1);
-					return true;
+					connectionResolver.attemptConnection(InetAddress.getByName(host), MAIN_PORT);
+					connectionResolver.attemptConnection(InetAddress.getByName(host), TRANSMITTING_PORT);
+					connectionResolver.attemptConnection(InetAddress.getByName(host), RECEIVING_PORT);
+
+					if (null != mainConnection && null != receivingConnection && null != transmittingConnection)
+						constructControllers();
+					else
+					{
+						closeConnections();
+						connectionResolver.startListening(MAIN_PORT);
+					}
 				} catch (UnknownHostException e)
 				{
 					LOGGER.log(Level.ALL, "Invalid address: " + host);
 //					e.printStackTrace();
 				}
 			} else
-				LOGGER.log(Level.ALL, "Connection request denied: Already connected");
-
-			return false;
+				LOGGER.log(Level.WARNING, "Connection request denied: Already connected");
 		}
 
 		@Override
 		public void disconnect()
 		{
-			if (null != mainSocket)
+			if (state == State.CONNECTED)
 			{
-				LOGGER.log(Level.ALL, "Disconnecting: " + mainSocket.getInetAddress().toString());
+				LOGGER.log(Level.ALL, "Disconnecting: " + mainConnection.getRemoteAddress());
 
-				receiverController.close();
-
-				transmitterController = null;
-				receiverController = null;
-				try
-				{
-					mainSocket.close();
-				} catch (IOException e)
-				{
-					LOGGER.log(Level.WARNING, "Exception while closing socket " + e.getMessage());
-//					e.printStackTrace();
-				}
-				mainSocket = null;
-			}else
+				closeConnections();
+				connectionResolver.startListening(MAIN_PORT);
+			} else
 				LOGGER.log(Level.ALL, "Disconnect request denied, not connected");
 		}
 
@@ -131,30 +143,88 @@ public class LogicController extends Thread
 		}
 	}
 
-	class ConnectionListener extends ConnectionResolver.ConnectionEvent
+	private void constructControllers()
 	{
-		public void connectionEstablished(Socket socket, SocketMessageTransmitter messageTransmitter, SocketMessageReceiver messageReceiver)
+		assert null != mainConnection && mainConnection.isConnected() : "Main not connected";
+		assert null != transmittingConnection && transmittingConnection.isConnected() : "Transmitting not connected";
+		assert null != receivingConnection && receivingConnection.isConnected() : "Receiving not connected";
+
+		receiverController = new ReceiverController(mainConnection, receivingConnection, businessEvents);
+		transmitterController = new TransmittingController(mainConnection, transmittingConnection, businessEvents);
+
+		receiverController.startListening();
+	}
+
+	private void closeConnections()
+	{
+		if (null != receiverController)
 		{
-			assert null == mainSocket || mainSocket.isClosed() : "Got connection request while connected";
-			assert socket.isConnected() : "Got event with unconnected socket";
+			receiverController.close();
+			receiverController = null;
+		}
 
-			LOGGER.log(Level.ALL, "Received Connection request");
-			if (businessEvents.confirmConnectionRequest(socket.getInetAddress().toString()))
+		if (null != transmitterController)
+			transmitterController = null;
+
+		if (null != mainConnection)
+		{
+			mainConnection.close();
+		}
+
+		if (null != receivingConnection)
+		{
+			receivingConnection.close();
+		}
+
+		if (null != transmittingConnection)
+		{
+			transmittingConnection.close();
+		}
+
+		state = State.DISCONNECTED;
+	}
+
+	class ConnectionListener implements ConnectionResolver.ConnectionEvent
+	{
+		public void connectionAttemptSuccessful(Connection connection)
+		{
+			assert null != connection && connection.isConnected() : "Received Invalid connection";
+
+			assignConnectionBasedOnPort(connection, connection.getRemotePort());
+		}
+
+		public void connectionReceivedOnListener(Connection connection)
+		{
+			assert null != connection && connection.isConnected() : "Received invalid connection";
+
+			state = State.CONNECTING;
+			assignConnectionBasedOnPort(connection, connection.getLocalPort());
+
+			if (null == transmittingConnection)
+				connectionResolver.startListeningBlocking(TRANSMITTING_PORT, CONNECTION_TIMEOUT_MILLIS);
+			if (null == receivingConnection)
+				connectionResolver.startListeningBlocking(RECEIVING_PORT, CONNECTION_TIMEOUT_MILLIS);
+		}
+
+		private void assignConnectionBasedOnPort(Connection connection, int remotePort)
+		{
+			switch (remotePort)
 			{
-				LOGGER.log(Level.ALL, "Successfully connected to socket");
-				mainSocket = socket;
-				receiverController = new ReceiverController(messageReceiver, businessEvents);
-				transmitterController = new TransmitterController(messageTransmitter, businessEvents);
-
-				if (connectionResolver.isListening())
-					connectionResolver.stopListening();
-			} else
-			{
-				LOGGER.log(Level.ALL, String.format("Could not connect to: %s, already connected to: %s",
-						socket.getInetAddress(), socket.getInetAddress()));
-
-				if (!connectionResolver.isListening())
-					connectionResolver.startListening(PORT);
+				case MAIN_PORT:
+				{
+					mainConnection = connection;
+				}
+				break;
+				case TRANSMITTING_PORT:
+				{
+					transmittingConnection = connection;
+				}
+				break;
+				case RECEIVING_PORT:
+				{
+					receivingConnection = connection;
+				}
+				break;
 			}
 		}
 	}

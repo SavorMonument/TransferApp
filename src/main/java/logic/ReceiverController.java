@@ -1,15 +1,14 @@
 package logic;
 
+import com.sun.istack.internal.NotNull;
 import filesistem.FileInput;
 import filetransfer.FileTransmitter;
-import network.ConnectionResolver;
-import network.SocketMessageReceiver;
-import network.SocketMessageTransmitter;
+import filetransfer.TransferInput;
+import filetransfer.TransferOutput;
+import logic.Connection.MessageReceiver;
 import window.AppLogger;
 
 import java.io.Closeable;
-import java.net.InetAddress;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -21,20 +20,26 @@ public class ReceiverController implements Closeable
 	//TODO: Have this passed trough the main socket(so you can have multiple file transferring at the sam time)
 	private static final int FILE_PORT = 59_901;
 
-	private SocketMessageReceiver messageReceiver;
+	private Connection mainConnection;
+	private Connection fileReceivingConnection;
+
+	private MessageReceiver messageReceiver;
 	private BusinessEvents businessEvents;
 
 	private SocketReceiverListener listener;
 
 
-	public ReceiverController(SocketMessageReceiver messageReceiver, BusinessEvents eventTransmitter)
+	public ReceiverController(@NotNull Connection mainConnection,@NotNull Connection fileReceivingConnection,@NotNull BusinessEvents businessEvents)
 	{
-		assert null != eventTransmitter : "Invalid BusinessEvents for construction";
+		assert null != mainConnection && mainConnection.isConnected() : "Invalid main connection";
+		assert null != fileReceivingConnection && fileReceivingConnection.isConnected() : "Invalid main connection";
+		assert null != businessEvents : "Invalid BusinessEvents";
 
-		this.businessEvents = eventTransmitter;
-		this.messageReceiver = messageReceiver;
+		this.mainConnection = mainConnection;
+		this.fileReceivingConnection = fileReceivingConnection;
 
-		startListening();
+		this.messageReceiver = mainConnection.getMessageReceiver();
+		this.businessEvents = businessEvents;
 	}
 
 	private void checkMessages()
@@ -67,29 +72,17 @@ public class ReceiverController implements Closeable
 
 					LOGGER.log(Level.FINE, String.format("Received file transfer request\n " +
 							"Starting file transmitter with file: %s on address: %s, port%d",
-							filePath, messageReceiver.getSocketIPAddress(), FILE_PORT));
+							filePath, mainConnection.getRemoteAddress(), FILE_PORT));
 
-					attemptBuildFileTransfer(filePath, messageReceiver.getSocketIPAddress(), FILE_PORT);
+					new FileTransmitter((TransferOutput) fileReceivingConnection.getMessageTransmitter(),
+							(TransferInput) fileReceivingConnection.getMessageReceiver(), new FileInput(filePath));
 				}
 				break;
 			}
 		}
 	}
 
-	private void attemptBuildFileTransfer(String filePath, InetAddress socketIPAddress, int filePort)
-	{
-		new ConnectionResolver(new ConnectionResolver.ConnectionEvent()
-		{
-			@Override
-			public void connectionEstablished(Socket socket, SocketMessageTransmitter messageTransmitter,
-											  SocketMessageReceiver messageReceiver)
-			{
-				new FileTransmitter(messageTransmitter, messageReceiver, new FileInput(filePath)).start();
-			}
-		}).attemptConnection(socketIPAddress, filePort, filePort);
-	}
-
-	private void startListening()
+	public void startListening()
 	{
 		listener = new SocketReceiverListener();
 

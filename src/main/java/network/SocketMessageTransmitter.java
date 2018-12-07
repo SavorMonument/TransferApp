@@ -1,5 +1,7 @@
 package network;
 
+import filetransfer.TransferOutput;
+import logic.Connection;
 import logic.NetworkMessage;
 
 import java.io.BufferedWriter;
@@ -7,7 +9,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 
-public class SocketMessageTransmitter extends SocketTransmitter
+public class SocketMessageTransmitter extends SocketTransmitter implements Connection.MessageTransmitter, TransferOutput
 {
 	private BufferedWriter outputWriter;
 
