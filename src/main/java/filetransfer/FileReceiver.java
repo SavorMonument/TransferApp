@@ -4,6 +4,7 @@ import com.sun.istack.internal.NotNull;
 import window.AppLogger;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -52,17 +53,19 @@ public class FileReceiver extends Thread
 
 	private void receiveBytesAndWriteToFile(TransferFileOutput fileOutput) throws IOException
 	{
-		int inputBufferSize = socketReceiver.getBufferSize();
+		int bufferToFill = (int)(socketReceiver.getBufferSize() * 0.75);
 		byte[] buffer = new byte[BUFFER_SIZE];
 
 		//TODO: Better way to determine when a file is done or not, can't rely on a timer
 		DeltaTime lastSuccessfulTransmission = new DeltaTime();
+		boolean gotBack = true;
 		while (lastSuccessfulTransmission.getElapsedTimeMillis() < CONNECTION_TIMEOUT_MILLIS)
 		{
-			if (socketReceiver.available() < inputBufferSize / 2)
+			if (gotBack && socketReceiver.available() < bufferToFill)
 			{
-				int times = (inputBufferSize - socketReceiver.available()) / BUFFER_SIZE;
-				socketTransmitter.transmitBytes(new byte[times], times);
+				String amount = Integer.toString(bufferToFill - socketReceiver.available());
+				socketTransmitter.transmitBytes(amount.getBytes(), amount.length());
+				gotBack = false;
 			}
 
 			if (socketReceiver.available() >= BUFFER_SIZE)
@@ -73,6 +76,7 @@ public class FileReceiver extends Thread
 					fileOutput.writeToFile(buffer, amountRead);
 				}
 				lastSuccessfulTransmission = new DeltaTime();
+				gotBack = true;
 			}
 		}
 		//Write the last bit that is smaller than BUFFER_SIZE

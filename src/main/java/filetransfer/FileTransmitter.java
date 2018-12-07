@@ -44,16 +44,21 @@ public class FileTransmitter extends Thread
 	private void readBytesAndTransmitThemOverSocket(TransferFileInput fileInput) throws IOException
 	{
 		byte[] buffer = new byte[BUFFER_SIZE];
+		byte[] values = new byte[4];
 
 		int bytesRead = BUFFER_SIZE;
 		while (bytesRead == BUFFER_SIZE)
 		{
-			System.out.println("Here");
-			if (socketReceiver.read() > -1)
+			socketReceiver.read(values);
+			int remoteByteBuffer = Integer.valueOf(new String(values));
+			System.out.println(remoteByteBuffer);
+
+			while (remoteByteBuffer >= BUFFER_SIZE)
 			{
 				bytesRead = fileInput.read(buffer, BUFFER_SIZE);
 				System.out.println("Sending: " + bytesRead + "bytes");
 				socketTransmitter.transmitBytes(buffer, bytesRead);
+				remoteByteBuffer -= BUFFER_SIZE;
 			}
 		}
 	}
