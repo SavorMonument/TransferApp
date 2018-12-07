@@ -95,6 +95,7 @@ public class LogicController extends Thread
 					else
 					{
 						closeConnections();
+						state = State.DISCONNECTED;
 						connectionResolver.startListening(MAIN_PORT);
 					}
 				} catch (UnknownHostException e)
@@ -122,7 +123,7 @@ public class LogicController extends Thread
 		@Override
 		public void updateAvailableFileList(List<File> files)
 		{
-
+			LOGGER.log(Level.ALL, "Sending new file list to remote: " + files.toString());
 			transmitterController.updateAvailableFileList(files);
 		}
 
@@ -204,6 +205,15 @@ public class LogicController extends Thread
 				connectionResolver.startListeningBlocking(TRANSMITTING_PORT, CONNECTION_TIMEOUT_MILLIS);
 			if (null == receivingConnection)
 				connectionResolver.startListeningBlocking(RECEIVING_PORT, CONNECTION_TIMEOUT_MILLIS);
+
+			if (null != mainConnection && null != receivingConnection && null != transmittingConnection)
+				constructControllers();
+			else
+			{
+				closeConnections();
+				state = State.DISCONNECTED;
+				connectionResolver.startListening(MAIN_PORT);
+			}
 		}
 
 		private void assignConnectionBasedOnPort(Connection connection, int remotePort)
