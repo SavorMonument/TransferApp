@@ -91,8 +91,10 @@ public class LogicController extends Thread
 					connectionResolver.attemptConnection(InetAddress.getByName(host), RECEIVING_PORT);
 
 					if (null != mainConnection && null != receivingConnection && null != transmittingConnection)
+					{
 						constructControllers();
-					else
+						state = State.CONNECTED;
+					} else
 					{
 						closeConnections();
 						state = State.DISCONNECTED;
@@ -149,10 +151,12 @@ public class LogicController extends Thread
 		assert null != mainConnection && mainConnection.isConnected() : "Main not connected";
 		assert null != transmittingConnection && transmittingConnection.isConnected() : "Transmitting not connected";
 		assert null != receivingConnection && receivingConnection.isConnected() : "Receiving not connected";
+		assert null == receiverController : "controller already constructed";
+		assert null == transmitterController : "controller already constructed";
 
 		receiverController = new ReceiverController(mainConnection, receivingConnection, businessEvents);
 		transmitterController = new TransmittingController(mainConnection, transmittingConnection, businessEvents);
-
+		System.out.println("Once");
 		receiverController.startListening();
 	}
 
@@ -203,16 +207,24 @@ public class LogicController extends Thread
 
 			if (null == transmittingConnection)
 				connectionResolver.startListeningBlocking(TRANSMITTING_PORT, CONNECTION_TIMEOUT_MILLIS);
-			if (null == receivingConnection)
-				connectionResolver.startListeningBlocking(RECEIVING_PORT, CONNECTION_TIMEOUT_MILLIS);
-
-			if (null != mainConnection && null != receivingConnection && null != transmittingConnection)
-				constructControllers();
 			else
 			{
-				closeConnections();
-				state = State.DISCONNECTED;
-				connectionResolver.startListening(MAIN_PORT);
+				if (null == receivingConnection)
+					connectionResolver.startListeningBlocking(RECEIVING_PORT, CONNECTION_TIMEOUT_MILLIS);
+				else
+				{
+					System.out.println("Here " + Thread.currentThread().getName());
+					if (null != mainConnection && null != receivingConnection && null != transmittingConnection)
+					{
+						constructControllers();
+						state = State.CONNECTED;
+					} else
+					{
+						closeConnections();
+						state = State.DISCONNECTED;
+						connectionResolver.startListening(MAIN_PORT);
+					}
+				}
 			}
 		}
 

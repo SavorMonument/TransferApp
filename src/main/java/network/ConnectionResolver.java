@@ -66,7 +66,7 @@ public class ConnectionResolver
 	public void startListeningBlocking(int port, long timeOutMillis)
 	{
 		assert timeOutMillis > 0 : "Negative timeOut";
-		assert port >=0 && port < ((Short.MAX_VALUE * 2) + 2) : "Invalid port number";
+		assert port >=0 && port < (Math.pow(2, 16)) : "Invalid port number";
 
 		Thread countingThread = new Thread(new Runnable()
 		{
