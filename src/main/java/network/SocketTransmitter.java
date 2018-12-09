@@ -1,6 +1,5 @@
 package network;
 
-import filetransfer.TransferOutput;
 import window.AppLogger;
 
 import java.io.*;
@@ -12,18 +11,24 @@ public class SocketTransmitter extends SocketStream
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 
-	protected BufferedOutputStream outputStream;
+	private BytesCounter bytesCounter;
+	protected OutputStream outputStream;
 
 	public SocketTransmitter(Socket socket)
 	{
 		super(socket);
 		try
 		{
-			outputStream = new BufferedOutputStream(socket.getOutputStream());
+			outputStream = socket.getOutputStream();
 		} catch (IOException e)
 		{
 			e.printStackTrace();
 		}
+	}
+
+	public void registerBytesCounter(BytesCounter bytesCounter)
+	{
+		this.bytesCounter = bytesCounter;
 	}
 
 	public void transmitBytes(byte[] bytes)
@@ -37,6 +42,12 @@ public class SocketTransmitter extends SocketStream
 		{
 			outputStream.write(bytes, 0, numOfBytes);
 			outputStream.flush();
+
+			if (null != bytesCounter)
+			{
+				bytesCounter.addToCount(numOfBytes);
+			}
+
 		} catch (IOException e)
 		{
 			LOGGER.log(Level.WARNING, "Could not send message to outputStream " + e.getMessage());
@@ -49,6 +60,11 @@ public class SocketTransmitter extends SocketStream
 		{
 			outputStream.write(b);
 			outputStream.flush();
+
+			if (null != bytesCounter)
+			{
+				bytesCounter.addToCount(1);
+			}
 		} catch (IOException e)
 		{
 			e.printStackTrace();

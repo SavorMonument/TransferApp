@@ -7,7 +7,7 @@ import java.io.*;
 public class FileInput implements TransferFileInput
 {
 	private File file;
-	private BufferedInputStream inputStream;
+	private InputStream inputStream;
 
 	private String filePath;
 
@@ -21,7 +21,7 @@ public class FileInput implements TransferFileInput
 		file = new File(filePath);
 		boolean successful = file.exists();
 
-		inputStream = new BufferedInputStream(new FileInputStream(file));
+		inputStream = new FileInputStream(file);
 
 		return successful;
 	}
@@ -36,7 +36,7 @@ public class FileInput implements TransferFileInput
 			return inputStream.read(bytes, 0, bytesToRead);
 	}
 
-	private int available() throws IOException
+	public int available() throws IOException
 	{
 		return inputStream.available();
 	}

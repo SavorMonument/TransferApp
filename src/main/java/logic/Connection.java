@@ -3,6 +3,7 @@ package logic;
 import com.sun.istack.internal.NotNull;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.net.InetAddress;
 
 public abstract class Connection implements Closeable
@@ -22,12 +23,13 @@ public abstract class Connection implements Closeable
 	//-------------------------------------------------------
 	public interface MessageTransmitter
 	{
-		void transmitMessage(NetworkMessage networkMessage);
+		void transmitMessage(NetworkMessage networkMessage) throws IOException;
 	}
 
 	public interface MessageReceiver
 	{
-		NetworkMessage pullMessage();
+		NetworkMessage pullMessage() throws IOException;
+		NetworkMessage pullMessageBlocking() throws IOException;
 	}
 	//-------------------------------------------------------
 

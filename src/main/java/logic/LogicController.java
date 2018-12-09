@@ -1,7 +1,6 @@
 package logic;
 
 import network.*;
-import org.omg.CORBA.TIMEOUT;
 import window.AppLogger;
 import window.UIEvents;
 import window.connection.ConnectionController;
@@ -18,9 +17,9 @@ public class LogicController extends Thread
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 	private static final int CONNECTION_TIMEOUT_MILLIS = 10_000;
-	private static final int MAIN_PORT = 53222;
-	private static final int PORT_ONE = 53223;
-	private static final int PORT_TWO = 53224;
+	private static final int MAIN_PORT = 48552;
+	private static final int SECOND_PORT = 48553;
+	private static final int THIRD_PORT = 48554;
 
 	private String downloadPath = "C:\\Users\\Goia\\Desktop\\test_folder";
 
@@ -28,7 +27,8 @@ public class LogicController extends Thread
 	{
 		CONNECTED,
 		CONNECTING,
-		DISCONNECTED;
+		DISCONNECTED,
+		DISCONNECTING;
 	}
 
 	private State state = State.DISCONNECTED;
@@ -62,7 +62,7 @@ public class LogicController extends Thread
 
 		while (true)
 		{
-
+			System.out.println(connectionResolver.isListening());
 			try
 			{
 				Thread.sleep(3000);
@@ -88,8 +88,8 @@ public class LogicController extends Thread
 				try
 				{
 					connectionResolver.attemptConnection(InetAddress.getByName(host), MAIN_PORT);
-					connectionResolver.attemptConnection(InetAddress.getByName(host), PORT_ONE);
-					connectionResolver.attemptConnection(InetAddress.getByName(host), PORT_TWO);
+					connectionResolver.attemptConnection(InetAddress.getByName(host), SECOND_PORT);
+					connectionResolver.attemptConnection(InetAddress.getByName(host), THIRD_PORT);
 
 					if (null != mainConnection && null != receivingConnection && null != transmittingConnection)
 					{
@@ -97,14 +97,12 @@ public class LogicController extends Thread
 						state = State.CONNECTED;
 					} else
 					{
-						closeConnections();
-						state = State.DISCONNECTED;
-						connectionResolver.startListening(MAIN_PORT);
+						closeConnectionsAndReset();
 					}
 				} catch (UnknownHostException e)
 				{
 					LOGGER.log(Level.ALL, "Invalid address: " + host);
-//					e.printStackTrace();
+//					e.printStackTraconnection.getLocalPort();
 				}
 			} else
 				LOGGER.log(Level.WARNING, "Connection request denied: Already connected");
@@ -116,9 +114,11 @@ public class LogicController extends Thread
 			if (state == State.CONNECTED)
 			{
 				LOGGER.log(Level.ALL, "Disconnecting: " + mainConnection.getRemoteAddress());
-
-				closeConnections();
-				connectionResolver.startListening(MAIN_PORT);
+				//That means I am the 'server' so tell the client to close connection
+				if (mainConnection.getLocalPort() == MAIN_PORT)
+					transmitterController.transmitDisconnectMessage();
+				else
+					closeConnectionsAndReset();
 			} else
 				LOGGER.log(Level.ALL, "Disconnect request denied, not connected");
 		}
@@ -147,45 +147,78 @@ public class LogicController extends Thread
 		}
 	}
 
+	class ConnectEvent implements ConnectCloseEvent
+	{
+		@Override
+		public void disconnect(String message)
+		{
+			LOGGER.log(Level.WARNING, "Connection disrupted, resetting connections: " + message);
+
+			if (state != State.DISCONNECTING && state != State.DISCONNECTED)
+			{
+				state = State.DISCONNECTING;
+				new Thread(() -> closeConnectionsAndReset()).start();
+				state = State.DISCONNECTED;
+
+			}
+		}
+	}
+
 	private void constructControllers()
 	{
 		assert null != mainConnection && mainConnection.isConnected() : "Main not connected";
 		assert null != transmittingConnection && transmittingConnection.isConnected() : "Transmitting not connected";
 		assert null != receivingConnection && receivingConnection.isConnected() : "Receiving not connected";
-		assert null == receiverController : "controller already constructed";
-		assert null == transmitterController : "controller already constructed";
+		assert null == receiverController : "Controller already constructed";
+		assert null == transmitterController : "Controller already constructed";
 
-		receiverController = new ReceiverController(mainConnection, receivingConnection, businessEvents);
-		transmitterController = new TransmittingController(mainConnection, transmittingConnection, businessEvents);
+		ConnectEvent connectEvent = new ConnectEvent();
+
+		receiverController = new ReceiverController(mainConnection, receivingConnection, businessEvents, connectEvent);
+		transmitterController = new TransmittingController(mainConnection, transmittingConnection, businessEvents, connectEvent);
 		receiverController.startListening();
 	}
 
-	private void closeConnections()
+	private void closeConnectionsAndReset()
 	{
+		state = State.DISCONNECTING;
+
+		if (null != mainConnection)
+		{
+			mainConnection.close();
+			mainConnection = null;
+		}
+
 		if (null != receiverController)
 		{
-			receiverController.close();
+			receiverController.stopListening();
 			receiverController = null;
 		}
 
 		if (null != transmitterController)
 			transmitterController = null;
 
-		if (null != mainConnection)
-		{
-			mainConnection.close();
-		}
-
 		if (null != receivingConnection)
 		{
 			receivingConnection.close();
+			receivingConnection = null;
 		}
 
 		if (null != transmittingConnection)
 		{
 			transmittingConnection.close();
+			transmittingConnection = null;
 		}
 
+		try
+		{
+			Thread.sleep(5000);
+		} catch (InterruptedException e)
+		{
+			e.printStackTrace();
+		}
+
+		connectionResolver.startListening(MAIN_PORT);
 		state = State.DISCONNECTED;
 	}
 
@@ -207,12 +240,12 @@ public class LogicController extends Thread
 					mainConnection = connection;
 				}
 				break;
-				case PORT_ONE:
+				case SECOND_PORT:
 				{
 					transmittingConnection = connection;
 				}
 				break;
-				case PORT_TWO:
+				case THIRD_PORT:
 				{
 					receivingConnection = connection;
 				}
@@ -229,12 +262,12 @@ public class LogicController extends Thread
 
 			if (null == receivingConnection)
 			{
-				connectionResolver.startListening(PORT_ONE, CONNECTION_TIMEOUT_MILLIS);
+				connectionResolver.startListening(SECOND_PORT, CONNECTION_TIMEOUT_MILLIS);
 			} else
 			{
 				if (null == transmittingConnection)
 				{
-					connectionResolver.startListening(PORT_TWO, CONNECTION_TIMEOUT_MILLIS);
+					connectionResolver.startListening(THIRD_PORT, CONNECTION_TIMEOUT_MILLIS);
 				} else
 				{
 					constructControllers();
@@ -266,7 +299,7 @@ public class LogicController extends Thread
 						}
 						if (state == State.CONNECTING)
 						{
-							closeConnections();
+							closeConnectionsAndReset();
 							state = State.DISCONNECTED;
 							connectionResolver.startListening(MAIN_PORT);
 						}
@@ -276,12 +309,12 @@ public class LogicController extends Thread
 				mainConnection = connection;
 			}
 			break;
-			case PORT_ONE:
+			case SECOND_PORT:
 			{
 				receivingConnection = connection;
 			}
 			break;
-			case PORT_TWO:
+			case THIRD_PORT:
 			{
 				transmittingConnection = connection;
 			}

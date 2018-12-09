@@ -24,17 +24,19 @@ public class ConnectionResolver
 	{
 		LOGGER.log(Level.ALL, String.format("Attempting connection to URL: %s, port: %d",
 				address, port));
-		Socket socket;
+		Socket socket = new Socket();
 		try
 		{
+//			socket.connect(new InetSocketAddress(address, port), 5000);
+
 			socket = new Socket(address, port);
 			LOGGER.log(Level.ALL, String.format("Connection successful to URL: %s, port: %d",
 					address, port));
 			connectionEvent.connectionAttemptSuccessful(new NetworkConnection(socket, new SocketMessageTransmitter(socket), new SocketMessageReceiver(socket)));
 		} catch (IOException e)
 		{
-			LOGGER.log(Level.WARNING, String.format("Connection unsuccessful to URL: %s\n%s",
-					address.getHostAddress(), e.getMessage()));
+			LOGGER.log(Level.WARNING, String.format("Connection unsuccessful to URL: %s, port: %s\n%s",
+					address.getHostAddress(), port, e.getMessage()));
 		}
 	}
 
@@ -60,13 +62,13 @@ public class ConnectionResolver
 
 	/**
 	 * Listens for a connection on the calling thread with a timeout
-	 *
+	 * <p>
 	 * Calls connectionEstablished event on connection
 	 */
 	public void startListeningBlocking(int port, long timeOutMillis)
 	{
 		assert timeOutMillis > 0 : "Negative timeOut";
-		assert port >=0 && port < (Math.pow(2, 16)) : "Invalid port number";
+		assert port >= 0 && port < (Math.pow(2, 16)) : "Invalid port number";
 
 		Thread countingThread = new Thread(new Runnable()
 		{
@@ -92,7 +94,7 @@ public class ConnectionResolver
 
 	/**
 	 * Listens for a connection on the calling thread
-	 *
+	 * <p>
 	 * Calls connectionEstablished event on connection
 	 */
 	public void startListeningBlocking(int localPort)
@@ -105,13 +107,13 @@ public class ConnectionResolver
 
 	/**
 	 * Issues a new thread and listens for a connection on it with a timeout
-	 *
+	 * <p>
 	 * Calls connectionEstablished event on connection
 	 */
 	public void startListening(int port, long timeOutMillis)
 	{
 		assert timeOutMillis > 0 : "Negative timeOut";
-		assert port >=0 && port < ((Short.MAX_VALUE * 2) + 2) : "Invalid port number";
+		assert port >= 0 && port < ((Short.MAX_VALUE * 2) + 2) : "Invalid port number";
 
 		Thread countingThread = new Thread(new Runnable()
 		{
@@ -137,7 +139,7 @@ public class ConnectionResolver
 
 	/**
 	 * Issues a new thread and listens for a connection on it
-	 *
+	 * <p>
 	 * Calls connectionEstablished event on connection
 	 */
 	public void startListening(int localPort)
@@ -151,6 +153,7 @@ public class ConnectionResolver
 	public interface ConnectionEvent
 	{
 		void connectionAttemptSuccessful(Connection connection);
+
 		void connectionReceivedOnListener(Connection connection);
 	}
 
@@ -174,13 +177,14 @@ public class ConnectionResolver
 
 				System.out.println("Started listening on: " + InetAddress.getLocalHost() + ":" + port);
 				Socket socket = serverSocket.accept();
-				LOGGER.log(Level.ALL, String.format("Connection successful to URL: %s, port: %d",
-						socket.getInetAddress(), socket.getPort()));
-
+				serverSocket.close();
+				LOGGER.log(Level.ALL, String.format("Connection successful from URL: %s, port: %d, to URL: %s, port: %d",
+						socket.getLocalAddress(), socket.getLocalPort(), socket.getInetAddress(), socket.getPort()));
 				connectionEvent.connectionReceivedOnListener(new NetworkConnection(socket, new SocketMessageTransmitter(socket), new SocketMessageReceiver(socket)));
 			} catch (IOException e)
 			{
-				LOGGER.log(Level.WARNING, "Socket stopped from listening\n" + e.getMessage());
+				LOGGER.log(Level.WARNING, String.format("Socket stopped from listening on port: %d\n%s",
+						port, e.getMessage()));
 //				e.printStackTrace();
 			}
 		}

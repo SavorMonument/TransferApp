@@ -23,7 +23,6 @@ public class EntryPoint extends Application
 		primaryStage.setMinWidth(mainView.minWidth(-1) + 10);
 		primaryStage.setMinHeight(mainView.minHeight(-1) + 20);
 
-		System.out.println(primaryStage.getHeight());
 		primaryStage.setScene(mainScene);
 		primaryStage.show();
 	}

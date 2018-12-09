@@ -4,7 +4,7 @@ import com.sun.istack.internal.NotNull;
 import window.AppLogger;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.nio.ByteBuffer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -53,19 +53,19 @@ public class FileReceiver extends Thread
 
 	private void receiveBytesAndWriteToFile(TransferFileOutput fileOutput) throws IOException
 	{
-		int bufferToFill = (int)(socketReceiver.getBufferSize() * 0.75);
+		int myBufferSize = (int)(socketReceiver.getBufferSize() * 0.75);
 		byte[] buffer = new byte[BUFFER_SIZE];
 
-		//TODO: Better way to determine when a file is done or not, can't rely on a timer
 		DeltaTime lastSuccessfulTransmission = new DeltaTime();
-		boolean gotBack = true;
+		boolean receivedBeforeLastSend = true;
+
+		//TODO: Better way to determine when a file is done or not, can't rely on a timer
 		while (lastSuccessfulTransmission.getElapsedTimeMillis() < CONNECTION_TIMEOUT_MILLIS)
 		{
-			if (gotBack && socketReceiver.available() < bufferToFill)
+			if (receivedBeforeLastSend && socketReceiver.available() < myBufferSize)
 			{
-				String amount = Integer.toString(bufferToFill - socketReceiver.available());
-				socketTransmitter.transmitBytes(amount.getBytes(), amount.length());
-				gotBack = false;
+				sendFreeBufferSizeToRemote(myBufferSize - socketReceiver.available());
+				receivedBeforeLastSend = false;
 			}
 
 			if (socketReceiver.available() >= BUFFER_SIZE)
@@ -76,14 +76,20 @@ public class FileReceiver extends Thread
 					fileOutput.writeToFile(buffer, amountRead);
 				}
 				lastSuccessfulTransmission = new DeltaTime();
-				gotBack = true;
+				receivedBeforeLastSend = true;
 			}
 		}
-		//Write the last bit that is smaller than BUFFER_SIZE
+		//Write the last chunk that is smaller than BUFFER_SIZE(if it exists)
 		if (socketReceiver.available() > 0)
 		{
 			int amountRead = socketReceiver.read(buffer);
 			fileOutput.writeToFile(buffer, amountRead);
 		}
+	}
+
+	private void sendFreeBufferSizeToRemote(int freeBufferSize) throws IOException
+	{
+		byte[] valueInBytes = ByteBuffer.allocate(Integer.BYTES).putInt(freeBufferSize).array();
+		socketTransmitter.transmitBytes(valueInBytes, Integer.BYTES);
 	}
 }

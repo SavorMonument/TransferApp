@@ -7,7 +7,7 @@ import java.io.*;
 public class FileOutput implements Closeable, TransferFileOutput
 {
 	private File tempFile;
-	private BufferedOutputStream outputStream;
+	private OutputStream outputStream;
 	private boolean isFinished = false;
 
 	private String fileName;
@@ -25,7 +25,7 @@ public class FileOutput implements Closeable, TransferFileOutput
 		tempFile = new File(path + "/" + fileName + ".tmp");
 
 		successful = tempFile.createNewFile();
-		outputStream = new BufferedOutputStream(new FileOutputStream(tempFile));
+		outputStream = new FileOutputStream(tempFile);
 
 		return successful;
 	}
@@ -40,6 +40,7 @@ public class FileOutput implements Closeable, TransferFileOutput
 		assert null != tempFile : "The file has to be created";
 
 		outputStream.write(bytes, 0, amount);
+		outputStream.flush();
 	}
 
 	public boolean finishFile()

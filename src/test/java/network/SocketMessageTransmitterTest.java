@@ -7,6 +7,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.net.Socket;
 
 import static org.junit.Assert.*;
@@ -35,7 +36,7 @@ public class SocketMessageTransmitterTest
 	}
 
 	@Test
-	public void transmitMessage()
+	public void transmitMessage() throws IOException
 	{
 		NetworkMessage.MessageType type = NetworkMessage.MessageType.SEND_FILE;
 		String message = "Test";

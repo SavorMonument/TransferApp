@@ -19,7 +19,7 @@ public class SocketMessageTransmitter extends SocketTransmitter implements Conne
 		this.outputWriter = new BufferedWriter(new OutputStreamWriter(outputStream));
 	}
 
-	public void transmitMessage(NetworkMessage networkMessage)
+	public void transmitMessage(NetworkMessage networkMessage) throws IOException
 	{
 		StringBuilder message = new StringBuilder();
 		message.append(networkMessage.getType().toString())
@@ -27,13 +27,7 @@ public class SocketMessageTransmitter extends SocketTransmitter implements Conne
 				.append(networkMessage.getMessage())
 				.append("\n");
 
-		try
-		{
-			outputWriter.write(message.toString());
-			outputWriter.flush();
-		} catch (IOException e)
-		{
-			e.printStackTrace();
-		}
+		outputWriter.write(message.toString());
+		outputWriter.flush();
 	}
 }

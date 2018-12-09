@@ -9,12 +9,13 @@ import logic.Connection.MessageReceiver;
 import window.AppLogger;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class ReceiverController implements Closeable
+public class ReceiverController
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 	//TODO: Have this passed trough the main socket(so you can have multiple file transferring at the sam time)
@@ -24,26 +25,38 @@ public class ReceiverController implements Closeable
 
 	private MessageReceiver messageReceiver;
 	private BusinessEvents businessEvents;
+	private ConnectCloseEvent connectEvent;
 
 	private SocketReceiverListener listener;
 
 
-	public ReceiverController(@NotNull Connection mainConnection,@NotNull Connection fileReceivingConnection,@NotNull BusinessEvents businessEvents)
+	public ReceiverController(@NotNull Connection mainConnection, @NotNull Connection fileReceivingConnection, @NotNull BusinessEvents businessEvents, @NotNull ConnectCloseEvent connectEvent)
 	{
 		assert null != mainConnection && mainConnection.isConnected() : "Invalid main connection";
 		assert null != fileReceivingConnection && fileReceivingConnection.isConnected() : "Invalid main connection";
 		assert null != businessEvents : "Invalid BusinessEvents";
+		assert null != connectEvent : "Need an actual event handler";
 
 		this.mainConnection = mainConnection;
 		this.fileReceivingConnection = fileReceivingConnection;
 
 		this.messageReceiver = mainConnection.getMessageReceiver();
 		this.businessEvents = businessEvents;
+		this.connectEvent = connectEvent;
 	}
 
 	private void checkMessages()
 	{
-		NetworkMessage networkMessage = messageReceiver.pullMessage();
+		NetworkMessage networkMessage = null;
+		try
+		{
+			networkMessage = messageReceiver.pullMessageBlocking();
+		} catch (IOException e)
+		{
+			stopListening();
+			connectEvent.disconnect(e.getMessage());
+//			e.printStackTrace();
+		}
 
 		if (null != networkMessage)
 		{
@@ -70,11 +83,17 @@ public class ReceiverController implements Closeable
 					String filePath = businessEvents.getLocalFilePath(fileName);
 
 					LOGGER.log(Level.FINE, String.format("Received file transfer request\n " +
-							"Starting file transmitter with file: %s to address: %s, port%d",
+									"Starting file transmitter with file: %s to address: %s, port%d",
 							filePath, fileReceivingConnection.getRemoteAddress(), fileReceivingConnection.getRemotePort()));
 
 					new FileTransmitter((TransferOutput) fileReceivingConnection.getMessageTransmitter(),
 							(TransferInput) fileReceivingConnection.getMessageReceiver(), new FileInput(filePath)).start();
+				}
+				break;
+				case DISCONNECT:
+				{
+					stopListening();
+					connectEvent.disconnect("Disconnect received");
 				}
 				break;
 			}
@@ -89,13 +108,7 @@ public class ReceiverController implements Closeable
 		listener.start();
 	}
 
-	@Override
-	public void close()
-	{
-		stopListening();
-	}
-
-	private void stopListening()
+	public void stopListening()
 	{
 		listener.interrupt();
 	}
@@ -109,13 +122,6 @@ public class ReceiverController implements Closeable
 			while (!isInterrupted())
 			{
 				checkMessages();
-				try
-				{
-					Thread.sleep(1000);
-				} catch (InterruptedException e)
-				{
-//					e.printStackTrace();
-				}
 			}
 		}
 	}

@@ -4,6 +4,7 @@ import com.sun.istack.internal.NotNull;
 import window.AppLogger;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -36,7 +37,7 @@ public class FileTransmitter extends Thread
 			LOGGER.log(Level.ALL, "File transmission done");
 		} catch (IOException e)
 		{
-			LOGGER.log(Level.WARNING, "File transmitting failed " + e.getMessage());
+			LOGGER.log(Level.WARNING, "File transmitting disconnect " + e.getMessage());
 //					e.printStackTrace();
 		}
 	}
@@ -45,21 +46,42 @@ public class FileTransmitter extends Thread
 	{
 		byte[] buffer = new byte[BUFFER_SIZE];
 		byte[] values = new byte[4];
+		int remoteBufferSize = 0;
+		boolean hasMore = true;
 
-		int bytesRead = BUFFER_SIZE;
-		while (bytesRead == BUFFER_SIZE)
+		while (hasMore)
 		{
-			socketReceiver.read(values);
-			int remoteByteBuffer = Integer.valueOf(new String(values));
-			System.out.println(remoteByteBuffer);
-
-			while (remoteByteBuffer >= BUFFER_SIZE)
+			if (socketReceiver.available() > 0)
 			{
-				bytesRead = fileInput.read(buffer, BUFFER_SIZE);
-				System.out.println("Sending: " + bytesRead + "bytes");
-				socketTransmitter.transmitBytes(buffer, bytesRead);
-				remoteByteBuffer -= BUFFER_SIZE;
+				socketReceiver.read(values);
+				remoteBufferSize = ByteBuffer.wrap(values).getInt();
 			}
+			hasMore = sendBytesUpToLimit(fileInput, buffer, remoteBufferSize);
+		}
+		clearInputBuffer();
+	}
+
+	private boolean sendBytesUpToLimit(TransferFileInput fileInput, byte[] buffer, int limit) throws IOException
+	{
+		int bytesRead = BUFFER_SIZE;
+		while (limit >= BUFFER_SIZE && bytesRead >= BUFFER_SIZE)
+		{
+			bytesRead = fileInput.read(buffer, BUFFER_SIZE);
+			socketTransmitter.transmitBytes(buffer, bytesRead);
+			limit -= BUFFER_SIZE;
+		}
+
+		return bytesRead >= BUFFER_SIZE;
+	}
+
+	private void clearInputBuffer()
+	{
+		try
+		{
+			socketReceiver.skip(socketReceiver.available());
+		} catch (IOException e)
+		{
+//			e.printStackTrace();
 		}
 	}
 }

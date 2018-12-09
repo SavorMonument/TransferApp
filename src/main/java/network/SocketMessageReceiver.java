@@ -19,14 +19,41 @@ public class SocketMessageReceiver extends SocketReceiver implements Connection.
 
 	private BufferedReader inputReader;
 
-	public SocketMessageReceiver(Socket socket)
+	public SocketMessageReceiver(Socket socket) throws IOException
 	{
 		super(socket);
 
 		inputReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
 	}
 
-	public NetworkMessage pullMessage()
+	public NetworkMessage pullMessageBlocking() throws IOException
+	{
+		NetworkMessage message = null;
+
+		while (null == message)
+		{
+			try
+			{
+				String line;
+				line = inputReader.readLine();
+				MessageType type = MessageType.valueOf(line);
+				line = inputReader.readLine();
+				message = new NetworkMessage(type, line);
+
+			} catch (NullPointerException e)
+			{
+				throw new IOException("Error on socket read");
+			}
+			catch (IllegalArgumentException e)
+			{
+				LOGGER.log(Level.WARNING, "Received invalid message");
+//			e.printStackTrace();
+			}
+		}
+		return message;
+	}
+
+	public NetworkMessage pullMessage() throws IOException
 	{
 		NetworkMessage message = null;
 		try
@@ -44,9 +71,6 @@ public class SocketMessageReceiver extends SocketReceiver implements Connection.
 		{
 			LOGGER.log(Level.WARNING, "Received invalid message");
 //			e.printStackTrace();
-		} catch (IOException e)
-		{
-			e.printStackTrace();
 		}
 		return message;
 	}
