@@ -62,15 +62,11 @@ public class FileTransmitter
 				socketReceiver.read(values);
 				remoteBufferSize = ByteBuffer.wrap(values).getInt();
 			}
-			System.out.println("--");
-			System.out.println(remoteBufferSize);
-			System.out.println("--");
 			if (remoteBufferSize > BUFFER_SIZE)
 			{
 				hasMore = sendBytesUpToLimit(fileInput, buffer, remoteBufferSize);
 				timeout.reset();
 			}
-
 		}
 		clearInputBuffer();
 
@@ -91,10 +87,8 @@ public class FileTransmitter
 		while (limit >= BUFFER_SIZE && bytesRead >= BUFFER_SIZE)
 		{
 			bytesRead = fileInput.read(buffer, BUFFER_SIZE);
-			System.out.println("after read");
 			socketTransmitter.transmitBytes(buffer, bytesRead);
 			limit -= BUFFER_SIZE;
-			System.out.println(bytesRead + " : " + limit);
 		}
 
 		return bytesRead >= BUFFER_SIZE;

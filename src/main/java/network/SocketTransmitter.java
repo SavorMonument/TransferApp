@@ -38,11 +38,8 @@ public class SocketTransmitter extends SocketStream
 
 	public void transmitBytes(byte[] bytes, int numOfBytes) throws IOException
 	{
-		System.out.println("before " +  socket.getSendBufferSize() + "  " + numOfBytes);
 		outputStream.write(bytes, 0, numOfBytes);
-		System.out.println("Between");
 		outputStream.flush();
-		System.out.println("after");
 		if (null != bytesCounter)
 		{
 			bytesCounter.addToCount(numOfBytes);

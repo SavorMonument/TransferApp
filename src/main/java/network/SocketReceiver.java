@@ -38,7 +38,6 @@ public class SocketReceiver extends SocketStream implements TransferInput
 
 	public int read(byte[] b) throws IOException
 	{
-		System.out.println("Buffer: " + socket.getReceiveBufferSize() + "  " + b.length);
 		int amount = inputStream.read(b);
 
 		if (null != bytesCounter)
