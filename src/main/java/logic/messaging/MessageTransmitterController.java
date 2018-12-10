@@ -69,7 +69,7 @@ public class MessageTransmitterController
 	{
 		Set<FileInformation> fileInfo = new HashSet<>();
 
-		for (File file: files)
+		for (File file : files)
 		{
 			fileInfo.add(new FileInformation(file.getName(), file.length()));
 		}
@@ -94,11 +94,12 @@ public class MessageTransmitterController
 				@Override
 				public void run()
 				{
+					FileOutput fileOutput = new FileOutput(fileInformation.name, downloadPath);
 					boolean successful =
 							new FileReceiver((TransferInput) fileTransmittingConnection.getMessageReceiver(),
-							(TransferOutput) fileTransmittingConnection.getMessageTransmitter(),
-							new FileOutput(fileInformation.name, downloadPath)).transfer();
-
+									(TransferOutput) fileTransmittingConnection.getMessageTransmitter(),
+									fileOutput, fileInformation.sizeInBytes).transfer();
+					fileOutput.close();
 					LOGGER.log(Level.ALL, "File transmission " + (successful ? "successful." : "unsuccessful"));
 					if (successful)
 					{

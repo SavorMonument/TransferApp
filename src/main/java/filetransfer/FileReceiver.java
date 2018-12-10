@@ -14,86 +14,104 @@ import java.util.logging.Logger;
 public class FileReceiver
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
-	private static final int CONNECTION_TIMEOUT_MILLIS = 5_000;
+	private static final int CONNECTION_TIMEOUT_MILLIS = 10_000;
 	private static final int BUFFER_SIZE = 8192;
 
 	private TransferFileOutput fileOutput;
-	private TransferInput socketReceiver;
-	private TransferOutput socketTransmitter;
+	private TransferInput input;
+	private TransferOutput output;
 
-	public FileReceiver(@NotNull TransferInput socketReceiver,@NotNull TransferOutput socketTransmitter,
-					 	@NotNull TransferFileOutput fileOutput)
+	private long fileSizeBytes;
+
+
+	public FileReceiver(@NotNull TransferInput socketReceiver, @NotNull TransferOutput socketTransmitter,
+						@NotNull TransferFileOutput fileOutput, long fileSizeBytes)
 	{
+		assert null != socketReceiver : "Invalid socket receiver";
+		assert null != socketTransmitter : "Invalid socket transmitter";
+		assert null != fileOutput : "Invalid fileOutput";
+		assert fileSizeBytes > 0 : "Invalid file size";
+
 		this.fileOutput = fileOutput;
-		this.socketReceiver = socketReceiver;
-		this.socketTransmitter = socketTransmitter;
+		this.input = socketReceiver;
+		this.output = socketTransmitter;
+
+		this.fileSizeBytes = fileSizeBytes;
 	}
 
 	public boolean transfer()
 	{
 		boolean successful = true;
-		if (null != socketReceiver)
-		{
-			try
-			{
-				fileOutput.createTempFile();
-				receiveBytesAndWriteToFile(fileOutput);
-				fileOutput.finishFile();
 
-				LOGGER.log(Level.FINE, "File receiving done");
-			} catch (IOException e)
-			{
-				successful = false;
-				e.printStackTrace();
-			}
-		} else
+		try
+		{
+			fileOutput.open();
+			receiveBytesAndWriteToFile();
+
+			LOGGER.log(Level.FINE, "File receiving done");
+		} catch (IOException | InterruptedException e)
 		{
 			successful = false;
-			LOGGER.log(Level.WARNING, "Connection timeout");
+			fileOutput.abort();
+			e.printStackTrace();
 		}
 
 		return successful;
 	}
 
-	private void receiveBytesAndWriteToFile(TransferFileOutput fileOutput) throws IOException
+	private void receiveBytesAndWriteToFile() throws IOException, InterruptedException
 	{
-		int myBufferSize = (int)(socketReceiver.getBufferSize() * 0.75);
+		int maxBufferSize = (int) (input.getBufferSize() * 0.75);
+		int minBufferSize = (int) (input.getBufferSize() * 0.25);
+
 		byte[] buffer = new byte[BUFFER_SIZE];
+		long bytesLeftToReceive = fileSizeBytes;
 
-		DeltaTime lastSuccessfulTransmission = new DeltaTime();
-		boolean receivedBeforeLastSend = true;
+		DeltaTime timeout = new DeltaTime();
 
-		//TODO: Better way to determine when a file is done or not, can't rely on a timer
-		while (lastSuccessfulTransmission.getElapsedTimeMillis() < CONNECTION_TIMEOUT_MILLIS)
+		while (hasTime(timeout) && bytesLeftToReceive > 0)
 		{
-			if (receivedBeforeLastSend && socketReceiver.available() < myBufferSize)
+			if (input.available() < minBufferSize && input.available() > maxBufferSize)
 			{
-				sendFreeBufferSizeToRemote(myBufferSize - socketReceiver.available());
-				receivedBeforeLastSend = false;
+				//Send the buffer size over and wait for response
+				sendFreeBufferSizeToRemote(maxBufferSize - input.available());
+				while (input.available() == 0 && hasTime(timeout))
+					Thread.sleep(100);
 			}
 
-			if (socketReceiver.available() >= BUFFER_SIZE)
+			if (input.available() >= BUFFER_SIZE)
 			{
-				while (socketReceiver.available() >= BUFFER_SIZE)
+				while (input.available() >= BUFFER_SIZE)
 				{
-					int amountRead = socketReceiver.read(buffer);
-					fileOutput.writeToFile(buffer, amountRead);
+					bytesLeftToReceive -= transferChunkOfData(buffer);
 				}
-				lastSuccessfulTransmission = new DeltaTime();
-				receivedBeforeLastSend = true;
+				timeout.reset();
+			}else if (input.available() == bytesLeftToReceive)
+			{
+				bytesLeftToReceive -= transferChunkOfData(buffer);
 			}
 		}
-		//Write the last chunk that is smaller than BUFFER_SIZE(if it exists)
-		if (socketReceiver.available() > 0)
-		{
-			int amountRead = socketReceiver.read(buffer);
-			fileOutput.writeToFile(buffer, amountRead);
-		}
+
+		if (bytesLeftToReceive != 0)
+			throw new IOException("Did not receive full file, bytes missing:" + bytesLeftToReceive);
+	}
+
+	private int transferChunkOfData(byte[] buffer) throws IOException
+	{
+		int amountRead = input.read(buffer);
+		fileOutput.writeToFile(buffer, amountRead);
+
+		return amountRead;
+	}
+
+	private boolean hasTime(DeltaTime dt)
+	{
+		return dt.getElapsedTimeMillis() <= CONNECTION_TIMEOUT_MILLIS;
 	}
 
 	private void sendFreeBufferSizeToRemote(int freeBufferSize) throws IOException
 	{
 		byte[] valueInBytes = ByteBuffer.allocate(Integer.BYTES).putInt(freeBufferSize).array();
-		socketTransmitter.transmitBytes(valueInBytes, Integer.BYTES);
+		output.transmitBytes(valueInBytes, Integer.BYTES);
 	}
 }

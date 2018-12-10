@@ -5,10 +5,11 @@ import java.io.IOException;
 
 public interface TransferFileOutput extends Closeable
 {
-	boolean createTempFile() throws IOException;
+	void open() throws IOException;
 	void writeToFile(byte[] buffer, int amountRead) throws IOException;
-	boolean finishFile() throws IOException;
+	void abort();
 
 	@Override
 	void close();
+
 }

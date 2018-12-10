@@ -84,11 +84,12 @@ public class MessageReceiverController
 
 					new Thread(() ->
 					{
+						FileInput fileInput = new FileInput(filePath);
 						boolean successful = new FileTransmitter(
 								(TransferOutput) fileReceivingConnection.getMessageTransmitter(),
 								(TransferInput) fileReceivingConnection.getMessageReceiver(),
-								new FileInput(filePath)).transfer();
-
+								fileInput).transfer();
+						fileInput.close();
 						LOGGER.log(Level.ALL, "File transmission " + (successful ? "successful." : "unsuccessful"));
 
 						if (successful)

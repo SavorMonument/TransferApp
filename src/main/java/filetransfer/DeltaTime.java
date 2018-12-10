@@ -18,4 +18,9 @@ public class DeltaTime
 	{
 		return System.nanoTime() - startTime;
 	}
+
+	public void reset()
+	{
+		startTime = System.nanoTime();
+	}
 }

@@ -48,7 +48,6 @@ public class FileTransmitter
 	private void readBytesAndTransmitThemOverSocket(TransferFileInput fileInput) throws IOException
 	{
 		byte[] buffer = new byte[BUFFER_SIZE];
-		byte[] values = new byte[4];
 		int remoteBufferSize = 0;
 		boolean hasMore = true;
 
@@ -56,6 +55,7 @@ public class FileTransmitter
 		{
 			if (socketReceiver.available() > 0)
 			{
+				byte[] values = new byte[4];
 				socketReceiver.read(values);
 				remoteBufferSize = ByteBuffer.wrap(values).getInt();
 			}

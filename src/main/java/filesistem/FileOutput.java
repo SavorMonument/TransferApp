@@ -6,9 +6,8 @@ import java.io.*;
 
 public class FileOutput implements Closeable, TransferFileOutput
 {
-	private File tempFile;
+	private File file;
 	private OutputStream outputStream;
-	private boolean isFinished = false;
 
 	private String fileName;
 	private String path;
@@ -30,15 +29,14 @@ public class FileOutput implements Closeable, TransferFileOutput
 //		return successful;
 //	}
 
-	public boolean createTempFile() throws IOException
+	public void open() throws IOException
 	{
-		boolean successful;
-		tempFile = new File(path + "/" + fileName);
+		file = new File(path + "/" + fileName);
 
-		successful = tempFile.createNewFile();
-		outputStream = new FileOutputStream(tempFile);
+		if(!file.createNewFile())
+			throw new IOException("Could not create file");
 
-		return successful;
+		outputStream = new FileOutputStream(file);
 	}
 
 	public void writeToFile(byte[] bytes) throws IOException
@@ -48,30 +46,18 @@ public class FileOutput implements Closeable, TransferFileOutput
 
 	public void writeToFile(byte[] bytes, int amount) throws IOException
 	{
-		assert null != tempFile : "The file has to be created";
+		assert null != file : "The file has to be created";
 
 		outputStream.write(bytes, 0, amount);
 		outputStream.flush();
 	}
 
-	public boolean finishFile()
+	public void abort()
 	{
-//		assert null != tempFile : "The file has to be created";
-		isFinished = true;
-//		return tempFile.renameTo(new File(tempFile.getAbsolutePath().replace(".tmp", "")));
-		return true;
-	}
-
-	private void abort()
-	{
-		if (tempFile.exists())
+		if (null != file)
 		{
-			tempFile.delete();
-		}
-		File finishedFile = new File(tempFile.getAbsolutePath().replace(".tmp", ""));
-		if (finishedFile.exists())
-		{
-			finishedFile.delete();
+			//Best effort
+			file.delete();
 		}
 	}
 
@@ -88,8 +74,5 @@ public class FileOutput implements Closeable, TransferFileOutput
 //				e.printStackTrace();
 			}
 		}
-
-		if (!isFinished)
-			abort();
 	}
 }
