@@ -71,7 +71,7 @@ public class FileReceiver
 
 		while (hasTime(timeout) && bytesLeftToReceive > 0)
 		{
-			if (input.available() < minBufferSize && input.available() > maxBufferSize)
+			if (input.available() < minBufferSize || input.available() > maxBufferSize)
 			{
 				//Send the buffer size over and wait for response
 				System.out.println("Sending: " + maxBufferSize + input.available());
