@@ -10,6 +10,7 @@ import window.UIEvents;
 import java.io.Closeable;
 import java.io.File;
 import java.util.List;
+import java.util.Set;
 
 public abstract class Controller implements Closeable
 {
@@ -29,10 +30,10 @@ public abstract class Controller implements Closeable
 	class UIFileEventsHandler implements UIEvents.FileEvents
 	{
 		@Override
-		public void updateAvailableFileList(List<File> file)
+		public void updateAvailableFiles(Set<File> files)
 		{
 			System.out.println("Update");
-			new Thread(() -> transmitterController.updateAvailableFileList(file)).start();
+			new Thread(() -> transmitterController.updateAvailableFileList(files)).start();
 		}
 
 		@Override

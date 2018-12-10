@@ -14,7 +14,9 @@ import window.AppLogger;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,6 +29,8 @@ public class MessageTransmitterController
 
 	private MessageTransmitter messageTransmitter;
 	private ConnectCloseEvent connectEvent;
+
+	private Set<FileInformation> remoteFiles;
 
 	public MessageTransmitterController(@NotNull Connection mainConnection, @NotNull Connection fileTransmittingConnection, @NotNull BusinessEvents businessEvents, @NotNull ConnectCloseEvent connectEvent)
 	{
@@ -42,13 +46,14 @@ public class MessageTransmitterController
 		this.connectEvent = connectEvent;
 	}
 
-	public void updateAvailableFileList(List<File> files)
+	public void updateAvailableFileList(Set<File> files)
 	{
 		LOGGER.log(Level.FINE, "Sending file update..." + files.toString());
 
-		List<FileInformation> fileNames = getListOfFileInformation(files);
+		Set<FileInformation> localFileInfo = getListOfFileInformation(files);
+
 		NetworkMessage networkMessage = new NetworkMessage(NetworkMessage.MessageType.UPDATE_FILE_LIST,
-				NetworkMessage.listCoder(fileNames));
+				NetworkMessage.collectionCoder(localFileInfo));
 
 		try
 		{
@@ -60,16 +65,16 @@ public class MessageTransmitterController
 
 	}
 
-	private List<FileInformation> getListOfFileInformation(List<File> files)
+	private Set<FileInformation> getListOfFileInformation(Set<File> files)
 	{
-		List<FileInformation> fileNames = new ArrayList<>();
+		Set<FileInformation> fileInfo = new HashSet<>();
 
-		for (int i = 0; i < files.size(); i++)
+		for (File file: files)
 		{
-			fileNames.add(new FileInformation(files.get(i).getName(), files.get(i).length()));
+			fileInfo.add(new FileInformation(file.getName(), file.length()));
 		}
 
-		return fileNames;
+		return fileInfo;
 	}
 
 	public void requestFileForDownload(String fileName, String downloadPath)

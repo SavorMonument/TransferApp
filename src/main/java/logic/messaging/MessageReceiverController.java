@@ -28,7 +28,7 @@ public class MessageReceiverController
 	private BusinessEvents businessEvents;
 	private ConnectCloseEvent connectEvent;
 
-	private SocketReceiverListener listener;
+	private MessageReceiverThread listener;
 
 
 	public MessageReceiverController(@NotNull Connection mainConnection, @NotNull Connection fileReceivingConnection, @NotNull BusinessEvents businessEvents, @NotNull ConnectCloseEvent connectEvent)
@@ -67,19 +67,10 @@ public class MessageReceiverController
 				{
 					LOGGER.log(Level.ALL, "Received remote file list update: " + networkMessage.getMessage());
 
-					//The files come as a string of comma separated values so this splits and parses them to a list
-					//ex. [a, b, c]
 					String message = networkMessage.getMessage();
-					Collection<FileInformation> files = NetworkMessage.listDecoder(message);
+					Set<FileInformation> remoteFiles = (Set<FileInformation>) NetworkMessage.listDecoder(message);
 
-					Set<String> formattedFileSet = new HashSet<>();
-					for(FileInformation f: files)
-					{
-						formattedFileSet.add(String.format("%s : %d kiB", f.name, f.sizeInBytes / 1024));
-					}
-
-					businessEvents.updateRemoteFileList(formattedFileSet);
-
+					businessEvents.updateRemoteFileList(constructAndFormatSetForUI(remoteFiles));
 				}
 				break;
 				case SEND_FILE:
@@ -117,9 +108,20 @@ public class MessageReceiverController
 		}
 	}
 
+	private Set<String> constructAndFormatSetForUI(Set<FileInformation> fileInformations)
+	{
+		Set<String> formattedFileSet = new HashSet<>();
+
+		for (FileInformation f : fileInformations)
+		{
+			formattedFileSet.add(String.format("%s : %d kiB", f.name, f.sizeInBytes / 1024));
+		}
+		return formattedFileSet;
+	}
+
 	public void startListening()
 	{
-		listener = new SocketReceiverListener();
+		listener = new MessageReceiverThread();
 
 		listener.setDaemon(true);
 		listener.start();
@@ -130,7 +132,7 @@ public class MessageReceiverController
 		listener.interrupt();
 	}
 
-	class SocketReceiverListener extends Thread
+	class MessageReceiverThread extends Thread
 	{
 		@Override
 		public void run()

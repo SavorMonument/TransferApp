@@ -36,7 +36,7 @@ public class NetworkMessage
 		return type + "\n" + message + "\n";
 	}
 
-	public static String listCoder(Collection<FileInformation> collection)
+	public static String collectionCoder(Collection<FileInformation> collection)
 	{
 		StringBuilder convertedMessage = new StringBuilder("[");
 

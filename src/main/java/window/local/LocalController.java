@@ -48,14 +48,14 @@ public class LocalController implements Initializable
 		LOGGER.log(Level.FINE, "File drag dropped");
 		event.getDragboard().getFiles().forEach(file ->
 		{
-			if (!file.isDirectory())
+			if (!file.isDirectory() && !availableFiles.contains(file))
+			{
 				availableFiles.add(file);
+				fileList.getItems().remove(file);
+			}
 		});
 
-		List<File> itemList = new ArrayList<>(availableFiles);
-
-		fileList.setItems(new ObservableListWrapper(itemList));
-		fileEvents.updateAvailableFileList(itemList);
+		fileEvents.updateAvailableFiles(availableFiles);
 	}
 
 	@FXML
@@ -74,14 +74,10 @@ public class LocalController implements Initializable
 			File file = (File) fileList.getItems().get(index);
 			LOGGER.log(Level.ALL, "Removing file: " + file.getName());
 
-			availableFiles.remove(file);
-			List<File> itemList = new ArrayList<>(availableFiles);
+			if (availableFiles.remove(file))
+				fileList.getItems().remove(file);
 
-			//TODO: Change this to take a set
-			fileEvents.updateAvailableFileList(itemList);
-
-			fileList.setItems(new ObservableListWrapper(itemList));
-			fileEvents.updateAvailableFileList(new ArrayList<>(availableFiles));
+			fileEvents.updateAvailableFiles(availableFiles);
 		}
 	}
 
