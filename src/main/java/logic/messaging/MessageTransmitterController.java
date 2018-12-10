@@ -77,17 +77,17 @@ public class MessageTransmitterController
 		return fileInfo;
 	}
 
-	public void requestFileForDownload(String fileName, String downloadPath)
+	public void requestFileForDownload(FileInformation fileInformation, String downloadPath)
 	{
-		LOGGER.log(Level.FINE, "Sending file download request: " + fileName);
+		LOGGER.log(Level.FINE, "Sending file download request: " + fileInformation);
 
 		try
 		{
-			NetworkMessage networkMessage = new NetworkMessage(NetworkMessage.MessageType.SEND_FILE, fileName);
+			NetworkMessage networkMessage = new NetworkMessage(NetworkMessage.MessageType.SEND_FILE, fileInformation.name);
 			messageTransmitter.transmitMessage(networkMessage);
 
 			LOGGER.log(Level.FINE, String.format("Starting file receiver with file: %s from address: %s, port%d",
-					fileName, fileTransmittingConnection.getRemoteAddress(), fileTransmittingConnection.getRemotePort()));
+					fileInformation, fileTransmittingConnection.getRemoteAddress(), fileTransmittingConnection.getRemotePort()));
 
 			new Thread(new Runnable()
 			{
@@ -97,7 +97,7 @@ public class MessageTransmitterController
 					boolean successful =
 							new FileReceiver((TransferInput) fileTransmittingConnection.getMessageReceiver(),
 							(TransferOutput) fileTransmittingConnection.getMessageTransmitter(),
-							new FileOutput(fileName, downloadPath)).transfer();
+							new FileOutput(fileInformation.name, downloadPath)).transfer();
 
 					LOGGER.log(Level.ALL, "File transmission " + (successful ? "successful." : "unsuccessful"));
 					if (successful)

@@ -68,9 +68,9 @@ public class MessageReceiverController
 					LOGGER.log(Level.ALL, "Received remote file list update: " + networkMessage.getMessage());
 
 					String message = networkMessage.getMessage();
-					Set<FileInformation> remoteFiles = (Set<FileInformation>) NetworkMessage.listDecoder(message);
+					Set<FileInformation> remoteFiles = (Set<FileInformation>) NetworkMessage.collectionDecoder(message);
 
-					businessEvents.updateRemoteFileList(constructAndFormatSetForUI(remoteFiles));
+					businessEvents.updateRemoteFileList(remoteFiles);
 				}
 				break;
 				case SEND_FILE:
@@ -108,16 +108,7 @@ public class MessageReceiverController
 		}
 	}
 
-	private Set<String> constructAndFormatSetForUI(Set<FileInformation> fileInformations)
-	{
-		Set<String> formattedFileSet = new HashSet<>();
 
-		for (FileInformation f : fileInformations)
-		{
-			formattedFileSet.add(String.format("%s : %d kiB", f.name, f.sizeInBytes / 1024));
-		}
-		return formattedFileSet;
-	}
 
 	public void startListening()
 	{

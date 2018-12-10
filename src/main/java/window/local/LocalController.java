@@ -48,12 +48,27 @@ public class LocalController implements Initializable
 		LOGGER.log(Level.FINE, "File drag dropped");
 		event.getDragboard().getFiles().forEach(file ->
 		{
-			if (!file.isDirectory() && !availableFiles.contains(file))
+			if (!file.isDirectory())
 			{
+				//Checks if there is a file with the same name in the set
+				File found = null;
+				for (File f : availableFiles)
+				{
+					if (f.getName().equals(file.getName()))
+					{
+						found = f;
+					}
+				}
+				//If there is a file with the same name it removes it and adds the new one
+				//Don't want to send two files with same name to remote even if they are
+				//in different directories, it's not going to know the difference
+				if (null != found)
+					availableFiles.remove(found);
 				availableFiles.add(file);
-				fileList.getItems().remove(file);
 			}
 		});
+
+		fileList.setItems(new ObservableListWrapper(new ArrayList(availableFiles)));
 
 		fileEvents.updateAvailableFiles(availableFiles);
 	}
@@ -69,7 +84,7 @@ public class LocalController implements Initializable
 	{
 		int index;
 
-		if ((index =  fileList.getSelectionModel().getSelectedIndex()) != -1)
+		if ((index = fileList.getSelectionModel().getSelectedIndex()) != -1)
 		{
 			File file = (File) fileList.getItems().get(index);
 			LOGGER.log(Level.ALL, "Removing file: " + file.getName());
@@ -93,14 +108,14 @@ public class LocalController implements Initializable
 	private void restFileListItems()
 	{
 		availableFiles = new HashSet<>();
-		Platform.runLater(() ->	fileList.setItems(new ObservableListWrapper(new ArrayList())));
+		Platform.runLater(() -> fileList.setItems(new ObservableListWrapper(new ArrayList())));
 	}
 
 	public String getFilePath(String fileName)
 	{
 		String path = "";
 
-		for(File file: availableFiles)
+		for (File file : availableFiles)
 		{
 			if (file.getName().equals(fileName))
 				path = file.getAbsolutePath();

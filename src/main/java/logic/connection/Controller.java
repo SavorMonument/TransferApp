@@ -3,6 +3,7 @@ package logic.connection;
 import logic.ConnectCloseEvent;
 import logic.api.BusinessEvents;
 import logic.api.Connection;
+import logic.messaging.FileInformation;
 import logic.messaging.MessageReceiverController;
 import logic.messaging.MessageTransmitterController;
 import window.UIEvents;
@@ -37,10 +38,10 @@ public abstract class Controller implements Closeable
 		}
 
 		@Override
-		public void requestFileForDownload(String fileName)
+		public void requestFileForDownload(FileInformation fileInformation, String downloadPath)
 		{
 			new Thread(() -> transmitterController.requestFileForDownload(
-					fileName, businessEvents.getDownloadPath())).start();
+					fileInformation, downloadPath)).start();
 		}
 	}
 

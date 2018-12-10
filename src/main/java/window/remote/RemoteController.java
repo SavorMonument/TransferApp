@@ -9,14 +9,13 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.stage.DirectoryChooser;
+import logic.messaging.FileInformation;
 import window.AppLogger;
 import window.UIEvents;
 
 import java.io.File;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.ResourceBundle;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,6 +24,7 @@ public class RemoteController implements Initializable
 	private static final Logger LOGGER = AppLogger.getInstance();
 
 	private static UIEvents.FileEvents fileEvents;
+	private List<FileInformation> filesAvailableOnRemote;
 	private String connectionState = "";
 	private String downloadPath = "";
 
@@ -44,14 +44,15 @@ public class RemoteController implements Initializable
 	@FXML
 	public void triggerDownload(ActionEvent actionEvent)
 	{
-		String elem = "nothing";
+		FileInformation fileInformation;
 		int index;
 
 		if ((index = fileList.getSelectionModel().getSelectedIndex()) != -1)
 		{
-			elem = (String) fileList.getItems().get(index);
-			LOGGER.log(Level.ALL, "Download button pressed on: " + elem);
-			fileEvents.requestFileForDownload(elem);
+			fileInformation = filesAvailableOnRemote.get(index);
+			
+			LOGGER.log(Level.ALL, "Download button pressed on: " + fileInformation);
+			fileEvents.requestFileForDownload(fileInformation, downloadPath);
 		}
 	}
 
@@ -70,13 +71,40 @@ public class RemoteController implements Initializable
 	}
 
 	@FXML
-	public void updateRemoteFileList(Set<String> fileNames)
+	public void updateRemoteFileList(Set<FileInformation> fileNames)
 	{
-		ObservableList<String> files = new ObservableListWrapper<>(new ArrayList<>());
-		files.addAll(fileNames);
+		filesAvailableOnRemote = new ArrayList<>(fileNames);
 
 		//This makes the javafx thread update the list view so I don't get: -- Not on FX application thread exception --
-		Platform.runLater(() -> fileList.setItems(files));
+		Platform.runLater(() -> fileList.setItems(getFormattedUiFileList(filesAvailableOnRemote)));
+	}
+
+	private ObservableList<String> getFormattedUiFileList(List<FileInformation> filesInformation)
+	{
+		List<String> formattedFileList = new ArrayList<>();
+
+		for (FileInformation f : filesInformation)
+		{
+			double size = f.sizeInBytes;
+			int divisionCount = 0;
+			while (size / 1024 > 1)
+			{
+				size /= 1024;
+				divisionCount++;
+			}
+
+			formattedFileList.add(String.format("%s : %.1f %s", f.name, size, Units.values()[divisionCount]));
+		}
+		return new ObservableListWrapper<>(formattedFileList);
+	}
+
+	private enum Units
+	{
+		bytes,
+		KIB,
+		MIB,
+		GIB,
+		TIB;
 	}
 
 	public void updateConnectionState(String state)

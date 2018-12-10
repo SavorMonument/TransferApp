@@ -1,16 +1,17 @@
 package logic.api;
 
-import java.util.Collection;
+import logic.messaging.FileInformation;
+
 import java.util.Set;
 
 public interface BusinessEvents
 {
-	void updateRemoteFileList(Set<String> fileNames);
+	void updateRemoteFileList(Set<FileInformation> fileNames);
 	boolean confirmConnectionRequest(String url);
 	void printMessageOnDisplay(String message);
 
 	String getLocalFilePath(String fileName);
-	String getDownloadPath();
+//	String getDownloadPath();
 
 	void setConnectionState(String state);
 }

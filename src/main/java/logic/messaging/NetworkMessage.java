@@ -59,7 +59,7 @@ public class NetworkMessage
 		return convertedMessage.toString();
 	}
 
-	public static Collection<FileInformation> listDecoder(String codedMessage)
+	public static Collection<FileInformation> collectionDecoder(String codedMessage)
 	{
 		Set<FileInformation> elem = new HashSet<FileInformation>();
 

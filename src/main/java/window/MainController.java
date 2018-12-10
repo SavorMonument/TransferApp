@@ -5,6 +5,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.layout.AnchorPane;
 import logic.api.BusinessEvents;
 import logic.LogicController;
+import logic.messaging.FileInformation;
 import window.connection.ConnectionController;
 import window.local.LocalController;
 import window.local.LocalView;
@@ -57,12 +58,11 @@ public class MainController implements Initializable, BusinessEvents
 	}
 
 	@Override
-	public void updateRemoteFileList(Set<String> fileNames)
+	public void updateRemoteFileList(Set<FileInformation> filesInformation)
 	{
 		LOGGER.log(Level.ALL, String.format(
-				"Business event: %s with %s", this.getClass().getEnclosingMethod(), fileNames.toString()));
-		System.out.println(fileNames.size());
-		remoteController.updateRemoteFileList(fileNames);
+				"Business event: %s with %s", this.getClass().getEnclosingMethod(), filesInformation.toString()));
+		remoteController.updateRemoteFileList(filesInformation);
 	}
 
 	@Override
@@ -88,7 +88,6 @@ public class MainController implements Initializable, BusinessEvents
 		return localController.getFilePath(fileName);
 	}
 
-	@Override
 	public String getDownloadPath()
 	{
 		return remoteController.getDownloadLocation();

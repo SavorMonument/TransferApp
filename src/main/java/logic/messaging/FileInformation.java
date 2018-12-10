@@ -4,8 +4,8 @@ import java.util.Objects;
 
 public class FileInformation
 {
-	String name;
-	long sizeInBytes;
+	public String name;
+	public long sizeInBytes;
 
 	public FileInformation(String name, long byteSize)
 	{
@@ -19,13 +19,12 @@ public class FileInformation
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		FileInformation that = (FileInformation) o;
-		return sizeInBytes == that.sizeInBytes &&
-				Objects.equals(name, that.name);
+		return Objects.equals(name, that.name);
 	}
 
 	@Override
 	public int hashCode()
 	{
-		return Objects.hash(name, sizeInBytes);
+		return Objects.hash(name);
 	}
 }

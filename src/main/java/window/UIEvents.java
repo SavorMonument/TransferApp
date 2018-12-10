@@ -1,7 +1,8 @@
 package window;
 
+import logic.messaging.FileInformation;
+
 import java.io.File;
-import java.util.List;
 import java.util.Set;
 
 public interface UIEvents
@@ -9,7 +10,7 @@ public interface UIEvents
 	interface FileEvents
 	{
 		void updateAvailableFiles(Set<File> file);
-		void requestFileForDownload(String fileName);
+		void requestFileForDownload(FileInformation fileInformation, String downloadPath);
 	}
 
 	interface ConnectionEvents

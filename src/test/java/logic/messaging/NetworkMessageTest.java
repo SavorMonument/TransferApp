@@ -21,7 +21,7 @@ public class NetworkMessageTest
 		originalList.add(new FileInformation("Test3", 3453454L));
 
 		String codedMessage = NetworkMessage.collectionCoder(originalList);
-		Collection<FileInformation> resultingList = NetworkMessage.listDecoder(codedMessage);
+		Collection<FileInformation> resultingList = NetworkMessage.collectionDecoder(codedMessage);
 
 		assertArrayEquals(originalList.toArray(), resultingList.toArray());
 	}
@@ -32,7 +32,7 @@ public class NetworkMessageTest
 		List<FileInformation> originalList = new ArrayList<>();
 
 		String codedMessage = NetworkMessage.collectionCoder(originalList);
-		Collection<FileInformation> resultingList = NetworkMessage.listDecoder(codedMessage);
+		Collection<FileInformation> resultingList = NetworkMessage.collectionDecoder(codedMessage);
 
 		assertArrayEquals(originalList.toArray(), resultingList.toArray());
 	}
