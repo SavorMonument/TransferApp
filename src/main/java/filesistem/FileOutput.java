@@ -19,10 +19,21 @@ public class FileOutput implements Closeable, TransferFileOutput
 		this.path = path;
 	}
 
+//	public boolean createTempFile() throws IOException
+//	{
+//		boolean successful;
+//		tempFile = new File(path + "/" + fileName + ".tmp");
+//
+//		successful = tempFile.createNewFile();
+//		outputStream = new FileOutputStream(tempFile);
+//
+//		return successful;
+//	}
+
 	public boolean createTempFile() throws IOException
 	{
 		boolean successful;
-		tempFile = new File(path + "/" + fileName + ".tmp");
+		tempFile = new File(path + "/" + fileName);
 
 		successful = tempFile.createNewFile();
 		outputStream = new FileOutputStream(tempFile);
@@ -45,9 +56,10 @@ public class FileOutput implements Closeable, TransferFileOutput
 
 	public boolean finishFile()
 	{
-		assert null != tempFile : "The file has to be created";
+//		assert null != tempFile : "The file has to be created";
 		isFinished = true;
-		return tempFile.renameTo(new File(tempFile.getAbsolutePath().replace(".tmp", "")));
+//		return tempFile.renameTo(new File(tempFile.getAbsolutePath().replace(".tmp", "")));
+		return true;
 	}
 
 	private void abort()
