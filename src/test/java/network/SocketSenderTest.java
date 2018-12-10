@@ -37,7 +37,7 @@ public class SocketSenderTest
 	}
 
 	@Test
-	public void transmitMessage()
+	public void transmitMessage() throws IOException
 	{
 		byte[] bytes = "Test".getBytes();
 

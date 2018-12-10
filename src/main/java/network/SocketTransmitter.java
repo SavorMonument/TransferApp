@@ -31,43 +31,32 @@ public class SocketTransmitter extends SocketStream
 		this.bytesCounter = bytesCounter;
 	}
 
-	public void transmitBytes(byte[] bytes)
+	public void transmitBytes(byte[] bytes) throws IOException
 	{
 		transmitBytes(bytes, bytes.length);
 	}
 
-	public void transmitBytes(byte[] bytes, int numOfBytes)
+	public void transmitBytes(byte[] bytes, int numOfBytes) throws IOException
 	{
-		try
+		System.out.println("before " +  socket.getSendBufferSize() + "  " + numOfBytes);
+		outputStream.write(bytes, 0, numOfBytes);
+		System.out.println("Between");
+		outputStream.flush();
+		System.out.println("after");
+		if (null != bytesCounter)
 		{
-			outputStream.write(bytes, 0, numOfBytes);
-			outputStream.flush();
-
-			if (null != bytesCounter)
-			{
-				bytesCounter.addToCount(numOfBytes);
-			}
-
-		} catch (IOException e)
-		{
-			LOGGER.log(Level.WARNING, "Could not send message to outputStream " + e.getMessage());
+			bytesCounter.addToCount(numOfBytes);
 		}
 	}
 
-	public void transmitByte(int b)
+	public void transmitByte(int b) throws IOException
 	{
-		try
-		{
-			outputStream.write(b);
-			outputStream.flush();
+		outputStream.write(b);
+		outputStream.flush();
 
-			if (null != bytesCounter)
-			{
-				bytesCounter.addToCount(1);
-			}
-		} catch (IOException e)
+		if (null != bytesCounter)
 		{
-			e.printStackTrace();
+			bytesCounter.addToCount(1);
 		}
 	}
 }
