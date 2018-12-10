@@ -87,7 +87,7 @@ public class MessageTransmitterController
 			messageTransmitter.transmitMessage(networkMessage);
 
 			LOGGER.log(Level.FINE, String.format("Starting file receiver with file: %s from address: %s, port%d",
-					fileInformation, fileTransmittingConnection.getRemoteAddress(), fileTransmittingConnection.getRemotePort()));
+					fileInformation.name, fileTransmittingConnection.getRemoteAddress(), fileTransmittingConnection.getRemotePort()));
 
 			new Thread(new Runnable()
 			{

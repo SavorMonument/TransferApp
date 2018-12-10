@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 public class FileTransmitter
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
+	private static final int CONNECTION_TIMEOUT_MILLIS = 10_000;
 	private static final int BUFFER_SIZE = 8192;
 
 	private TransferOutput socketTransmitter;
@@ -51,7 +52,8 @@ public class FileTransmitter
 		int remoteBufferSize = 0;
 		boolean hasMore = true;
 
-		while (hasMore)
+		DeltaTime timeout = new DeltaTime();
+		while (hasMore && hasTime(timeout))
 		{
 			if (socketReceiver.available() > 0)
 			{
@@ -59,9 +61,23 @@ public class FileTransmitter
 				socketReceiver.read(values);
 				remoteBufferSize = ByteBuffer.wrap(values).getInt();
 			}
-			hasMore = sendBytesUpToLimit(fileInput, buffer, remoteBufferSize);
+			if (remoteBufferSize > BUFFER_SIZE)
+			{
+				hasMore = sendBytesUpToLimit(fileInput, buffer, remoteBufferSize);
+				timeout.reset();
+			}
 		}
 		clearInputBuffer();
+
+		if (hasMore)
+		{
+			throw new IOException("Could not transmit everything");
+		}
+	}
+
+	private boolean hasTime(DeltaTime dt)
+	{
+		return dt.getElapsedTimeMillis() < CONNECTION_TIMEOUT_MILLIS;
 	}
 
 	private boolean sendBytesUpToLimit(TransferFileInput fileInput, byte[] buffer, int limit) throws IOException
