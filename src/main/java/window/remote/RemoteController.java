@@ -8,7 +8,6 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ListView;
 import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
 import window.AppLogger;
 import window.UIEvents;
 
@@ -24,7 +23,8 @@ public class RemoteController implements Initializable
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 
-	private static List<UIEvents> localUIEventHandlers = new ArrayList<>();
+	private static UIEvents.FileEvents fileEvents;
+	private String downloadPath = "";
 
 	@FXML
 	private ListView fileList;
@@ -41,14 +41,11 @@ public class RemoteController implements Initializable
 		String elem = "nothing";
 		int index;
 
-		if ((index =  fileList.getSelectionModel().getSelectedIndex()) != -1)
+		if ((index = fileList.getSelectionModel().getSelectedIndex()) != -1)
 		{
 			elem = (String) fileList.getItems().get(index);
 			LOGGER.log(Level.ALL, "Download button pressed on: " + elem);
-			for (UIEvents event: localUIEventHandlers)
-			{
-				event.requestFileForDownload(elem);
-			}
+			fileEvents.requestFileForDownload(elem);
 		}
 	}
 
@@ -59,13 +56,10 @@ public class RemoteController implements Initializable
 		chooser.setTitle("Chose location");
 		File directory = chooser.showDialog(fileList.getScene().getWindow());
 
-		if (null != directory)
-			for (UIEvents event: localUIEventHandlers)
-			{
-				event.setDownloadLocation(directory.getAbsolutePath());
-			}
+		downloadPath = directory.getAbsolutePath();
 	}
 
+	@FXML
 	public void updateRemoteFileList(List<String> fileNames)
 	{
 		ObservableList<String> files = new ObservableListWrapper<>(new ArrayList<>());
@@ -75,8 +69,13 @@ public class RemoteController implements Initializable
 		Platform.runLater(() -> fileList.setItems(files));
 	}
 
-	public static void addLocalEventHandler(UIEvents eventHandle)
+	public String getDownloadLocation()
 	{
-		localUIEventHandlers.add(eventHandle);
+		return downloadPath;
+	}
+
+	public static void setFileEvents(UIEvents.FileEvents fileEvents)
+	{
+		RemoteController.fileEvents = fileEvents;
 	}
 }

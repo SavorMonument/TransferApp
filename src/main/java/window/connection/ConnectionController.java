@@ -22,7 +22,7 @@ public class ConnectionController implements Initializable
 	@FXML
 	private TextField addressField;
 
-	private static UIEvents localUIEvents;
+	private static UIEvents.ConnectionEvents connectionEvents;
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources)
@@ -33,29 +33,21 @@ public class ConnectionController implements Initializable
 	@FXML
 	public void connectButtonClicked()
 	{
-		if (isLocalEventsInitialized())
-		{
-			//DEBUG ONLY
-			if (addressField.getCharacters().toString().equals(""))
-				localUIEvents.attemptConnectionToHost("192.168.0.108");
-			else
-				localUIEvents.attemptConnectionToHost(addressField.getCharacters().toString());
-		}
+		//DEBUG ONLY
+		if (addressField.getCharacters().toString().equals(""))
+			connectionEvents.attemptConnectionToHost("192.168.0.108");
+		else
+			connectionEvents.attemptConnectionToHost(addressField.getCharacters().toString());
 	}
 
 	@FXML
 	public void disconnectButtonClicked()
 	{
-		localUIEvents.disconnect();
+		connectionEvents.disconnect();
 	}
 
-	private static boolean isLocalEventsInitialized()
+	public static void setConnectionEventHandler(UIEvents.ConnectionEvents connectionEvents)
 	{
-		return null != localUIEvents;
-	}
-
-	public static void changeLocalEventHandler(UIEvents localUIEvents)
-	{
-		ConnectionController.localUIEvents = localUIEvents;
+		ConnectionController.connectionEvents = connectionEvents;
 	}
 }

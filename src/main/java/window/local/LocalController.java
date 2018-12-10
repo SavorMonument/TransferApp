@@ -3,14 +3,12 @@ package window.local;
 import com.sun.javafx.collections.ObservableListWrapper;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
 import javafx.scene.control.ListView;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.TransferMode;
 import window.AppLogger;
 import window.UIEvents;
 
-import java.awt.event.ActionEvent;
 import java.io.File;
 import java.net.URL;
 import java.util.*;
@@ -21,7 +19,7 @@ public class LocalController implements Initializable
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 
-	private static UIEvents UIEventHandler;
+	private static UIEvents.FileEvents fileEvents;
 	private Set<File> availableFiles = new HashSet<>();
 
 	@FXML
@@ -55,7 +53,7 @@ public class LocalController implements Initializable
 		List<File> itemList = new ArrayList<>(availableFiles);
 
 		fileList.setItems(new ObservableListWrapper(itemList));
-		UIEventHandler.updateAvailableFileList(itemList);
+		fileEvents.updateAvailableFileList(itemList);
 	}
 
 	@FXML
@@ -78,10 +76,10 @@ public class LocalController implements Initializable
 			List<File> itemList = new ArrayList<>(availableFiles);
 
 			//TODO: Change this to take a set
-			UIEventHandler.updateAvailableFileList(itemList);
+			fileEvents.updateAvailableFileList(itemList);
 
 			fileList.setItems(new ObservableListWrapper(itemList));
-			UIEventHandler.updateAvailableFileList(new ArrayList<>(availableFiles));
+			fileEvents.updateAvailableFileList(new ArrayList<>(availableFiles));
 		}
 	}
 
@@ -98,13 +96,8 @@ public class LocalController implements Initializable
 		return path;
 	}
 
-	private static boolean isLocalEventsInitialized()
+	public static void setFileEvents(UIEvents.FileEvents fileEvents)
 	{
-		return null != UIEventHandler;
-	}
-
-	public static void setUIEventHandler(UIEvents localUIEvents)
-	{
-		LocalController.UIEventHandler = localUIEvents;
+		LocalController.fileEvents = fileEvents;
 	}
 }

@@ -24,15 +24,15 @@ public class MainController implements Initializable, BusinessEvents
 
 	@FXML
 	private AnchorPane local;
-	private LocalController localPresenter;
+	private LocalController localController;
 
 	@FXML
 	private AnchorPane remote;
-	private RemoteController remotePresenter;
+	private RemoteController remoteController;
 
 	@FXML
 	private AnchorPane connection;
-	private ConnectionController connectionPresenter;
+	private ConnectionController connectionController;
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources)
@@ -47,9 +47,9 @@ public class MainController implements Initializable, BusinessEvents
 		remote.getChildren().add(remoteView.getView());
 		connection.getChildren().add(connectionView.getView());
 
-		localPresenter = localView.getController();
-		remotePresenter = remoteView.getController();
-		connectionPresenter = connectionView.getController();
+		localController = localView.getController();
+		remoteController = remoteView.getController();
+		connectionController = connectionView.getController();
 
 		new LogicController(this).start();
 	}
@@ -60,7 +60,7 @@ public class MainController implements Initializable, BusinessEvents
 		LOGGER.log(Level.ALL,String.format(
 				"Business event: %s with %s", this.getClass().getEnclosingMethod(), fileNames.toString()));
 		System.out.println(fileNames.size());
-		remotePresenter.updateRemoteFileList(fileNames);
+		remoteController.updateRemoteFileList(fileNames);
 	}
 
 	@Override
@@ -83,6 +83,12 @@ public class MainController implements Initializable, BusinessEvents
 	{
 		LOGGER.log(Level.ALL,String.format(
 				"Business event: %s with %s", this.getClass().getEnclosingMethod(), fileName));
-		return localPresenter.getFilePath(fileName);
+		return localController.getFilePath(fileName);
+	}
+
+	@Override
+	public String getDownloadPath()
+	{
+		return remoteController.getDownloadLocation();
 	}
 }

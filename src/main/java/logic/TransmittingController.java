@@ -8,7 +8,6 @@ import filetransfer.TransferOutput;
 import logic.Connection.MessageTransmitter;
 import window.AppLogger;
 
-import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
