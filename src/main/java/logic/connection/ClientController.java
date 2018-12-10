@@ -3,8 +3,8 @@ package logic.connection;
 import logic.ConnectCloseEvent;
 import logic.api.BusinessEvents;
 import logic.api.ConnectionResolver;
-import logic.messaging.ReceiverController;
-import logic.messaging.TransmittingController;
+import logic.messaging.MessageReceiverController;
+import logic.messaging.MessageTransmitterController;
 import window.local.LocalController;
 import window.remote.RemoteController;
 
@@ -30,10 +30,10 @@ public class ClientController extends Controller implements Closeable
 	{
 		if (resolveConnections())
 		{
-			transmitterController = new TransmittingController(mainConnection, transmittingConnection,
+			transmitterController = new MessageTransmitterController(mainConnection, transmittingConnection,
 					businessEvents, mainConnectCloseEvent);
 
-			receiverController = new ReceiverController(mainConnection, receivingConnection,
+			receiverController = new MessageReceiverController(mainConnection, receivingConnection,
 					businessEvents, mainConnectCloseEvent);
 
 			receiverController.startListening();

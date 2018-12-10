@@ -11,7 +11,7 @@ import java.nio.ByteBuffer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class FileTransmitter extends Thread
+public class FileTransmitter
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 	private static final int BUFFER_SIZE = 8192;
@@ -26,23 +26,23 @@ public class FileTransmitter extends Thread
 		this.socketTransmitter = socketTransmitter;
 		this.socketReceiver = socketReceiver;
 		this.fileInput = fileInput;
-
-		setDaemon(true);
 	}
 
-	@Override
-	public void run()
+	public boolean transfer()
 	{
+		boolean successful = true;
 		try
 		{
 			fileInput.open();
 			readBytesAndTransmitThemOverSocket(fileInput);
-			LOGGER.log(Level.ALL, "File transmission done");
+			LOGGER.log(Level.FINE, "File transmission done");
 		} catch (IOException e)
 		{
 			LOGGER.log(Level.WARNING, "File transmitting disconnect " + e.getMessage());
-//					e.printStackTrace();
+			successful = false;
 		}
+
+		return successful;
 	}
 
 	private void readBytesAndTransmitThemOverSocket(TransferFileInput fileInput) throws IOException

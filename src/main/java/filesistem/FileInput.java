@@ -20,7 +20,6 @@ public class FileInput implements TransferFileInput
 	{
 		file = new File(filePath);
 		boolean successful = file.exists();
-
 		inputStream = new FileInputStream(file);
 
 		return successful;

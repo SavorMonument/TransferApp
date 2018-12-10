@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class TransmittingController
+public class MessageTransmitterController
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 
@@ -28,7 +28,7 @@ public class TransmittingController
 	private MessageTransmitter messageTransmitter;
 	private ConnectCloseEvent connectEvent;
 
-	public TransmittingController(@NotNull Connection mainConnection, @NotNull Connection fileTransmittingConnection, @NotNull BusinessEvents businessEvents, @NotNull ConnectCloseEvent connectEvent)
+	public MessageTransmitterController(@NotNull Connection mainConnection, @NotNull Connection fileTransmittingConnection, @NotNull BusinessEvents businessEvents, @NotNull ConnectCloseEvent connectEvent)
 	{
 		assert null != mainConnection && mainConnection.isConnected() : "Invalid main connection";
 		assert null != fileTransmittingConnection && fileTransmittingConnection.isConnected() : "Invalid main connection";
@@ -46,9 +46,9 @@ public class TransmittingController
 	{
 		LOGGER.log(Level.FINE, "Sending file update..." + files.toString());
 
-		List<String> fileNames = getListOfFileNames(files);
+		List<FileInformation> fileNames = getListOfFileInformation(files);
 		NetworkMessage networkMessage = new NetworkMessage(NetworkMessage.MessageType.UPDATE_FILE_LIST,
-				fileNames.toString());
+				NetworkMessage.listCoder(fileNames));
 
 		try
 		{
@@ -60,13 +60,13 @@ public class TransmittingController
 
 	}
 
-	private List<String> getListOfFileNames(List<File> files)
+	private List<FileInformation> getListOfFileInformation(List<File> files)
 	{
-		List<String> fileNames = new ArrayList<>();
+		List<FileInformation> fileNames = new ArrayList<>();
 
 		for (int i = 0; i < files.size(); i++)
 		{
-			fileNames.add(files.get(i).getName());
+			fileNames.add(new FileInformation(files.get(i).getName(), files.get(i).length()));
 		}
 
 		return fileNames;
@@ -84,8 +84,24 @@ public class TransmittingController
 			LOGGER.log(Level.FINE, String.format("Starting file receiver with file: %s from address: %s, port%d",
 					fileName, fileTransmittingConnection.getRemoteAddress(), fileTransmittingConnection.getRemotePort()));
 
-			new FileReceiver((TransferInput) fileTransmittingConnection.getMessageReceiver(),
-					(TransferOutput) fileTransmittingConnection.getMessageTransmitter(), new FileOutput(fileName, downloadPath)).start();
+			new Thread(new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					boolean successful =
+							new FileReceiver((TransferInput) fileTransmittingConnection.getMessageReceiver(),
+							(TransferOutput) fileTransmittingConnection.getMessageTransmitter(),
+							new FileOutput(fileName, downloadPath)).transfer();
+
+					LOGGER.log(Level.ALL, "File transmission " + (successful ? "successful." : "unsuccessful"));
+					if (successful)
+					{
+						//TODO: notify UI
+					}
+				}
+			}).start();
+
 		} catch (IOException e)
 		{
 			connectEvent.disconnect(e.getMessage());

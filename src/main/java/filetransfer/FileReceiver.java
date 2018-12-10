@@ -11,7 +11,7 @@ import java.nio.ByteBuffer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class FileReceiver extends Thread
+public class FileReceiver
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 	private static final int CONNECTION_TIMEOUT_MILLIS = 5_000;
@@ -27,13 +27,11 @@ public class FileReceiver extends Thread
 		this.fileOutput = fileOutput;
 		this.socketReceiver = socketReceiver;
 		this.socketTransmitter = socketTransmitter;
-
-		setDaemon(true);
 	}
 
-	@Override
-	public void run()
+	public boolean transfer()
 	{
+		boolean successful = true;
 		if (null != socketReceiver)
 		{
 			try
@@ -42,16 +40,19 @@ public class FileReceiver extends Thread
 				receiveBytesAndWriteToFile(fileOutput);
 				fileOutput.finishFile();
 
-				LOGGER.log(Level.ALL, "File receiving done");
+				LOGGER.log(Level.FINE, "File receiving done");
 			} catch (IOException e)
 			{
+				successful = false;
 				e.printStackTrace();
 			}
 		} else
 		{
+			successful = false;
 			LOGGER.log(Level.WARNING, "Connection timeout");
 		}
 
+		return successful;
 	}
 
 	private void receiveBytesAndWriteToFile(TransferFileOutput fileOutput) throws IOException

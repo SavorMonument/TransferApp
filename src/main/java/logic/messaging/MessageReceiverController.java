@@ -12,12 +12,11 @@ import logic.api.Connection.MessageReceiver;
 import window.AppLogger;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class ReceiverController
+public class MessageReceiverController
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 	//TODO: Have this passed trough the main socket(so you can have multiple file transferring at the sam time)
@@ -32,7 +31,7 @@ public class ReceiverController
 	private SocketReceiverListener listener;
 
 
-	public ReceiverController(@NotNull Connection mainConnection, @NotNull Connection fileReceivingConnection, @NotNull BusinessEvents businessEvents, @NotNull ConnectCloseEvent connectEvent)
+	public MessageReceiverController(@NotNull Connection mainConnection, @NotNull Connection fileReceivingConnection, @NotNull BusinessEvents businessEvents, @NotNull ConnectCloseEvent connectEvent)
 	{
 		assert null != mainConnection && mainConnection.isConnected() : "Invalid main connection";
 		assert null != fileReceivingConnection && fileReceivingConnection.isConnected() : "Invalid main connection";
@@ -71,11 +70,15 @@ public class ReceiverController
 					//The files come as a string of comma separated values so this splits and parses them to a list
 					//ex. [a, b, c]
 					String message = networkMessage.getMessage();
-					message = message.substring(1, message.length() - 1);
-					if (message.equals(""))
-						businessEvents.updateRemoteFileList(new ArrayList<>());
-					else
-						businessEvents.updateRemoteFileList(Arrays.asList(message.split(", ")));
+					Collection<FileInformation> files = NetworkMessage.listDecoder(message);
+
+					Set<String> formattedFileSet = new HashSet<>();
+					for(FileInformation f: files)
+					{
+						formattedFileSet.add(String.format("%s : %d kiB", f.name, f.sizeInBytes / 1024));
+					}
+
+					businessEvents.updateRemoteFileList(formattedFileSet);
 
 				}
 				break;
@@ -88,8 +91,20 @@ public class ReceiverController
 									"Starting file transmitter with file: %s to address: %s, port%d",
 							filePath, fileReceivingConnection.getRemoteAddress(), fileReceivingConnection.getRemotePort()));
 
-					new FileTransmitter((TransferOutput) fileReceivingConnection.getMessageTransmitter(),
-							(TransferInput) fileReceivingConnection.getMessageReceiver(), new FileInput(filePath)).start();
+					new Thread(() ->
+					{
+						boolean successful = new FileTransmitter(
+								(TransferOutput) fileReceivingConnection.getMessageTransmitter(),
+								(TransferInput) fileReceivingConnection.getMessageReceiver(),
+								new FileInput(filePath)).transfer();
+
+						LOGGER.log(Level.ALL, "File transmission " + (successful ? "successful." : "unsuccessful"));
+
+						if (successful)
+						{
+							//TODO: Notify UI
+						}
+					});
 				}
 				break;
 				case DISCONNECT:

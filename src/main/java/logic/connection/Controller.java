@@ -3,8 +3,8 @@ package logic.connection;
 import logic.ConnectCloseEvent;
 import logic.api.BusinessEvents;
 import logic.api.Connection;
-import logic.messaging.ReceiverController;
-import logic.messaging.TransmittingController;
+import logic.messaging.MessageReceiverController;
+import logic.messaging.MessageTransmitterController;
 import window.UIEvents;
 
 import java.io.Closeable;
@@ -20,8 +20,8 @@ public abstract class Controller implements Closeable
 	protected Connection transmittingConnection;
 	protected Connection receivingConnection;
 
-	protected TransmittingController transmitterController;
-	protected ReceiverController receiverController;
+	protected MessageTransmitterController transmitterController;
+	protected MessageReceiverController receiverController;
 
 
 	public abstract void go();

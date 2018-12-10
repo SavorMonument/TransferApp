@@ -13,8 +13,10 @@ import window.remote.RemoteController;
 import window.remote.RemoteView;
 
 import java.net.URL;
+import java.util.Collection;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -55,7 +57,7 @@ public class MainController implements Initializable, BusinessEvents
 	}
 
 	@Override
-	public void updateRemoteFileList(List<String> fileNames)
+	public void updateRemoteFileList(Set<String> fileNames)
 	{
 		LOGGER.log(Level.ALL, String.format(
 				"Business event: %s with %s", this.getClass().getEnclosingMethod(), fileNames.toString()));

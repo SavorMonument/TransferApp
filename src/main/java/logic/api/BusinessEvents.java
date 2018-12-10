@@ -1,10 +1,11 @@
 package logic.api;
 
-import java.util.List;
+import java.util.Collection;
+import java.util.Set;
 
 public interface BusinessEvents
 {
-	void updateRemoteFileList(List<String> fileNames);
+	void updateRemoteFileList(Set<String> fileNames);
 	boolean confirmConnectionRequest(String url);
 	void printMessageOnDisplay(String message);
 

@@ -15,8 +15,8 @@ import window.UIEvents;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.ResourceBundle;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -70,7 +70,7 @@ public class RemoteController implements Initializable
 	}
 
 	@FXML
-	public void updateRemoteFileList(List<String> fileNames)
+	public void updateRemoteFileList(Set<String> fileNames)
 	{
 		ObservableList<String> files = new ObservableListWrapper<>(new ArrayList<>());
 		files.addAll(fileNames);
