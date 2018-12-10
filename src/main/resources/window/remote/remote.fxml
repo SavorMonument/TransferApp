@@ -43,7 +43,7 @@
                 <RowConstraints minHeight="10.0" percentHeight="50.0" prefHeight="30.0" vgrow="SOMETIMES" />
               </rowConstraints>
                <children>
-                  <Button alignment="CENTER" contentDisplay="CENTER" maxHeight="35.0" maxWidth="150.0" mnemonicParsing="false" onAction="#triggerDownload" text="Download" textAlignment="CENTER" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
+                  <Button fx:id="downloadButton" alignment="CENTER" contentDisplay="CENTER" maxHeight="35.0" maxWidth="150.0" mnemonicParsing="false" onAction="#triggerDownload" text="Download" textAlignment="CENTER" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
                      <GridPane.margin>
                         <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
                      </GridPane.margin>

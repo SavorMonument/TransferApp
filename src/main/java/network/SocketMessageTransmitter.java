@@ -1,8 +1,8 @@
 package network;
 
-import filetransfer.TransferOutput;
-import logic.Connection;
-import logic.NetworkMessage;
+import filetransfer.api.TransferOutput;
+import logic.api.Connection;
+import logic.messaging.NetworkMessage;
 
 import java.io.BufferedWriter;
 import java.io.IOException;

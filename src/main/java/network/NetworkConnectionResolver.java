@@ -1,6 +1,7 @@
 package network;
 
-import logic.Connection;
+import logic.api.Connection;
+import logic.api.ConnectionResolver;
 import window.AppLogger;
 
 import java.io.IOException;
@@ -8,14 +9,14 @@ import java.net.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class ConnectionResolver
+public class NetworkConnectionResolver implements ConnectionResolver
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 
 	private ServerSocket serverSocket;
 	private int currentPort = 49821;
 
-	public ConnectionResolver()
+	public NetworkConnectionResolver()
 	{
 	}
 

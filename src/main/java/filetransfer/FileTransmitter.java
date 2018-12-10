@@ -1,6 +1,9 @@
 package filetransfer;
 
 import com.sun.istack.internal.NotNull;
+import filetransfer.api.TransferFileInput;
+import filetransfer.api.TransferInput;
+import filetransfer.api.TransferOutput;
 import window.AppLogger;
 
 import java.io.IOException;

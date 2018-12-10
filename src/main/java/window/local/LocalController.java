@@ -1,6 +1,7 @@
 package window.local;
 
 import com.sun.javafx.collections.ObservableListWrapper;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ListView;
@@ -21,6 +22,7 @@ public class LocalController implements Initializable
 
 	private static UIEvents.FileEvents fileEvents;
 	private Set<File> availableFiles = new HashSet<>();
+	private String programState = "";
 
 	@FXML
 	private ListView fileList;
@@ -36,7 +38,7 @@ public class LocalController implements Initializable
 	{
 //		LOGGER.log(Level.FINE, "File drag over");
 
-		if (event.getDragboard().hasFiles())
+		if (programState.equals("CONNECTED") && event.getDragboard().hasFiles())
 			event.acceptTransferModes(TransferMode.ANY);
 	}
 
@@ -81,6 +83,21 @@ public class LocalController implements Initializable
 			fileList.setItems(new ObservableListWrapper(itemList));
 			fileEvents.updateAvailableFileList(new ArrayList<>(availableFiles));
 		}
+	}
+
+	public void updateConnectionState(String state)
+	{
+		programState = state;
+		if (state.equals("DISCONNECTED"))
+		{
+			restFileListItems();
+		}
+	}
+
+	private void restFileListItems()
+	{
+		availableFiles = new HashSet<>();
+		Platform.runLater(() ->	fileList.setItems(new ObservableListWrapper(new ArrayList())));
 	}
 
 	public String getFilePath(String fileName)

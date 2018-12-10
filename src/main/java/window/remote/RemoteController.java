@@ -6,6 +6,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.stage.DirectoryChooser;
 import window.AppLogger;
@@ -24,15 +25,20 @@ public class RemoteController implements Initializable
 	private static final Logger LOGGER = AppLogger.getInstance();
 
 	private static UIEvents.FileEvents fileEvents;
+	private String connectionState = "";
 	private String downloadPath = "";
 
 	@FXML
 	private ListView fileList;
 
+	@FXML
+	private Button downloadButton;
+
 	@Override
 	public void initialize(URL location, ResourceBundle resources)
 	{
 		AppLogger.getInstance().log(Level.FINE, "Initializing " + getClass().getName());
+		downloadButton.setDisable(true);
 	}
 
 	@FXML
@@ -56,7 +62,11 @@ public class RemoteController implements Initializable
 		chooser.setTitle("Chose location");
 		File directory = chooser.showDialog(fileList.getScene().getWindow());
 
-		downloadPath = directory.getAbsolutePath();
+		if (null != directory)
+		{
+			downloadPath = directory.getAbsolutePath();
+			updateConnectionState(connectionState);
+		}
 	}
 
 	@FXML
@@ -67,6 +77,27 @@ public class RemoteController implements Initializable
 
 		//This makes the javafx thread update the list view so I don't get: -- Not on FX application thread exception --
 		Platform.runLater(() -> fileList.setItems(files));
+	}
+
+	public void updateConnectionState(String state)
+	{
+		connectionState = state;
+		if (state.equals("DISCONNECTED"))
+		{
+			downloadButton.setDisable(true);
+			restFileListItems();
+		} else if (state.equals("CONNECTED"))
+		{
+			if (!downloadPath.equals(""))
+			{
+				downloadButton.setDisable(false);
+			}
+		}
+	}
+
+	private void restFileListItems()
+	{
+		Platform.runLater(() -> fileList.setItems(new ObservableListWrapper(new ArrayList())));
 	}
 
 	public String getDownloadLocation()

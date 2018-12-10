@@ -1,7 +1,11 @@
-package logic.client;
+package logic.connection;
 
-import logic.*;
-import network.ConnectionResolver;
+import logic.ConnectCloseEvent;
+import logic.api.BusinessEvents;
+import logic.api.Connection;
+import logic.api.ConnectionResolver;
+import logic.messaging.ReceiverController;
+import logic.messaging.TransmittingController;
 import window.local.LocalController;
 import window.remote.RemoteController;
 

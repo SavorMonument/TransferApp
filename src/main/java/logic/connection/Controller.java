@@ -1,12 +1,14 @@
-package logic.client;
+package logic.connection;
 
-import logic.*;
+import logic.ConnectCloseEvent;
+import logic.api.BusinessEvents;
+import logic.api.Connection;
+import logic.messaging.ReceiverController;
+import logic.messaging.TransmittingController;
 import window.UIEvents;
 
 import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
-import java.net.InetAddress;
 import java.util.List;
 
 public abstract class Controller implements Closeable
@@ -49,11 +51,8 @@ public abstract class Controller implements Closeable
 
 	private void closeConnections()
 	{
-		if (null != mainConnection)
-		{
-			mainConnection.close();
-			mainConnection = null;
-		}
+		if (null != transmitterController)
+			transmitterController = null;
 
 		if (null != receiverController)
 		{
@@ -61,8 +60,11 @@ public abstract class Controller implements Closeable
 			receiverController = null;
 		}
 
-		if (null != transmitterController)
-			transmitterController = null;
+		if (null != mainConnection)
+		{
+			mainConnection.close();
+			mainConnection = null;
+		}
 
 		if (null != receivingConnection)
 		{

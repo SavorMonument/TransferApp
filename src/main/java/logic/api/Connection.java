@@ -1,6 +1,7 @@
-package logic;
+package logic.api;
 
 import com.sun.istack.internal.NotNull;
+import logic.messaging.NetworkMessage;
 
 import java.io.Closeable;
 import java.io.IOException;

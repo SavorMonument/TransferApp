@@ -1,4 +1,4 @@
-package filetransfer;
+package filetransfer.api;
 
 import java.io.Closeable;
 import java.io.IOException;

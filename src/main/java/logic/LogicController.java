@@ -1,8 +1,11 @@
 package logic;
 
-import logic.client.ClientController;
-import logic.client.Controller;
-import logic.client.ServerController;
+import logic.api.BusinessEvents;
+import logic.api.Connection;
+import logic.api.ConnectionResolver;
+import logic.connection.ClientController;
+import logic.connection.Controller;
+import logic.connection.ServerController;
 import network.*;
 import window.AppLogger;
 import window.UIEvents;
@@ -10,7 +13,6 @@ import window.connection.ConnectionController;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,8 +20,6 @@ import java.util.logging.Logger;
 public class LogicController extends Thread
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
-
-	private String downloadPath = "C:\\Users\\Goia\\Desktop\\test_folder";
 
 	private enum State
 	{
@@ -29,10 +29,9 @@ public class LogicController extends Thread
 		DISCONNECTING;
 	}
 
-	private State state = State.DISCONNECTED;
+	private State programState;
 
-	Controller currentController;
-
+	private Controller currentController;
 	private ConnectionResolver connectionResolver;
 	private BusinessEvents businessEvents;
 
@@ -44,7 +43,7 @@ public class LogicController extends Thread
 		this.connectCloseEvent = new DisconnectEvent();
 
 		ConnectionController.setConnectionEventHandler(new ConnectionEventsHandler());
-
+		updateState(State.DISCONNECTED);
 		setDaemon(true);
 	}
 
@@ -55,16 +54,19 @@ public class LogicController extends Thread
 		{
 			try
 			{
-				if (state == State.DISCONNECTED)
+				if (programState == State.DISCONNECTED)
 				{
-					connectionResolver = new ConnectionResolver();
+					connectionResolver = new NetworkConnectionResolver();
 					Connection connection;
-
 					connection = connectionResolver.listenNextConnection();
-					System.out.println("Here");
-					state = State.CONNECTED;
+
+					updateState(State.CONNECTING);
+
 					currentController = new ServerController(connection, connectionResolver, businessEvents, new DisconnectEvent());
 					currentController.go();
+
+					if (programState == State.CONNECTING)
+						updateState(State.CONNECTED);
 				}
 
 				Thread.sleep(3000);
@@ -86,7 +88,7 @@ public class LogicController extends Thread
 				@Override
 				public void run()
 				{
-					if (state == State.DISCONNECTED)
+					if (programState == State.DISCONNECTED)
 					{
 						LOGGER.log(Level.ALL, "Connection request to: " + host);
 
@@ -94,9 +96,17 @@ public class LogicController extends Thread
 						{
 							if (null != connectionResolver)
 								connectionResolver.stopListening();
-							state = State.CONNECTED;
-							currentController = new ClientController(businessEvents,  new DisconnectEvent(), InetAddress.getByName(host));
+
+							updateState(State.CONNECTING);
+
+							currentController = new ClientController(businessEvents, new DisconnectEvent(),
+									new NetworkConnectionResolver(), InetAddress.getByName(host));
 							currentController.go();
+
+							if (programState == State.CONNECTING)
+							{
+								updateState(State.CONNECTED);
+							}
 						} catch (UnknownHostException e)
 						{
 							LOGGER.log(Level.WARNING, "Connection request denied: bad ip " + e.getMessage());
@@ -117,16 +127,21 @@ public class LogicController extends Thread
 				@Override
 				public void run()
 				{
-					if (state == State.CONNECTED)
+					if (programState == State.CONNECTED)
 					{
-						LOGGER.log(Level.ALL, "Disconnecting: ");
+						LOGGER.log(Level.ALL, "Disconnecting");
 						connectCloseEvent.disconnect("Received disconnect request");
 					} else
 						LOGGER.log(Level.ALL, "Disconnect request denied, not connected");
 				}
 			}).start();
-
 		}
+	}
+
+	private void updateState(State state)
+	{
+		businessEvents.setConnectionState(state.toString());
+		programState = state;
 	}
 
 	class DisconnectEvent implements ConnectCloseEvent
@@ -134,11 +149,17 @@ public class LogicController extends Thread
 		@Override
 		public void disconnect(String message)
 		{
-			LOGGER.log(Level.WARNING, "Connection disrupted, resetting connections: " + message);
+			if (programState != State.DISCONNECTING)
+			{
+				LOGGER.log(Level.WARNING, "Connection disrupted, resetting connections: " + message);
+				updateState(State.DISCONNECTING);
+				new Thread(() ->
+				{
+					currentController.close();
+					updateState(State.DISCONNECTED);
 
-			state = State.DISCONNECTING;
-			new Thread(() -> currentController.close()).start();
-			state = State.DISCONNECTED;
+				}).start();
+			}
 		}
 	}
 

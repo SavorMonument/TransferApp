@@ -1,6 +1,6 @@
 package network;
 
-import logic.NetworkMessage;
+import logic.messaging.NetworkMessage;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -8,7 +8,6 @@ import org.mockito.Mockito;
 
 import java.io.*;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 
 import static org.junit.Assert.*;
 

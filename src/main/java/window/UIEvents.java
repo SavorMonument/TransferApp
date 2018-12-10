@@ -1,8 +1,5 @@
 package window;
 
-import com.sun.istack.internal.NotNull;
-import logic.Connection;
-
 import java.io.File;
 import java.util.List;
 

@@ -1,11 +1,14 @@
-package logic;
+package logic.messaging;
 
 import com.sun.istack.internal.NotNull;
 import filesistem.FileInput;
 import filetransfer.FileTransmitter;
-import filetransfer.TransferInput;
-import filetransfer.TransferOutput;
-import logic.Connection.MessageReceiver;
+import filetransfer.api.TransferInput;
+import filetransfer.api.TransferOutput;
+import logic.api.BusinessEvents;
+import logic.ConnectCloseEvent;
+import logic.api.Connection;
+import logic.api.Connection.MessageReceiver;
 import window.AppLogger;
 
 import java.io.IOException;

@@ -1,4 +1,4 @@
-package logic;
+package logic.api;
 
 import java.util.List;
 
@@ -10,4 +10,6 @@ public interface BusinessEvents
 
 	String getLocalFilePath(String fileName);
 	String getDownloadPath();
+
+	void setConnectionState(String state);
 }

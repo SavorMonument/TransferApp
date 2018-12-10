@@ -1,7 +1,7 @@
 package network;
 
 import com.sun.istack.internal.NotNull;
-import logic.Connection;
+import logic.api.Connection;
 
 import java.io.IOException;
 import java.net.InetAddress;

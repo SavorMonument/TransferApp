@@ -46,6 +46,33 @@ public class ConnectionController implements Initializable
 		connectionEvents.disconnect();
 	}
 
+	public void updateConnectionState(String state)
+	{
+		switch (state)
+		{
+			case "DISCONNECTED":
+			{
+				connectButton.setDisable(false);
+				disconnectButton.setDisable(true);
+			}break;
+			case "CONNECTED":
+			{
+				connectButton.setDisable(true);
+				disconnectButton.setDisable(false);
+			}break;
+			case "DISCONNECTING":
+			{
+				connectButton.setDisable(true);
+				disconnectButton.setDisable(true);
+			}break;
+			case "CONNECTING":
+			{
+				connectButton.setDisable(true);
+				disconnectButton.setDisable(true);
+			}break;
+		}
+	}
+
 	public static void setConnectionEventHandler(UIEvents.ConnectionEvents connectionEvents)
 	{
 		ConnectionController.connectionEvents = connectionEvents;

@@ -3,7 +3,7 @@ package window;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.layout.AnchorPane;
-import logic.BusinessEvents;
+import logic.api.BusinessEvents;
 import logic.LogicController;
 import window.connection.ConnectionController;
 import window.local.LocalController;
@@ -57,7 +57,7 @@ public class MainController implements Initializable, BusinessEvents
 	@Override
 	public void updateRemoteFileList(List<String> fileNames)
 	{
-		LOGGER.log(Level.ALL,String.format(
+		LOGGER.log(Level.ALL, String.format(
 				"Business event: %s with %s", this.getClass().getEnclosingMethod(), fileNames.toString()));
 		System.out.println(fileNames.size());
 		remoteController.updateRemoteFileList(fileNames);
@@ -66,7 +66,7 @@ public class MainController implements Initializable, BusinessEvents
 	@Override
 	public boolean confirmConnectionRequest(String url)
 	{
-		LOGGER.log(Level.ALL,String.format(
+		LOGGER.log(Level.ALL, String.format(
 				"Business event: %s with %s", this.getClass().getEnclosingMethod(), url));
 		return true;
 	}
@@ -74,14 +74,14 @@ public class MainController implements Initializable, BusinessEvents
 	@Override
 	public void printMessageOnDisplay(String message)
 	{
-		LOGGER.log(Level.ALL,String.format(
+		LOGGER.log(Level.ALL, String.format(
 				"Business event: %s with %s", this.getClass().getEnclosingMethod(), message));
 	}
 
 	@Override
 	public String getLocalFilePath(String fileName)
 	{
-		LOGGER.log(Level.ALL,String.format(
+		LOGGER.log(Level.ALL, String.format(
 				"Business event: %s with %s", this.getClass().getEnclosingMethod(), fileName));
 		return localController.getFilePath(fileName);
 	}
@@ -90,5 +90,14 @@ public class MainController implements Initializable, BusinessEvents
 	public String getDownloadPath()
 	{
 		return remoteController.getDownloadLocation();
+	}
+
+	@Override
+	public void setConnectionState(String state)
+	{
+		System.out.println(state.toString());
+		remoteController.updateConnectionState(state);
+		connectionController.updateConnectionState(state);
+		localController.updateConnectionState(state);
 	}
 }

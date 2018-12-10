@@ -1,11 +1,10 @@
 package network;
 
-import filetransfer.TransferInput;
+import filetransfer.api.TransferInput;
 import window.AppLogger;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class SocketReceiver extends SocketStream implements TransferInput

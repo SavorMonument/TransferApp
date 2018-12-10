@@ -1,9 +1,8 @@
 package network;
 
-import filetransfer.TransferInput;
-import logic.Connection;
-import logic.NetworkMessage;
-import logic.NetworkMessage.MessageType;
+import logic.api.Connection;
+import logic.messaging.NetworkMessage;
+import logic.messaging.NetworkMessage.MessageType;
 import window.AppLogger;
 
 import java.io.*;

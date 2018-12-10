@@ -1,6 +1,6 @@
 package filesistem;
 
-import filetransfer.TransferFileInput;
+import filetransfer.api.TransferFileInput;
 
 import java.io.*;
 

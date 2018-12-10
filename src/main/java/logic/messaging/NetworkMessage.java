@@ -1,4 +1,4 @@
-package logic;
+package logic.messaging;
 
 public class NetworkMessage
 {

@@ -1,7 +1,10 @@
-package logic.client;
+package logic.connection;
 
-import logic.*;
-import network.ConnectionResolver;
+import logic.ConnectCloseEvent;
+import logic.api.BusinessEvents;
+import logic.api.ConnectionResolver;
+import logic.messaging.ReceiverController;
+import logic.messaging.TransmittingController;
 import window.local.LocalController;
 import window.remote.RemoteController;
 
@@ -11,11 +14,14 @@ import java.net.InetAddress;
 
 public class ClientController extends Controller implements Closeable
 {
+	private ConnectionResolver connectionResolver;
 	private InetAddress remoteAddress;
 
-	public ClientController(BusinessEvents businessEvents, ConnectCloseEvent connectCloseEvent, InetAddress remoteAddress)
+	public ClientController(BusinessEvents businessEvents, ConnectCloseEvent connectCloseEvent,
+							ConnectionResolver connectionResolver, InetAddress remoteAddress)
 	{
 		this.businessEvents = businessEvents;
+		this.connectionResolver = connectionResolver;
 		this.remoteAddress = remoteAddress;
 		this.mainConnectCloseEvent = connectCloseEvent;
 	}
@@ -44,7 +50,6 @@ public class ClientController extends Controller implements Closeable
 	private boolean resolveConnections()
 	{
 		boolean successful = true;
-		ConnectionResolver connectionResolver = new ConnectionResolver();
 
 		try
 		{

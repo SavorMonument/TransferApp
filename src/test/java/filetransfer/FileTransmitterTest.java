@@ -1,16 +1,16 @@
 package filetransfer;
 
+import filetransfer.api.TransferFileInput;
+import filetransfer.api.TransferInput;
+import filetransfer.api.TransferOutput;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.internal.matchers.NotNull;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Random;
 
