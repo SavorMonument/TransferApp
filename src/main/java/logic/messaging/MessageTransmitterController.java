@@ -83,35 +83,35 @@ public class MessageTransmitterController
 
 		try
 		{
+			//Transmit message to remote to tell it to upload the file
 			NetworkMessage networkMessage = new NetworkMessage(NetworkMessage.MessageType.SEND_FILE, fileInformation.name);
 			messageTransmitter.transmitMessage(networkMessage);
-
-			LOGGER.log(Level.FINE, String.format("Starting file receiver with file: %s from address: %s, port%d",
-					fileInformation.name, fileTransmittingConnection.getRemoteAddress(), fileTransmittingConnection.getRemotePort()));
-
-			new Thread(new Runnable()
-			{
-				@Override
-				public void run()
-				{
-					FileOutput fileOutput = new FileOutput(fileInformation.name, downloadPath);
-					boolean successful =
-							new FileReceiver((TransferInput) fileTransmittingConnection.getMessageReceiver(),
-									(TransferOutput) fileTransmittingConnection.getMessageTransmitter(),
-									fileOutput, fileInformation.sizeInBytes).transfer();
-					fileOutput.close();
-					LOGGER.log(Level.ALL, "File transmission " + (successful ? "successful." : "unsuccessful"));
-					if (successful)
-					{
-						//TODO: notify UI
-					}
-				}
-			}).start();
-
 		} catch (IOException e)
 		{
 			connectEvent.disconnect(e.getMessage());
 		}
+
+		LOGGER.log(Level.FINE, String.format("Starting file receiver with file: %s from address: %s, port%d",
+				fileInformation.name, fileTransmittingConnection.getRemoteAddress(), fileTransmittingConnection.getRemotePort()));
+
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				FileOutput fileOutput = new FileOutput(fileInformation.name, downloadPath);
+				boolean successful =
+						new FileReceiver((TransferInput) fileTransmittingConnection.getMessageReceiver(),
+								(TransferOutput) fileTransmittingConnection.getMessageTransmitter(),
+								fileOutput, fileInformation.sizeInBytes).transfer();
+				fileOutput.close();
+				LOGGER.log(Level.ALL, "File transmission " + (successful ? "successful." : "unsuccessful"));
+				if (successful)
+				{
+					//TODO: notify UI
+				}
+			}
+		}).start();
 	}
 
 	public void transmitDisconnectMessage()

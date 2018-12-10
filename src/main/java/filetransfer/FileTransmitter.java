@@ -34,6 +34,7 @@ public class FileTransmitter
 		boolean successful = true;
 		try
 		{
+			LOGGER.log(Level.FINE, "File transmission starting");
 			fileInput.open();
 			readBytesAndTransmitThemOverSocket(fileInput);
 			LOGGER.log(Level.FINE, "File transmission done");

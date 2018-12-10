@@ -74,11 +74,12 @@ public class FileReceiver
 			if (input.available() < minBufferSize && input.available() > maxBufferSize)
 			{
 				//Send the buffer size over and wait for response
+				System.out.println("Sending: " + maxBufferSize + input.available());
 				sendFreeBufferSizeToRemote(maxBufferSize - input.available());
 				while (input.available() == 0 && hasTime(timeout))
 					Thread.sleep(100);
 			}
-
+			System.out.println(input.available());
 			if (input.available() >= BUFFER_SIZE)
 			{
 				while (input.available() >= BUFFER_SIZE)

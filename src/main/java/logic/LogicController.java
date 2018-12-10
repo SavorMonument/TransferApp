@@ -110,6 +110,7 @@ public class LogicController extends Thread
 						} catch (UnknownHostException e)
 						{
 							LOGGER.log(Level.WARNING, "Connection request denied: bad ip " + e.getMessage());
+							updateState(State.DISCONNECTED);
 						}
 
 					} else

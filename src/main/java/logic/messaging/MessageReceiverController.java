@@ -96,7 +96,7 @@ public class MessageReceiverController
 						{
 							//TODO: Notify UI
 						}
-					});
+					}).start();
 				}
 				break;
 				case DISCONNECT:
