@@ -1,4 +1,4 @@
-package network;
+package network.connection;
 
 import com.sun.istack.internal.NotNull;
 import logic.api.Connection;

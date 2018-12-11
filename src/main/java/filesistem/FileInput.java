@@ -27,7 +27,7 @@ public class FileInput implements TransferFileInput
 
 	public int read(byte[] bytes, int bytesToRead) throws IOException
 	{
-		assert null != inputStream : "Input stream uninitialized";
+		assert null != inputStream : "Input streaming uninitialized";
 
 		if (inputStream.available() < bytesToRead)
 			return inputStream.read(bytes, 0, inputStream.available());

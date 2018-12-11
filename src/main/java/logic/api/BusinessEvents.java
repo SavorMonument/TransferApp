@@ -8,10 +8,12 @@ public interface BusinessEvents
 {
 	void updateRemoteFileList(Set<FileInformation> fileNames);
 	boolean confirmConnectionRequest(String url);
-	void printMessageOnDisplay(String message);
 
 	String getLocalFilePath(String fileName);
-//	String getDownloadPath();
 
 	void setConnectionState(String state);
+
+	void printMessageOnDisplay(String message);
+	void printUploadSpeed(long speed);
+	void printDownloadSpeed(long speed);
 }

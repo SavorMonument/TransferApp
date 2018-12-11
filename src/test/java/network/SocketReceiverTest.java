@@ -1,6 +1,7 @@
 package network;
 
 import com.sun.xml.internal.messaging.saaj.util.ByteInputStream;
+import network.streaming.SocketInputStream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,7 +17,7 @@ public class SocketReceiverTest
 	private Socket mockSocket;
 	private InputStream socketInput;
 
-	private SocketReceiver socketReceiver;
+	private SocketInputStream socketReceiver;
 
 	@Before
 	public void setUp() throws Exception
@@ -36,7 +37,7 @@ public class SocketReceiverTest
 		String message = "test";
 
 		Mockito.when(mockSocket.getInputStream()).thenReturn(new StringBufferInputStream(message));
-		socketReceiver = new SocketReceiver(mockSocket);
+		socketReceiver = new SocketInputStream(mockSocket);
 
 		assertTrue(socketReceiver.available() > 0);
 	}
@@ -45,7 +46,7 @@ public class SocketReceiverTest
 	public void getLine() throws IOException, InterruptedException
 	{
 		Mockito.when(mockSocket.getInputStream()).thenReturn(new ByteInputStream(new byte[]{1}, 1));
-		socketReceiver = new SocketReceiver(mockSocket);
+		socketReceiver = new SocketInputStream(mockSocket);
 
 		assertEquals((int) 1, socketReceiver.read());
 	}

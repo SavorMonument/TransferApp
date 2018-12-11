@@ -1,6 +1,7 @@
 package network;
 
 import logic.messaging.NetworkMessage;
+import network.messaging.SocketMessageReceiver;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

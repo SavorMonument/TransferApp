@@ -1,5 +1,6 @@
 package network;
 
+import network.streaming.SocketOutputStream;
 import org.mockito.Mockito;
 
 import java.io.*;
@@ -14,7 +15,7 @@ import static org.junit.Assert.*;
 public class SocketSenderTest
 {
 	Socket mockSocket;
-	SocketTransmitter socketSender;
+	SocketOutputStream socketSender;
 	ByteArrayOutputStream byteArrayOutputStream;
 
 	@Before
@@ -26,7 +27,7 @@ public class SocketSenderTest
 		Mockito.when(mockSocket.isConnected()).thenReturn(true);
 		Mockito.when(mockSocket.getOutputStream()).thenReturn(byteArrayOutputStream);
 
-		socketSender = new SocketTransmitter(mockSocket);
+		socketSender = new SocketOutputStream(mockSocket);
 	}
 
 	@After

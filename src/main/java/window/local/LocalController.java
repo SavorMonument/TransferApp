@@ -9,6 +9,8 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.TransferMode;
 import window.AppLogger;
 import window.UIEvents;
+import window.root.events.ConnectionStateEvent;
+import window.root.events.LocalInformationEvent;
 
 import java.io.File;
 import java.net.URL;
@@ -16,7 +18,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class LocalController implements Initializable
+public class LocalController implements Initializable, ConnectionStateEvent, LocalInformationEvent
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 
@@ -111,7 +113,7 @@ public class LocalController implements Initializable
 		Platform.runLater(() -> fileList.setItems(new ObservableListWrapper(new ArrayList())));
 	}
 
-	public String getFilePath(String fileName)
+	public String getLocalFilePath(String fileName)
 	{
 		String path = "";
 

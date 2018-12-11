@@ -6,7 +6,7 @@ import logic.api.ConnectionResolver;
 import logic.connection.ClientController;
 import logic.connection.Controller;
 import logic.connection.ServerController;
-import network.*;
+import network.connection.NetworkConnectionResolver;
 import window.AppLogger;
 import window.UIEvents;
 import window.connection.ConnectionController;
@@ -45,6 +45,9 @@ public class LogicController extends Thread
 		ConnectionController.setConnectionEventHandler(new ConnectionEventsHandler());
 		updateState(State.DISCONNECTED);
 		setDaemon(true);
+
+
+
 	}
 
 	public void run()
@@ -56,6 +59,7 @@ public class LogicController extends Thread
 			{
 				if (programState == State.DISCONNECTED)
 				{
+					businessEvents.printMessageOnDisplay("Started listening for connections");
 					connectionResolver = new NetworkConnectionResolver();
 					Connection connection;
 					connection = connectionResolver.listenNextConnection();
@@ -98,6 +102,7 @@ public class LogicController extends Thread
 								connectionResolver.stopListening();
 
 							updateState(State.CONNECTING);
+							businessEvents.printMessageOnDisplay("Attempting connection to host");
 
 							currentController = new ClientController(businessEvents, new DisconnectEvent(),
 									new NetworkConnectionResolver(), InetAddress.getByName(host));
@@ -110,6 +115,7 @@ public class LogicController extends Thread
 						} catch (UnknownHostException e)
 						{
 							LOGGER.log(Level.WARNING, "Connection request denied: bad ip " + e.getMessage());
+							businessEvents.printMessageOnDisplay("Connection request denied: bad ip");
 							updateState(State.DISCONNECTED);
 						}
 
@@ -123,7 +129,7 @@ public class LogicController extends Thread
 		@Override
 		public void disconnect()
 		{
-			new Thread(new Runnable()
+			Thread disconnectThread = new Thread(new Runnable()
 			{
 				@Override
 				public void run()
@@ -135,7 +141,10 @@ public class LogicController extends Thread
 					} else
 						LOGGER.log(Level.ALL, "Disconnect request denied, not connected");
 				}
-			}).start();
+			});
+
+			disconnectThread.setDaemon(true);
+			disconnectThread.start();
 		}
 	}
 
@@ -150,16 +159,21 @@ public class LogicController extends Thread
 		@Override
 		public void disconnect(String message)
 		{
+			System.out.println(message);
+			businessEvents.printMessageOnDisplay(message);
 			if (programState != State.DISCONNECTING)
 			{
 				LOGGER.log(Level.WARNING, "Connection disrupted, resetting connections: " + message);
 				updateState(State.DISCONNECTING);
-				new Thread(() ->
+				Thread disconnectThread = new Thread(() ->
 				{
 					currentController.close();
 					updateState(State.DISCONNECTED);
 
-				}).start();
+				});
+
+				disconnectThread.setDaemon(true);
+				disconnectThread.start();
 			}
 		}
 	}

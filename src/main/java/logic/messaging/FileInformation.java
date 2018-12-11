@@ -14,6 +14,12 @@ public class FileInformation
 	}
 
 	@Override
+	public String toString()
+	{
+		return String.format("FileInformation[name: %s, sizeInBytes: %d]", name, sizeInBytes);
+	}
+
+	@Override
 	public boolean equals(Object o)
 	{
 		if (this == o) return true;

@@ -1,40 +1,31 @@
-package logic.messaging;
+package logic.messaging.messages;
+
+import logic.messaging.FileInformation;
 
 import java.util.*;
+import java.util.logging.Level;
 
-public class NetworkMessage
+public class UpdateFileListMessage extends NetworkMessage
 {
-	private MessageType type;
-	private String message;
+	private static final String MESSAGE_CODE = "1234567";
 
-	public NetworkMessage(MessageType type, String message)
+	public UpdateFileListMessage(Collection<FileInformation> files)
 	{
-		this.type = type;
-		this.message = message;
-	}
+		StringBuilder stringBuilder = new StringBuilder();
 
-	public MessageType getType()
-	{
-		return type;
-	}
+		stringBuilder
+				.append(MESSAGE_CODE)
+				.append(' ')
+				.append(collectionCoder(files))
+				.append('\n');
 
-	public String getMessage()
-	{
-		return message;
-	}
-
-	public enum MessageType
-	{
-		UPDATE_FILE_LIST,
-		SEND_FILE,
-		FILE_RECEIVED,
-		DISCONNECT;
+		message = stringBuilder.toString();
 	}
 
 	@Override
-	public String toString()
+	void doAction()
 	{
-		return type + "\n" + message + "\n";
+
 	}
 
 	public static String collectionCoder(Collection<FileInformation> collection)

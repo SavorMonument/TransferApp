@@ -22,7 +22,7 @@ public class MessageReceiverController
 	//TODO: Have this passed trough the main socket(so you can have multiple file transferring at the sam time)
 
 	private Connection mainConnection;
-	private Connection fileReceivingConnection;
+	private Connection fileConnection;
 
 	private MessageReceiver messageReceiver;
 	private BusinessEvents businessEvents;
@@ -31,19 +31,25 @@ public class MessageReceiverController
 	private MessageReceiverThread listener;
 
 
-	public MessageReceiverController(@NotNull Connection mainConnection, @NotNull Connection fileReceivingConnection, @NotNull BusinessEvents businessEvents, @NotNull ConnectCloseEvent connectEvent)
+	public MessageReceiverController(@NotNull Connection mainConnection,
+									 @NotNull Connection fileConnection,
+									 @NotNull BusinessEvents businessEvents,
+									 @NotNull ConnectCloseEvent connectEvent)
 	{
 		assert null != mainConnection && mainConnection.isConnected() : "Invalid main connection";
-		assert null != fileReceivingConnection && fileReceivingConnection.isConnected() : "Invalid main connection";
+		assert null != fileConnection && fileConnection.isConnected() : "Invalid main connection";
 		assert null != businessEvents : "Invalid BusinessEvents";
 		assert null != connectEvent : "Need an actual event handler";
 
 		this.mainConnection = mainConnection;
-		this.fileReceivingConnection = fileReceivingConnection;
+		this.fileConnection = fileConnection;
 
 		this.messageReceiver = mainConnection.getMessageReceiver();
 		this.businessEvents = businessEvents;
 		this.connectEvent = connectEvent;
+
+		fileConnection.getMessageTransmitter().registerBytesCounter(
+				new ByteCounter(businessEvents::printUploadSpeed, 500));
 	}
 
 	private void checkMessages()
@@ -66,7 +72,7 @@ public class MessageReceiverController
 				case UPDATE_FILE_LIST:
 				{
 					LOGGER.log(Level.ALL, "Received remote file list update: " + networkMessage.getMessage());
-
+					businessEvents.printMessageOnDisplay("Updating file list");
 					String message = networkMessage.getMessage();
 					Set<FileInformation> remoteFiles = (Set<FileInformation>) NetworkMessage.collectionDecoder(message);
 
@@ -80,23 +86,11 @@ public class MessageReceiverController
 
 					LOGGER.log(Level.FINE, String.format("Received file transfer request\n " +
 									"Starting file transmitter with file: %s to address: %s, port%d",
-							filePath, fileReceivingConnection.getRemoteAddress(), fileReceivingConnection.getRemotePort()));
+							filePath, fileConnection.getRemoteAddress(), fileConnection.getRemotePort()));
 
-					new Thread(() ->
-					{
-						FileInput fileInput = new FileInput(filePath);
-						boolean successful = new FileTransmitter(
-								(TransferOutput) fileReceivingConnection.getMessageTransmitter(),
-								(TransferInput) fileReceivingConnection.getMessageReceiver(),
-								fileInput).transfer();
-						fileInput.close();
-						LOGGER.log(Level.ALL, "File transmission " + (successful ? "successful." : "unsuccessful"));
+					businessEvents.printMessageOnDisplay("Started a file transmission: " + fileName);
 
-						if (successful)
-						{
-							//TODO: Notify UI
-						}
-					}).start();
+					initiateFileTransfer(filePath);
 				}
 				break;
 				case DISCONNECT:
@@ -109,6 +103,25 @@ public class MessageReceiverController
 		}
 	}
 
+	private void initiateFileTransfer(String filePath)
+	{
+		new Thread(() ->
+		{
+			FileInput fileInput = new FileInput(filePath);
+			boolean successful = new FileTransmitter(
+					(TransferOutput) fileConnection.getMessageTransmitter(),
+					(TransferInput) fileConnection.getMessageReceiver(),
+					fileInput).transfer();
+			fileInput.close();
+			LOGGER.log(Level.ALL, "File transmission " + (successful ? "successful." : "unsuccessful"));
+
+			if (successful)
+				businessEvents.printMessageOnDisplay("File transfer successful: " + filePath);
+			else
+				businessEvents.printMessageOnDisplay("File transfer unsuccessful: " + filePath);
+
+		}).start();
+	}
 
 
 	public void startListening()

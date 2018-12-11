@@ -2,6 +2,7 @@ package logic.api;
 
 import com.sun.istack.internal.NotNull;
 import logic.messaging.NetworkMessage;
+import logic.messaging.ByteCounter;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -25,12 +26,14 @@ public abstract class Connection implements Closeable
 	public interface MessageTransmitter
 	{
 		void transmitMessage(NetworkMessage networkMessage) throws IOException;
+		void registerBytesCounter(ByteCounter bytesCounter);
 	}
 
 	public interface MessageReceiver
 	{
 		NetworkMessage pullMessage() throws IOException;
 		NetworkMessage pullMessageBlocking() throws IOException;
+		void registerBytesCounter(ByteCounter bytesCounter);
 	}
 	//-------------------------------------------------------
 

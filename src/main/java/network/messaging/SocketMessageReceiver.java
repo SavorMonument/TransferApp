@@ -1,8 +1,10 @@
-package network;
+package network.messaging;
 
 import logic.api.Connection;
+import logic.messaging.ByteCounter;
 import logic.messaging.NetworkMessage;
 import logic.messaging.NetworkMessage.MessageType;
+import network.streaming.SocketInputStream;
 import window.AppLogger;
 
 import java.io.*;
@@ -11,7 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class SocketMessageReceiver extends SocketReceiver implements Connection.MessageReceiver
+public class SocketMessageReceiver extends SocketInputStream implements Connection.MessageReceiver
 {
 
 	private static final Logger LOGGER = AppLogger.getInstance();
@@ -87,5 +89,11 @@ public class SocketMessageReceiver extends SocketReceiver implements Connection.
 		}
 
 		return message;
+	}
+
+	@Override
+	public void registerBytesCounter(ByteCounter bytesCounter)
+	{
+		super.registerBytesCounter(bytesCounter);
 	}
 }

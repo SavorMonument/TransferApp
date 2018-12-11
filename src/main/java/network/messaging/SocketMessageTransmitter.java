@@ -1,15 +1,17 @@
-package network;
+package network.messaging;
 
 import filetransfer.api.TransferOutput;
 import logic.api.Connection;
+import logic.messaging.ByteCounter;
 import logic.messaging.NetworkMessage;
+import network.streaming.SocketOutputStream;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 
-public class SocketMessageTransmitter extends SocketTransmitter implements Connection.MessageTransmitter, TransferOutput
+public class SocketMessageTransmitter extends SocketOutputStream implements Connection.MessageTransmitter, TransferOutput
 {
 	private BufferedWriter outputWriter;
 
@@ -29,5 +31,11 @@ public class SocketMessageTransmitter extends SocketTransmitter implements Conne
 
 		outputWriter.write(message.toString());
 		outputWriter.flush();
+	}
+
+	@Override
+	public void registerBytesCounter(ByteCounter bytesCounter)
+	{
+		super.registerBytesCounter(bytesCounter);
 	}
 }

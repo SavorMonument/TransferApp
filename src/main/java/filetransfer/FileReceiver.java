@@ -53,7 +53,8 @@ public class FileReceiver
 		{
 			successful = false;
 			fileOutput.abort();
-			e.printStackTrace();
+			System.out.println(e.getMessage());
+//			e.printStackTrace();
 		}
 
 		return successful;

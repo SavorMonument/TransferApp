@@ -1,20 +1,19 @@
-package network;
+package network.streaming;
 
 import window.AppLogger;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class SocketTransmitter extends SocketStream
+public class SocketOutputStream extends SocketStream
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 
-	private BytesCounter bytesCounter;
+	private Counter bytesCounter;
 	protected OutputStream outputStream;
 
-	public SocketTransmitter(Socket socket)
+	public SocketOutputStream(Socket socket)
 	{
 		super(socket);
 		try
@@ -26,7 +25,7 @@ public class SocketTransmitter extends SocketStream
 		}
 	}
 
-	public void registerBytesCounter(BytesCounter bytesCounter)
+	public void registerBytesCounter(Counter bytesCounter)
 	{
 		this.bytesCounter = bytesCounter;
 	}

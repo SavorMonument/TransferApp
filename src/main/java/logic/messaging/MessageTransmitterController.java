@@ -13,9 +13,7 @@ import window.AppLogger;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,25 +23,33 @@ public class MessageTransmitterController
 	private static final Logger LOGGER = AppLogger.getInstance();
 
 	private Connection mainConnection;
-	private Connection fileTransmittingConnection;
+	private Connection fileConnection;
 
 	private MessageTransmitter messageTransmitter;
 	private ConnectCloseEvent connectEvent;
 
-	private Set<FileInformation> remoteFiles;
+	private BusinessEvents businessEvents;
 
-	public MessageTransmitterController(@NotNull Connection mainConnection, @NotNull Connection fileTransmittingConnection, @NotNull BusinessEvents businessEvents, @NotNull ConnectCloseEvent connectEvent)
+	public MessageTransmitterController(@NotNull Connection mainConnection,
+										@NotNull Connection fileConnection,
+										@NotNull BusinessEvents businessEvents,
+										@NotNull ConnectCloseEvent connectEvent)
 	{
 		assert null != mainConnection && mainConnection.isConnected() : "Invalid main connection";
-		assert null != fileTransmittingConnection && fileTransmittingConnection.isConnected() : "Invalid main connection";
+		assert null != fileConnection && fileConnection.isConnected() : "Invalid main connection";
 		assert null != businessEvents : "Invalid BusinessEvents";
 		assert null != connectEvent : "Need an actual event handler";
 
 		this.mainConnection = mainConnection;
-		this.fileTransmittingConnection = fileTransmittingConnection;
+		this.fileConnection = fileConnection;
 
 		this.messageTransmitter = mainConnection.getMessageTransmitter();
 		this.connectEvent = connectEvent;
+
+		this.businessEvents = businessEvents;
+
+		fileConnection.getMessageReceiver().registerBytesCounter(
+				new ByteCounter(businessEvents::printDownloadSpeed, 500));
 	}
 
 	public void updateAvailableFileList(Set<File> files)
@@ -92,8 +98,9 @@ public class MessageTransmitterController
 		}
 
 		LOGGER.log(Level.FINE, String.format("Starting file receiver with file: %s from address: %s, port%d",
-				fileInformation.name, fileTransmittingConnection.getRemoteAddress(), fileTransmittingConnection.getRemotePort()));
+				fileInformation.name, fileConnection.getRemoteAddress(), fileConnection.getRemotePort()));
 
+		businessEvents.printMessageOnDisplay("Attempting file download");
 		new Thread(new Runnable()
 		{
 			@Override
@@ -101,15 +108,17 @@ public class MessageTransmitterController
 			{
 				FileOutput fileOutput = new FileOutput(fileInformation.name, downloadPath);
 				boolean successful =
-						new FileReceiver((TransferInput) fileTransmittingConnection.getMessageReceiver(),
-								(TransferOutput) fileTransmittingConnection.getMessageTransmitter(),
+						new FileReceiver((TransferInput) fileConnection.getMessageReceiver(),
+								(TransferOutput) fileConnection.getMessageTransmitter(),
 								fileOutput, fileInformation.sizeInBytes).transfer();
 				fileOutput.close();
 				LOGGER.log(Level.ALL, "File transmission " + (successful ? "successful." : "unsuccessful"));
 				if (successful)
 				{
+					businessEvents.printMessageOnDisplay("File downloaded successfully");
 					//TODO: notify UI
-				}
+				}else
+					businessEvents.printMessageOnDisplay("Error while downloading");
 			}
 		}).start();
 	}

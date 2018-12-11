@@ -11,7 +11,10 @@ import javafx.scene.control.ListView;
 import javafx.stage.DirectoryChooser;
 import logic.messaging.FileInformation;
 import window.AppLogger;
+import window.ByteMultipleFormatter;
 import window.UIEvents;
+import window.root.events.ConnectionStateEvent;
+import window.root.events.RemoteInformationEvent;
 
 import java.io.File;
 import java.net.URL;
@@ -19,7 +22,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class RemoteController implements Initializable
+public class RemoteController implements Initializable, ConnectionStateEvent, RemoteInformationEvent
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 
@@ -50,7 +53,7 @@ public class RemoteController implements Initializable
 		if ((index = fileList.getSelectionModel().getSelectedIndex()) != -1)
 		{
 			fileInformation = filesAvailableOnRemote.get(index);
-			
+
 			LOGGER.log(Level.ALL, "Download button pressed on: " + fileInformation);
 			fileEvents.requestFileForDownload(fileInformation, downloadPath);
 		}
@@ -70,7 +73,6 @@ public class RemoteController implements Initializable
 		}
 	}
 
-	@FXML
 	public void updateRemoteFileList(Set<FileInformation> fileNames)
 	{
 		filesAvailableOnRemote = new ArrayList<>(fileNames);
@@ -79,32 +81,16 @@ public class RemoteController implements Initializable
 		Platform.runLater(() -> fileList.setItems(getFormattedUiFileList(filesAvailableOnRemote)));
 	}
 
+
 	private ObservableList<String> getFormattedUiFileList(List<FileInformation> filesInformation)
 	{
 		List<String> formattedFileList = new ArrayList<>();
 
 		for (FileInformation f : filesInformation)
 		{
-			double size = f.sizeInBytes;
-			int divisionCount = 0;
-			while (size / 1024 > 1)
-			{
-				size /= 1024;
-				divisionCount++;
-			}
-
-			formattedFileList.add(String.format("%s : %.1f %s", f.name, size, Units.values()[divisionCount]));
+			formattedFileList.add(String.format("%s : %s", f.name, ByteMultipleFormatter.getFormattedBytes(f.sizeInBytes)));
 		}
 		return new ObservableListWrapper<>(formattedFileList);
-	}
-
-	private enum Units
-	{
-		bytes,
-		KIB,
-		MIB,
-		GIB,
-		TIB;
 	}
 
 	public void updateConnectionState(String state)
@@ -126,11 +112,6 @@ public class RemoteController implements Initializable
 	private void restFileListItems()
 	{
 		Platform.runLater(() -> fileList.setItems(new ObservableListWrapper(new ArrayList())));
-	}
-
-	public String getDownloadLocation()
-	{
-		return downloadPath;
 	}
 
 	public static void setFileEvents(UIEvents.FileEvents fileEvents)

@@ -1,7 +1,9 @@
-package network;
+package network.connection;
 
 import logic.api.Connection;
 import logic.api.ConnectionResolver;
+import network.messaging.SocketMessageReceiver;
+import network.messaging.SocketMessageTransmitter;
 import window.AppLogger;
 
 import java.io.IOException;

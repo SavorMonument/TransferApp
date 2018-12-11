@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 
-<AnchorPane prefHeight="50.0" prefWidth="600.0" stylesheets="@connection.css" AnchorPane.BottomAnchor="0.0" AnchorPane.LeftAnchor="0.0" AnchorPane.RightAnchor="0.0" AnchorPane.topAnchor="0.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="window.connection.ConnectionController">
+<AnchorPane prefHeight="75.0" prefWidth="900.0" stylesheets="@connection.css" AnchorPane.BottomAnchor="0.0" AnchorPane.LeftAnchor="0.0" AnchorPane.RightAnchor="0.0" AnchorPane.topAnchor="0.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="window.connection.ConnectionController">
     <children>
       <GridPane prefHeight="84.0" prefWidth="385.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <columnConstraints>
@@ -21,9 +21,9 @@
             <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
          </rowConstraints>
          <children>
-              <TextField fx:id="addressField" prefHeight="25.0" prefWidth="120.0" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
+              <TextField fx:id="addressField" maxWidth="200.0" prefHeight="30.0" prefWidth="120.0" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
                <GridPane.margin>
-                  <Insets left="40.0" right="40.0" />
+                  <Insets left="35.0" right="35.0" />
                </GridPane.margin>
             </TextField>
             <GridPane GridPane.columnIndex="2">
@@ -53,6 +53,10 @@
                      </GridPane.margin></Button>
                </children>
             </GridPane>
+            <AnchorPane fx:id="displayPane" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1">
+               <GridPane.margin>
+                  <Insets bottom="10.0" top="10.0" />
+               </GridPane.margin></AnchorPane>
          </children>
       </GridPane>
     </children>

@@ -1,4 +1,4 @@
-package network;
+package network.streaming;
 
 import java.io.Closeable;
 import java.io.IOException;
