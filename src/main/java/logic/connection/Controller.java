@@ -54,14 +54,12 @@ public abstract class Controller implements Closeable
 	protected void registerTransmittingCounter(Connection.MessageTransmitter messageTransmitter)
 	{
 		transmittingCounter = new ByteCounter(businessEvents::printUploadSpeed, 500);
-
 		messageTransmitter.registerBytesCounter(transmittingCounter);
 	}
 
 	protected void registerReceivingCounter(Connection.MessageReceiver messageReceiver)
 	{
 		receivingCounter = new ByteCounter(businessEvents::printDownloadSpeed, 500);
-
 		messageReceiver.registerBytesCounter(receivingCounter);
 	}
 

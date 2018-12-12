@@ -21,7 +21,7 @@ public class ByteCounterTest
 				byteCounter.addToCount(1000);
 			}
 //			System.out.println(1);
-			Thread.sleep(100);
+			Thread.sleep(200);
 		}
 
 //		assertEquals(5, count);

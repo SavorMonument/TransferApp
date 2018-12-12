@@ -30,7 +30,7 @@
                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
               </rowConstraints>
                <children>
-                  <Label fx:id="downloadSpeedLabel" styleClass="download-speed" text="121 MIB/s" textAlignment="CENTER" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
+                  <Label fx:id="downloadSpeedLabel" styleClass="download-speed" textAlignment="CENTER" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
                      <padding>
                         <Insets bottom="1.0" left="1.0" right="1.0" top="1.0" />
                      </padding>
@@ -40,14 +40,14 @@
                         <Insets bottom="1.0" left="1.0" right="1.0" top="1.0" />
                      </padding>
                   </Label>
-                  <Label fx:id="uploadSpeedLabel" styleClass="upload-speed" text="121 MIB/s" textAlignment="CENTER" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
+                  <Label fx:id="uploadSpeedLabel" styleClass="upload-speed" textAlignment="CENTER" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
                      <padding>
                         <Insets bottom="1.0" left="1.0" right="1.0" top="1.0" />
                      </padding>
                   </Label>
                </children>
             </GridPane>
-            <Label fx:id="messageLabel" styleClass="updates-text" text="This is a test update this happened and with tihs resource" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
+            <Label fx:id="messageLabel" styleClass="updates-text" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
          </children>
       </GridPane>
    </children>

@@ -61,6 +61,7 @@ public class ByteCounter extends Thread implements Counter
 					Thread.sleep(sleepTime);
 			} catch (InterruptedException e)
 			{
+				interrupt();
 			}
 		}
 	}
