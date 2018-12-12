@@ -26,6 +26,11 @@ public class SocketInputStream extends SocketStream implements TransferInput
 		this.bytesCounter = bytesCounter;
 	}
 
+	public int read(byte[] b, int len) throws IOException
+	{
+		return inputStream.read(b, 0, len);
+	}
+
 	public int read(byte[] b, int off, int len) throws IOException
 	{
 		int amount = inputStream.read(b, off, len);

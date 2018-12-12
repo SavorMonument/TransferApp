@@ -29,6 +29,7 @@ public class MessageReceiverController
 	private ConnectCloseEvent connectEvent;
 
 	private MessageReceiverThread listener;
+	private boolean isTransffering = false;
 
 
 	public MessageReceiverController(@NotNull Connection mainConnection,
@@ -105,24 +106,29 @@ public class MessageReceiverController
 
 	private void initiateFileTransfer(String filePath)
 	{
-		new Thread(() ->
+		if (!isTransffering)
 		{
-			FileInput fileInput = new FileInput(filePath);
-			boolean successful = new FileTransmitter(
-					(TransferOutput) fileConnection.getMessageTransmitter(),
-					(TransferInput) fileConnection.getMessageReceiver(),
-					fileInput).transfer();
-			fileInput.close();
-			LOGGER.log(Level.ALL, "File transmission " + (successful ? "successful." : "unsuccessful"));
+			isTransffering = true;
+			new Thread(() ->
+			{
+				FileInput fileInput = new FileInput(filePath);
+				boolean successful = new FileTransmitter(
+						(TransferOutput) fileConnection.getMessageTransmitter(),
+						(TransferInput) fileConnection.getMessageReceiver(),
+						fileInput).transfer();
+				fileInput.close();
+				LOGGER.log(Level.ALL, "File transmission " + (successful ? "successful." : "unsuccessful"));
 
-			if (successful)
-				businessEvents.printMessageOnDisplay("File transfer successful: " + filePath);
-			else
-				businessEvents.printMessageOnDisplay("File transfer unsuccessful: " + filePath);
-
-		}).start();
+				if (successful)
+					businessEvents.printMessageOnDisplay("File transfer successful: " + filePath);
+				else
+					businessEvents.printMessageOnDisplay("File transfer unsuccessful: " + filePath);
+				isTransffering = false;
+			}).start();
+		} else {
+			throw new IllegalStateException("Still transferring");
+		}
 	}
-
 
 	public void startListening()
 	{

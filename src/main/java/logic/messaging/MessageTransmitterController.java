@@ -101,6 +101,7 @@ public class MessageTransmitterController
 				fileInformation.name, fileConnection.getRemoteAddress(), fileConnection.getRemotePort()));
 
 		businessEvents.printMessageOnDisplay("Attempting file download");
+		businessEvents.setDownloadState(true);
 		new Thread(new Runnable()
 		{
 			@Override
@@ -119,6 +120,7 @@ public class MessageTransmitterController
 					//TODO: notify UI
 				}else
 					businessEvents.printMessageOnDisplay("Error while downloading");
+				businessEvents.setDownloadState(false);
 			}
 		}).start();
 	}

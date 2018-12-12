@@ -2,6 +2,8 @@ package logic.messaging;
 
 import org.junit.Test;
 
+import java.util.Random;
+
 import static org.junit.Assert.*;
 
 public class ByteCounterTest
@@ -12,15 +14,17 @@ public class ByteCounterTest
 	public void countTest() throws InterruptedException
 	{
 		ByteCounter byteCounter = new ByteCounter(
-				(bytes) -> System.out.println( bytes), 500);
+				System.out::println, 1000);
 
 
 		while(true)
 		{
-			byteCounter.addToCount(1000);
-
+			if (Math.random() > 0.5)
+			{
+				byteCounter.addToCount(1000);
+			}
 //			System.out.println(1);
-			Thread.sleep(200);
+			Thread.sleep(100);
 		}
 
 //		assertEquals(5, count);

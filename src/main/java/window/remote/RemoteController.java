@@ -73,6 +73,13 @@ public class RemoteController implements Initializable, ConnectionStateEvent, Re
 		}
 	}
 
+	@Override
+	public void setDownloadDisabled(boolean isDisabled)
+	{
+		downloadButton.setDisable(isDisabled);
+	}
+
+	@Override
 	public void updateRemoteFileList(Set<FileInformation> fileNames)
 	{
 		filesAvailableOnRemote = new ArrayList<>(fileNames);

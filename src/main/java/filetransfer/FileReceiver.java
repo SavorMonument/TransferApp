@@ -45,9 +45,11 @@ public class FileReceiver
 
 		try
 		{
+			System.out.println("Buffer left: " + input.available());
+			input.skip(input.available());
 			fileOutput.open();
 			receiveBytesAndWriteToFile();
-
+			System.out.println("Buffer left: " + input.available());
 			LOGGER.log(Level.FINE, "File receiving done");
 		} catch (IOException | InterruptedException e)
 		{
@@ -63,7 +65,6 @@ public class FileReceiver
 	private void receiveBytesAndWriteToFile() throws IOException, InterruptedException
 	{
 		int maxBufferSize = (int) (input.getBufferSize() * 0.75);
-		int minBufferSize = (int) (input.getBufferSize() * 0.25);
 
 		byte[] buffer = new byte[BUFFER_SIZE];
 		long bytesLeftToReceive = fileSizeBytes;
@@ -72,34 +73,38 @@ public class FileReceiver
 
 		while (hasTime(timeout) && bytesLeftToReceive > 0)
 		{
-			int available = input.available();
-			if (available < minBufferSize)
-			{
-				//Send the buffer size over and wait for response
-				sendFreeBufferSizeToRemote(maxBufferSize - input.available());
-				while (available == input.available() && hasTime(timeout))
-					Thread.sleep(100);
-			}
+//			System.out.println("Top available: " + input.available() + " left time: " + timeout.getElapsedTimeMillis());
+
 			if (input.available() >= BUFFER_SIZE)
 			{
 				while (input.available() >= BUFFER_SIZE)
 				{
-					bytesLeftToReceive -= transferChunkOfData(buffer);
+//					System.out.println("Transferring: " + BUFFER_SIZE);
+					bytesLeftToReceive -= transferChunkOfData(buffer, BUFFER_SIZE);
 				}
 				timeout.reset();
 			}else if (input.available() == bytesLeftToReceive)
 			{
-				bytesLeftToReceive -= transferChunkOfData(buffer);
+//				System.out.println("Transferring: " + input.available());
+				bytesLeftToReceive -= transferChunkOfData(buffer, input.available());
+			} else
+			{
+				//Send the buffer size to remote and wait for more bytes to arrive
+				int available = input.available();
+				sendFreeBufferSizeToRemote(maxBufferSize - available);
+//				System.out.println("Sent " + (maxBufferSize - available));
+				while (available == input.available() && hasTime(timeout))
+					Thread.sleep(100);
 			}
 		}
 
 		if (bytesLeftToReceive != 0)
-			throw new IOException("Did not receive full file, bytes missing:" + bytesLeftToReceive);
+			throw new IOException("Did not receive full file, bytes missing: " + bytesLeftToReceive);
 	}
 
-	private int transferChunkOfData(byte[] buffer) throws IOException
+	private int transferChunkOfData(byte[] buffer, int amount) throws IOException
 	{
-		int amountRead = input.read(buffer);
+		int amountRead = input.read(buffer, amount);
 		fileOutput.writeToFile(buffer, amountRead);
 
 		return amountRead;

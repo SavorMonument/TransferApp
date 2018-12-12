@@ -69,6 +69,17 @@ public class BusinessEventHandler implements BusinessEvents
 	}
 
 	@Override
+	public void setDownloadState(boolean isDownloading)
+	{
+		LOGGER.log(Level.ALL, String.format(
+				"Business event: isDownloading with %s", isDownloading));
+		for(RemoteInformationEvent event: remoteHandlers)
+		{
+			event.setDownloadDisabled(isDownloading);
+		}
+	}
+
+	@Override
 	public void setConnectionState(String state)
 	{
 		System.out.println(state);

@@ -59,7 +59,7 @@ public class FileTransmitter
 			if (socketReceiver.available() > 0)
 			{
 				byte[] values = new byte[4];
-				socketReceiver.read(values);
+				socketReceiver.read(values, 4);
 				remoteBufferSize = ByteBuffer.wrap(values).getInt();
 			}
 			if (remoteBufferSize > BUFFER_SIZE)
