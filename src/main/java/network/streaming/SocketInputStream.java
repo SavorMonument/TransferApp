@@ -1,10 +1,13 @@
 package network.streaming;
 
+import filetransfer.api.TransferException;
 import filetransfer.api.TransferInput;
+import logic.messaging.ConnectionException;
 import window.AppLogger;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class SocketInputStream extends SocketStream implements TransferInput
@@ -26,9 +29,21 @@ public class SocketInputStream extends SocketStream implements TransferInput
 		this.bytesCounter = bytesCounter;
 	}
 
-	public int read(byte[] b, int len) throws IOException
+	public int read(byte[] b, int len) throws TransferException
 	{
-		return inputStream.read(b, 0, len);
+		int amount;
+		try
+		{
+			amount = inputStream.read(b, 0, len);
+		} catch (IOException e)
+		{
+			LOGGER.log(Level.WARNING, "Socket read exception: " + e.getMessage());
+			throw new TransferException("Error on socket read", getClass().getName(), e);
+		}
+
+		if (null != bytesCounter)
+			bytesCounter.addToCount(amount);
+		return amount;
 	}
 
 	public int read(byte[] b, int off, int len) throws IOException
@@ -51,21 +66,42 @@ public class SocketInputStream extends SocketStream implements TransferInput
 		return amount;
 	}
 
-	public int read() throws IOException
+	public int read() throws TransferException
 	{
 		if (null != bytesCounter)
 			bytesCounter.addToCount(1);
 
-		return inputStream.read();
+		try
+		{
+			return inputStream.read();
+		}catch (IOException e)
+		{
+			LOGGER.log(Level.WARNING, "Socket read exception: " + e.getMessage());
+			throw new TransferException("Error on socket read", getClass().getName(), e);
+		}
 	}
 
-	public int available() throws IOException
+	public int available() throws TransferException
 	{
-		return inputStream.available();
+		try
+		{
+			return inputStream.available();
+		}catch (IOException e)
+		{
+			LOGGER.log(Level.WARNING, "Socket exception: " + e.getMessage());
+			throw new TransferException("Error on socket read", getClass().getName(), e);
+		}
 	}
 
-	public void skip(long n) throws IOException
+	public void skip(long n) throws TransferException
 	{
-		inputStream.skip(n);
+		try
+		{
+			inputStream.skip(n);
+		}catch (IOException e)
+		{
+			LOGGER.log(Level.WARNING, "Socket exception: " + e.getMessage());
+			throw new TransferException("Error on socket read", getClass().getName(), e);
+		}
 	}
 }

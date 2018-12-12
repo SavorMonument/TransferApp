@@ -18,10 +18,10 @@ public class ServerController extends Controller
 	public ServerController(Connection initialConnection, ConnectionResolver resolver,
 							BusinessEvents businessEvents, ConnectCloseEvent connectCloseEvent)
 	{
+		super(businessEvents, connectCloseEvent);
+
 		this.mainConnection = initialConnection;
 		this.connectionResolver = resolver;
-		this.businessEvents = businessEvents;
-		this.mainConnectCloseEvent = connectCloseEvent;
 	}
 
 	@Override
@@ -29,15 +29,18 @@ public class ServerController extends Controller
 	{
 		if (resolveConnection())
 		{
-			transmitterController = new MessageTransmitterController(mainConnection, transmittingConnection,
+			transmitterController = new MessageTransmitterController(mainConnection, fileConnectionTwo,
 					businessEvents, mainConnectCloseEvent);
-			receiverController = new MessageReceiverController(mainConnection, receivingConnection,
+			receiverController = new MessageReceiverController(mainConnection, fileConnectionOne,
 					businessEvents, mainConnectCloseEvent);
 			receiverController.startListening();
 
 			UIFileEventsHandler handler = new UIFileEventsHandler();
 			LocalController.setFileEvents(handler);
 			RemoteController.setFileEvents(handler);
+
+			registerTransmittingCounter(fileConnectionOne.getMessageTransmitter());
+			registerReceivingCounter(fileConnectionTwo.getMessageReceiver());
 		} else
 			mainConnectCloseEvent.disconnect("Connection establish failed");
 	}
@@ -47,8 +50,8 @@ public class ServerController extends Controller
 		boolean successful = true;
 		try
 		{
-			receivingConnection = connectionResolver.listenNextConnection(10_000);
-			transmittingConnection = connectionResolver.listenNextConnection(10_000);
+			fileConnectionOne = connectionResolver.listenNextConnection(10_000);
+			fileConnectionTwo = connectionResolver.listenNextConnection(10_000);
 
 		} catch (IOException e)
 		{

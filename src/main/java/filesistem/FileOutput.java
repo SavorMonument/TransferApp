@@ -1,5 +1,6 @@
 package filesistem;
 
+import filetransfer.api.FileException;
 import filetransfer.api.TransferFileOutput;
 
 import java.io.*;
@@ -29,27 +30,39 @@ public class FileOutput implements Closeable, TransferFileOutput
 //		return successful;
 //	}
 
-	public void open() throws IOException
+	public void open() throws FileException
 	{
 		file = new File(path + "/" + fileName);
 
-		if(!file.createNewFile())
-			throw new IOException("Could not create file");
+		try
+		{
+			if (!file.createNewFile())
+				throw new IOException("Could not create file");
 
-		outputStream = new FileOutputStream(file);
+			outputStream = new FileOutputStream(file);
+		} catch (IOException e)
+		{
+			throw new FileException(e.getMessage(), file.getName(), e);
+		}
 	}
 
-	public void writeToFile(byte[] bytes) throws IOException
+	public void writeToFile(byte[] bytes) throws FileException
 	{
 		writeToFile(bytes, bytes.length);
 	}
 
-	public void writeToFile(byte[] bytes, int amount) throws IOException
+	public void writeToFile(byte[] bytes, int amount) throws FileException
 	{
 		assert null != file : "The file has to be created";
 
-		outputStream.write(bytes, 0, amount);
-		outputStream.flush();
+		try
+		{
+			outputStream.write(bytes, 0, amount);
+			outputStream.flush();
+		}catch (IOException e)
+		{
+			throw new FileException(e.getMessage(), file.getName(), e);
+		}
 	}
 
 	public void abort()

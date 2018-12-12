@@ -10,7 +10,6 @@ import window.UIEvents;
 
 import java.io.Closeable;
 import java.io.File;
-import java.util.List;
 import java.util.Set;
 
 public abstract class Controller implements Closeable
@@ -19,12 +18,19 @@ public abstract class Controller implements Closeable
 	protected ConnectCloseEvent mainConnectCloseEvent;
 
 	protected Connection mainConnection;
-	protected Connection transmittingConnection;
-	protected Connection receivingConnection;
+	protected Connection fileConnectionTwo;
+	protected Connection fileConnectionOne;
+	protected ByteCounter transmittingCounter;
+	protected ByteCounter receivingCounter;
 
 	protected MessageTransmitterController transmitterController;
 	protected MessageReceiverController receiverController;
 
+	public Controller(BusinessEvents businessEvents, ConnectCloseEvent mainConnectCloseEvent)
+	{
+		this.businessEvents = businessEvents;
+		this.mainConnectCloseEvent = mainConnectCloseEvent;
+	}
 
 	public abstract void go();
 
@@ -43,6 +49,20 @@ public abstract class Controller implements Closeable
 			new Thread(() -> transmitterController.requestFileForDownload(
 					fileInformation, downloadPath)).start();
 		}
+	}
+
+	protected void registerTransmittingCounter(Connection.MessageTransmitter messageTransmitter)
+	{
+		transmittingCounter = new ByteCounter(businessEvents::printUploadSpeed, 500);
+
+		messageTransmitter.registerBytesCounter(transmittingCounter);
+	}
+
+	protected void registerReceivingCounter(Connection.MessageReceiver messageReceiver)
+	{
+		receivingCounter = new ByteCounter(businessEvents::printDownloadSpeed, 500);
+
+		messageReceiver.registerBytesCounter(receivingCounter);
 	}
 
 	@Override
@@ -68,16 +88,28 @@ public abstract class Controller implements Closeable
 			mainConnection = null;
 		}
 
-		if (null != receivingConnection)
+		if (null != fileConnectionOne)
 		{
-			receivingConnection.close();
-			receivingConnection = null;
+			fileConnectionOne.close();
+			fileConnectionOne = null;
 		}
 
-		if (null != transmittingConnection)
+		if (null != fileConnectionTwo)
 		{
-			transmittingConnection.close();
-			transmittingConnection = null;
+			fileConnectionTwo.close();
+			fileConnectionTwo = null;
+		}
+
+		if (null != transmittingCounter)
+		{
+			transmittingCounter.interrupt();
+			transmittingCounter = null;
+		}
+
+		if (null != receivingCounter)
+		{
+			receivingCounter.interrupt();
+			receivingCounter = null;
 		}
 
 		try

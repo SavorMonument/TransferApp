@@ -159,7 +159,6 @@ public class LogicController extends Thread
 		@Override
 		public void disconnect(String message)
 		{
-			System.out.println(message);
 			businessEvents.printMessageOnDisplay(message);
 			if (programState != State.DISCONNECTING)
 			{

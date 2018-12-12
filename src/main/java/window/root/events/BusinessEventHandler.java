@@ -69,7 +69,7 @@ public class BusinessEventHandler implements BusinessEvents
 	}
 
 	@Override
-	public void setDownloadState(boolean isDownloading)
+	public void setDownloadingState(boolean isDownloading)
 	{
 		LOGGER.log(Level.ALL, String.format(
 				"Business event: isDownloading with %s", isDownloading));
@@ -82,7 +82,6 @@ public class BusinessEventHandler implements BusinessEvents
 	@Override
 	public void setConnectionState(String state)
 	{
-		System.out.println(state);
 		for (ConnectionStateEvent event: connectionStateHandlers)
 		{
 			event.updateConnectionState(state);

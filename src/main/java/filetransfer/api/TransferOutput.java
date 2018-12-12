@@ -5,8 +5,9 @@ import java.io.IOException;
 
 public interface TransferOutput extends Closeable
 {
-	void transmitBytes(byte[] buffer, int bytesToTransmit) throws IOException;
+	void transmitBytes(byte[] buffer, int bytesToTransmit) throws TransferException;
+	void transmitByte(int b) throws TransferException;
 
 
-	void transmitByte(int b) throws IOException;
+	public void flush() throws TransferException;
 }

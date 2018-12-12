@@ -1,4 +1,4 @@
-package logic.messaging;
+package logic.connection;
 
 import filetransfer.DeltaTime;
 import network.streaming.Counter;
@@ -15,7 +15,7 @@ public class ByteCounter extends Thread implements Counter
 	private int eventUpdateFrequency;
 	private ByteCounterEvent event;
 
-	volatile private int temp;
+
 
 	public ByteCounter(ByteCounterEvent event, int eventUpdateFrequencyMilli)
 	{
@@ -41,7 +41,6 @@ public class ByteCounter extends Thread implements Counter
 			{
 				int amountThisSecond = count.getAndSet(0);
 				amountPerSecond = (amountThisSecond + amountPerSecond) / 2;
-				temp = amountPerSecond;
 				secondTimer.reset();
 				timeToSecond = MILLIS_iN_A_SECOND;
 			}
@@ -49,6 +48,7 @@ public class ByteCounter extends Thread implements Counter
 			int timeToEvent = eventUpdateFrequency - eventTimer.getElapsedTimeMillis();
 			if (timeToEvent <= 0)
 			{
+				int temp = amountPerSecond;
 				new Thread(() -> event.updateOnBytes(temp)).start();
 				eventTimer.reset();
 				timeToEvent = eventUpdateFrequency;
@@ -81,7 +81,7 @@ public class ByteCounter extends Thread implements Counter
 		return amountPerSecond;
 	}
 
-	interface ByteCounterEvent
+	public interface ByteCounterEvent
 	{
 		void updateOnBytes(long bytes);
 	}

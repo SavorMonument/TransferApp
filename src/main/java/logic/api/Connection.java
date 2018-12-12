@@ -2,10 +2,10 @@ package logic.api;
 
 import com.sun.istack.internal.NotNull;
 import logic.messaging.NetworkMessage;
-import logic.messaging.ByteCounter;
+import logic.connection.ByteCounter;
+import logic.messaging.ConnectionException;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.net.InetAddress;
 
 public abstract class Connection implements Closeable
@@ -25,14 +25,14 @@ public abstract class Connection implements Closeable
 	//-------------------------------------------------------
 	public interface MessageTransmitter
 	{
-		void transmitMessage(NetworkMessage networkMessage) throws IOException;
+		void transmitMessage(NetworkMessage networkMessage) throws ConnectionException;
 		void registerBytesCounter(ByteCounter bytesCounter);
 	}
 
 	public interface MessageReceiver
 	{
-		NetworkMessage pullMessage() throws IOException;
-		NetworkMessage pullMessageBlocking() throws IOException;
+		NetworkMessage pullMessage() throws ConnectionException;
+		NetworkMessage pullMessageBlocking() throws ConnectionException;
 		void registerBytesCounter(ByteCounter bytesCounter);
 	}
 	//-------------------------------------------------------

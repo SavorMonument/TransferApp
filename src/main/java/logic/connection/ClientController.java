@@ -20,27 +20,28 @@ public class ClientController extends Controller implements Closeable
 	public ClientController(BusinessEvents businessEvents, ConnectCloseEvent connectCloseEvent,
 							ConnectionResolver connectionResolver, InetAddress remoteAddress)
 	{
-		this.businessEvents = businessEvents;
+		super(businessEvents, connectCloseEvent);
+
 		this.connectionResolver = connectionResolver;
 		this.remoteAddress = remoteAddress;
-		this.mainConnectCloseEvent = connectCloseEvent;
 	}
 
 	public void go()
 	{
 		if (resolveConnections())
 		{
-			transmitterController = new MessageTransmitterController(mainConnection, transmittingConnection,
+			transmitterController = new MessageTransmitterController(mainConnection, fileConnectionTwo,
 					businessEvents, mainConnectCloseEvent);
-
-			receiverController = new MessageReceiverController(mainConnection, receivingConnection,
+			receiverController = new MessageReceiverController(mainConnection, fileConnectionOne,
 					businessEvents, mainConnectCloseEvent);
-
 			receiverController.startListening();
 
 			UIFileEventsHandler handler = new UIFileEventsHandler();
 			LocalController.setFileEvents(handler);
 			RemoteController.setFileEvents(handler);
+
+			registerTransmittingCounter(fileConnectionOne.getMessageTransmitter());
+			registerReceivingCounter(fileConnectionTwo.getMessageReceiver());
 		} else
 		{
 			mainConnectCloseEvent.disconnect("Could not establish connection to remote ip: " + remoteAddress.getHostAddress());
@@ -54,8 +55,8 @@ public class ClientController extends Controller implements Closeable
 		try
 		{
 			mainConnection = connectionResolver.attemptNextConnection(remoteAddress);
-			transmittingConnection = connectionResolver.attemptNextConnection(remoteAddress);
-			receivingConnection = connectionResolver.attemptNextConnection(remoteAddress);
+			fileConnectionTwo = connectionResolver.attemptNextConnection(remoteAddress);
+			fileConnectionOne = connectionResolver.attemptNextConnection(remoteAddress);
 
 		} catch (IOException e)
 		{

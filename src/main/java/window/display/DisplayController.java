@@ -4,9 +4,6 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
-import javafx.scene.text.Font;
 import window.ByteMultipleFormatter;
 import window.root.events.ConnectionStateEvent;
 import window.root.events.DisplayEvent;
@@ -19,16 +16,16 @@ import java.util.ResourceBundle;
 public class DisplayController implements Initializable, ConnectionStateEvent, DisplayEvent
 {
 	@FXML
-	public TextField programStatusLabel;
+	public Label programStatusLabel;
 
 	@FXML
-	public TextField messageLabel;
+	public Label messageLabel;
 
 	@FXML
-	public TextField uploadSpeedLabel;
+	public Label uploadSpeedLabel;
 
 	@FXML
-	public TextField downloadSpeedLabel;
+	public Label downloadSpeedLabel;
 
 	private Queue<String> waitingMessages = new PriorityQueue<>();
 	private MessagePrinter messagePrinter;

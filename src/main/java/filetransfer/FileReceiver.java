@@ -1,21 +1,18 @@
 package filetransfer;
 
 import com.sun.istack.internal.NotNull;
-import filetransfer.api.TransferFileOutput;
-import filetransfer.api.TransferInput;
-import filetransfer.api.TransferOutput;
+import filetransfer.api.*;
 import window.AppLogger;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class FileReceiver
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 	private static final int CONNECTION_TIMEOUT_MILLIS = 10_000;
-	private static final int BUFFER_SIZE = 8192;
+	private static final int ERROR_CODE = -1;
+	private static final int START_CODE = 1;
+	private static final int CHUNK_SIZE = 8192;
 
 	private TransferFileOutput fileOutput;
 	private TransferInput input;
@@ -39,72 +36,48 @@ public class FileReceiver
 		this.fileSizeBytes = fileSizeBytes;
 	}
 
-	public boolean transfer()
+	public void transfer() throws TransferException, FileException
 	{
-		boolean successful = true;
-
+		input.skip(input.available());
+		fileOutput.open();
 		try
 		{
-			System.out.println("Buffer left: " + input.available());
-			input.skip(input.available());
-			fileOutput.open();
+			output.transmitByte(START_CODE);
 			receiveBytesAndWriteToFile();
-			System.out.println("Buffer left: " + input.available());
-			LOGGER.log(Level.FINE, "File receiving done");
-		} catch (IOException | InterruptedException e)
+		} catch (InterruptedException e)
 		{
-			successful = false;
-			fileOutput.abort();
-			System.out.println(e.getMessage());
-//			e.printStackTrace();
+		} catch (FileException e)
+		{
+			output.transmitByte(ERROR_CODE);
+			input.skip(input.available());
+			throw e;
 		}
-
-		return successful;
+		System.out.println(input.available());
 	}
 
-	private void receiveBytesAndWriteToFile() throws IOException, InterruptedException
+	private void receiveBytesAndWriteToFile() throws TransferException, FileException, InterruptedException
 	{
-		int maxBufferSize = (int) (input.getBufferSize() * 0.75);
-
-		byte[] buffer = new byte[BUFFER_SIZE];
+		byte[] buffer = new byte[CHUNK_SIZE];
 		long bytesLeftToReceive = fileSizeBytes;
 
-		DeltaTime timeout = new DeltaTime();
-
-		while (hasTime(timeout) && bytesLeftToReceive > 0)
+		int available;
+		DeltaTime dt = new DeltaTime();
+		while (bytesLeftToReceive > 0 && hasTime(dt))
 		{
-//			System.out.println("Top available: " + input.available() + " left time: " + timeout.getElapsedTimeMillis());
-
-			if (input.available() >= BUFFER_SIZE)
+			if ((available = input.available()) > 0)
 			{
-				while (input.available() >= BUFFER_SIZE)
-				{
-//					System.out.println("Transferring: " + BUFFER_SIZE);
-					bytesLeftToReceive -= transferChunkOfData(buffer, BUFFER_SIZE);
-				}
-				timeout.reset();
-			}else if (input.available() == bytesLeftToReceive)
-			{
-//				System.out.println("Transferring: " + input.available());
-				bytesLeftToReceive -= transferChunkOfData(buffer, input.available());
+				bytesLeftToReceive -= transferChunkOfData(buffer, Math.min(available, CHUNK_SIZE));
+				dt.reset();
 			} else
-			{
-				//Send the buffer size to remote and wait for more bytes to arrive
-				int available = input.available();
-				sendFreeBufferSizeToRemote(maxBufferSize - available);
-//				System.out.println("Sent " + (maxBufferSize - available));
-				while (available == input.available() && hasTime(timeout))
-					Thread.sleep(100);
-			}
+				Thread.sleep(100);
 		}
-
 		if (bytesLeftToReceive != 0)
-			throw new IOException("Did not receive full file, bytes missing: " + bytesLeftToReceive);
+			throw new TransferException("Did not receive full file, bytes missing: " + bytesLeftToReceive);
 	}
 
-	private int transferChunkOfData(byte[] buffer, int amount) throws IOException
+	private int transferChunkOfData(byte[] buffer, int maxAmountToRead) throws TransferException, FileException
 	{
-		int amountRead = input.read(buffer, amount);
+		int amountRead = input.read(buffer, maxAmountToRead);
 		fileOutput.writeToFile(buffer, amountRead);
 
 		return amountRead;
@@ -115,9 +88,4 @@ public class FileReceiver
 		return dt.getElapsedTimeMillis() <= CONNECTION_TIMEOUT_MILLIS;
 	}
 
-	private void sendFreeBufferSizeToRemote(int freeBufferSize) throws IOException
-	{
-		byte[] valueInBytes = ByteBuffer.allocate(Integer.BYTES).putInt(freeBufferSize).array();
-		output.transmitBytes(valueInBytes, Integer.BYTES);
-	}
 }

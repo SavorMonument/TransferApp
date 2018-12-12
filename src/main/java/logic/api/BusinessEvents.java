@@ -7,7 +7,7 @@ import java.util.Set;
 public interface BusinessEvents
 {
 	void updateRemoteFileList(Set<FileInformation> fileNames);
-	void setDownloadState(boolean isDownloading);
+	void setDownloadingState(boolean isDownloading);
 
 	String getLocalFilePath(String fileName);
 

@@ -1,13 +1,13 @@
 package filetransfer.api;
 
 import java.io.Closeable;
-import java.io.IOException;
+import java.io.FileNotFoundException;
 
 public interface TransferFileInput extends Closeable
 {
-	boolean open() throws IOException;
-	int read(byte[] buffer, int bufferSize) throws IOException;
-	int available() throws IOException;
+	void open() throws FileNotFoundException;
+	int read(byte[] buffer, int bufferSize) throws FileException;
+	int available() throws FileException;
 
 	void close();
 }

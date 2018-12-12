@@ -3,6 +3,8 @@ package logic.messaging;
 import com.sun.istack.internal.NotNull;
 import filesistem.FileInput;
 import filetransfer.FileTransmitter;
+import filetransfer.api.FileException;
+import filetransfer.api.TransferException;
 import filetransfer.api.TransferInput;
 import filetransfer.api.TransferOutput;
 import logic.api.BusinessEvents;
@@ -11,6 +13,7 @@ import logic.api.Connection;
 import logic.api.Connection.MessageReceiver;
 import window.AppLogger;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
@@ -29,7 +32,7 @@ public class MessageReceiverController
 	private ConnectCloseEvent connectEvent;
 
 	private MessageReceiverThread listener;
-	private boolean isTransffering = false;
+	private boolean isTransferring = false;
 
 
 	public MessageReceiverController(@NotNull Connection mainConnection,
@@ -48,9 +51,6 @@ public class MessageReceiverController
 		this.messageReceiver = mainConnection.getMessageReceiver();
 		this.businessEvents = businessEvents;
 		this.connectEvent = connectEvent;
-
-		fileConnection.getMessageTransmitter().registerBytesCounter(
-				new ByteCounter(businessEvents::printUploadSpeed, 500));
 	}
 
 	private void checkMessages()
@@ -85,12 +85,6 @@ public class MessageReceiverController
 					String fileName = networkMessage.getMessage();
 					String filePath = businessEvents.getLocalFilePath(fileName);
 
-					LOGGER.log(Level.FINE, String.format("Received file transfer request\n " +
-									"Starting file transmitter with file: %s to address: %s, port%d",
-							filePath, fileConnection.getRemoteAddress(), fileConnection.getRemotePort()));
-
-					businessEvents.printMessageOnDisplay("Started a file transmission: " + fileName);
-
 					initiateFileTransfer(filePath);
 				}
 				break;
@@ -106,27 +100,44 @@ public class MessageReceiverController
 
 	private void initiateFileTransfer(String filePath)
 	{
-		if (!isTransffering)
+		if (!isTransferring)
 		{
-			isTransffering = true;
+			isTransferring = true;
 			new Thread(() ->
 			{
 				FileInput fileInput = new FileInput(filePath);
-				boolean successful = new FileTransmitter(
+				FileTransmitter fileTransmitter = new FileTransmitter(
 						(TransferOutput) fileConnection.getMessageTransmitter(),
 						(TransferInput) fileConnection.getMessageReceiver(),
-						fileInput).transfer();
-				fileInput.close();
-				LOGGER.log(Level.ALL, "File transmission " + (successful ? "successful." : "unsuccessful"));
+						fileInput);
+				try
+				{
+					LOGGER.log(Level.FINE, String.format("Starting file transmitter with file: %s to address: %s, port%d",
+							filePath, fileConnection.getRemoteAddress(), fileConnection.getRemotePort()));
+					businessEvents.printMessageOnDisplay("Attempting file upload");
 
-				if (successful)
-					businessEvents.printMessageOnDisplay("File transfer successful: " + filePath);
-				else
-					businessEvents.printMessageOnDisplay("File transfer unsuccessful: " + filePath);
-				isTransffering = false;
+					fileTransmitter.transfer();
+
+					businessEvents.printMessageOnDisplay("File upload finished");
+					LOGGER.log(Level.FINE, "File upload finished");
+				} catch (FileNotFoundException | FileException e)
+				{
+					businessEvents.printMessageOnDisplay("File error: " + e.getMessage());
+					LOGGER.log(Level.WARNING, "Input file problem: " + e.getMessage());
+				} catch (TransferException e)
+				{
+					LOGGER.log(Level.WARNING, "Connection error: " + e.getMessage());
+					connectEvent.disconnect(e.getMessage());
+				}finally
+				{
+					fileInput.close();
+				}
+				isTransferring = false;
+				System.out.println("Done");
 			}).start();
-		} else {
-			throw new IllegalStateException("Still transferring");
+		} else
+		{
+			throw new IllegalStateException("Could not start file transfer, already in progress");
 		}
 	}
 

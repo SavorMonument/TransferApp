@@ -1,8 +1,10 @@
 package logic.messaging;
 
 import com.sun.istack.internal.NotNull;
+import filetransfer.api.FileException;
 import filesistem.FileOutput;
 import filetransfer.FileReceiver;
+import filetransfer.api.TransferException;
 import filetransfer.api.TransferInput;
 import filetransfer.api.TransferOutput;
 import logic.api.BusinessEvents;
@@ -47,9 +49,6 @@ public class MessageTransmitterController
 		this.connectEvent = connectEvent;
 
 		this.businessEvents = businessEvents;
-
-		fileConnection.getMessageReceiver().registerBytesCounter(
-				new ByteCounter(businessEvents::printDownloadSpeed, 500));
 	}
 
 	public void updateAvailableFileList(Set<File> files)
@@ -97,30 +96,49 @@ public class MessageTransmitterController
 			connectEvent.disconnect(e.getMessage());
 		}
 
-		LOGGER.log(Level.FINE, String.format("Starting file receiver with file: %s from address: %s, port%d",
-				fileInformation.name, fileConnection.getRemoteAddress(), fileConnection.getRemotePort()));
+		startFileReceiver(fileInformation, downloadPath);
+	}
 
-		businessEvents.printMessageOnDisplay("Attempting file download");
-		businessEvents.setDownloadState(true);
+	private void startFileReceiver(FileInformation fileInformation, String downloadPath)
+	{
 		new Thread(new Runnable()
 		{
 			@Override
 			public void run()
 			{
+				businessEvents.setDownloadingState(true);
+
 				FileOutput fileOutput = new FileOutput(fileInformation.name, downloadPath);
-				boolean successful =
-						new FileReceiver((TransferInput) fileConnection.getMessageReceiver(),
+				FileReceiver fileReceiver = new FileReceiver((TransferInput) fileConnection.getMessageReceiver(),
 								(TransferOutput) fileConnection.getMessageTransmitter(),
-								fileOutput, fileInformation.sizeInBytes).transfer();
-				fileOutput.close();
-				LOGGER.log(Level.ALL, "File transmission " + (successful ? "successful." : "unsuccessful"));
-				if (successful)
+								fileOutput, fileInformation.sizeInBytes);
+
+				LOGGER.log(Level.FINE, String.format("Starting file receiver with file: %s from address: %s, port%d",
+						fileInformation.name, fileConnection.getRemoteAddress(), fileConnection.getRemotePort()));
+
+				try
 				{
+					businessEvents.printMessageOnDisplay("Attempting file download");
+
+					fileReceiver.transfer();
+
 					businessEvents.printMessageOnDisplay("File downloaded successfully");
-					//TODO: notify UI
-				}else
-					businessEvents.printMessageOnDisplay("Error while downloading");
-				businessEvents.setDownloadState(false);
+				} catch (FileException e)
+				{
+					fileOutput.abort();
+					businessEvents.printMessageOnDisplay("File error: " + e.getMessage());
+					LOGGER.log(Level.WARNING, e.toString() + e.getMessage());
+				} catch (TransferException e)
+				{
+					fileOutput.abort();
+					businessEvents.printMessageOnDisplay("Connection error: " + e.getMessage());
+					connectEvent.disconnect(e.getMessage());
+					LOGGER.log(Level.WARNING, e.toString() + e.getMessage());
+				}finally
+				{
+					fileOutput.close();
+					businessEvents.setDownloadingState(false);
+				}
 			}
 		}).start();
 	}

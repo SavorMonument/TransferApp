@@ -1,5 +1,6 @@
 package filesistem;
 
+import filetransfer.api.FileException;
 import filetransfer.api.TransferFileInput;
 
 import java.io.*;
@@ -16,28 +17,37 @@ public class FileInput implements TransferFileInput
 		this.filePath = filePath;
 	}
 
-	public boolean open() throws FileNotFoundException
+	public void open() throws FileNotFoundException
 	{
 		file = new File(filePath);
-		boolean successful = file.exists();
 		inputStream = new FileInputStream(file);
-
-		return successful;
 	}
 
-	public int read(byte[] bytes, int bytesToRead) throws IOException
+	public int read(byte[] bytes, int bytesToRead) throws FileException
 	{
 		assert null != inputStream : "Input streaming uninitialized";
 
-		if (inputStream.available() < bytesToRead)
-			return inputStream.read(bytes, 0, inputStream.available());
-		else
-			return inputStream.read(bytes, 0, bytesToRead);
+		try
+		{
+			if (inputStream.available() < bytesToRead)
+				return inputStream.read(bytes, 0, inputStream.available());
+			else
+				return inputStream.read(bytes, 0, bytesToRead);
+		} catch (IOException e)
+		{
+			throw new FileException(e.getMessage(), file.getName(), e);
+		}
 	}
 
-	public int available() throws IOException
+	public int available() throws FileException
 	{
-		return inputStream.available();
+		try
+		{
+			return inputStream.available();
+		} catch (IOException e)
+		{
+			throw new FileException(e.getMessage(), file.getName(), e);
+		}
 	}
 
 	@Override

@@ -1,9 +1,10 @@
 package network.messaging;
 
 import logic.api.Connection;
-import logic.messaging.ByteCounter;
+import logic.connection.ByteCounter;
 import logic.messaging.NetworkMessage;
 import logic.messaging.NetworkMessage.MessageType;
+import logic.messaging.ConnectionException;
 import network.streaming.SocketInputStream;
 import window.AppLogger;
 
@@ -27,7 +28,13 @@ public class SocketMessageReceiver extends SocketInputStream implements Connecti
 		inputReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
 	}
 
-	public NetworkMessage pullMessageBlocking() throws IOException
+	/**
+	 * Waits for a message to be available, then returns it
+	 *
+	 * @return A network message
+	 * @throws ConnectionException When there is a problem with the underlying stream
+	 */
+	public NetworkMessage pullMessageBlocking() throws ConnectionException
 	{
 		NetworkMessage message = null;
 
@@ -40,21 +47,31 @@ public class SocketMessageReceiver extends SocketInputStream implements Connecti
 				MessageType type = MessageType.valueOf(line);
 				line = inputReader.readLine();
 				message = new NetworkMessage(type, line);
-
 			} catch (NullPointerException e)
 			{
-				throw new IOException("Error on socket read");
+				//Underlying socket closed
+				throw new ConnectionException("Error on socket read", getClass().getName(), e);
 			}
 			catch (IllegalArgumentException e)
 			{
+				//Invalid message
 				LOGGER.log(Level.WARNING, "Received invalid message");
-//			e.printStackTrace();
+			} catch (IOException e)
+			{
+				LOGGER.log(Level.WARNING, "Socket read exception: " + e.getMessage());
+				throw new ConnectionException("Error on socket read", getClass().getName(), e);
 			}
 		}
 		return message;
 	}
 
-	public NetworkMessage pullMessage() throws IOException
+	/**
+	 * Checks if there are messages waiting and pulls one if there is one available
+	 *
+	 * @return A network message if there is one
+	 * @throws ConnectionException When there is a problem with the underlying stream
+	 */
+	public NetworkMessage pullMessage() throws ConnectionException
 	{
 		NetworkMessage message = null;
 		try
@@ -68,24 +85,19 @@ public class SocketMessageReceiver extends SocketInputStream implements Connecti
 				message = new NetworkMessage(type, line);
 			}
 
-		}catch (IllegalArgumentException e)
+		} catch (NullPointerException e)
 		{
-			LOGGER.log(Level.WARNING, "Received invalid message");
-//			e.printStackTrace();
+			//Underlying socket closed
+			throw new ConnectionException("Error on socket read", getClass().getName(), e);
 		}
-		return message;
-	}
-
-	private String getLine()
-	{
-		String message = "";
-		try
+		catch (IllegalArgumentException e)
 		{
-			if (inputReader.ready())
-				message = inputReader.readLine();
+			//Invalid message
+			LOGGER.log(Level.WARNING, "Received invalid message");
 		} catch (IOException e)
 		{
-			e.printStackTrace();
+			LOGGER.log(Level.WARNING, "Socket read exception: " + e.getMessage());
+			throw new ConnectionException("Error on socket read", getClass().getName(), e);
 		}
 
 		return message;
