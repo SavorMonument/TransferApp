@@ -1,6 +1,5 @@
 package filesistem;
 
-import filetransfer.api.FileException;
 import filetransfer.api.TransferFileInput;
 
 import java.io.*;

@@ -1,6 +1,7 @@
 package filetransfer;
 
 import com.sun.istack.internal.NotNull;
+import filesistem.FileException;
 import filetransfer.api.*;
 import window.AppLogger;
 
@@ -14,8 +15,8 @@ public class FileTransmitter
 	private static final Logger LOGGER = AppLogger.getInstance();
 	private static final int CONNECTION_TIMEOUT_MILLIS = 10_000;
 
-	private static final int ERROR_CODE = -1;
 	private static final int START_CODE = 1;
+	private static final int ERROR_CODE = -1;
 	private static final int CHUNK_SIZE = 8192;
 
 	private TransferOutput socketTransmitter;
@@ -43,8 +44,8 @@ public class FileTransmitter
 			isTransferring = true;
 			listenForError();
 			readBytesAndTransmitThemOverSocket();
-			LOGGER.log(Level.FINE, "File transmission done");
 		}
+		LOGGER.log(Level.FINE, "File transmission done");
 	}
 
 	private boolean listenForStartCode() throws TransferException

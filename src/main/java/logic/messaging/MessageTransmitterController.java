@@ -1,7 +1,7 @@
 package logic.messaging;
 
 import com.sun.istack.internal.NotNull;
-import filetransfer.api.FileException;
+import filesistem.FileException;
 import filesistem.FileOutput;
 import filetransfer.FileReceiver;
 import filetransfer.api.TransferException;
@@ -82,24 +82,43 @@ public class MessageTransmitterController
 		return fileInfo;
 	}
 
-	public void requestFileForDownload(FileInformation fileInformation, String downloadPath)
+	public void fileDownload(FileInformation fileInformation, String downloadPath)
 	{
-		LOGGER.log(Level.FINE, "Sending file download request: " + fileInformation);
+		FileOutput fileOutput = new FileOutput(fileInformation.name, downloadPath);
+		String checkOutput = basicFileCheck(fileOutput, fileInformation);
 
-		try
+		if (checkOutput.equals("Successful"))
 		{
-			//Transmit message to remote to tell it to upload the file
-			NetworkMessage networkMessage = new NetworkMessage(NetworkMessage.MessageType.SEND_FILE, fileInformation.name);
-			messageTransmitter.transmitMessage(networkMessage);
-		} catch (IOException e)
+			LOGGER.log(Level.FINE, "Sending file download request: " + fileInformation);
+			try
+			{
+				//Transmit message to remote to tell it to upload the file
+				NetworkMessage networkMessage = new NetworkMessage(NetworkMessage.MessageType.SEND_FILE, fileInformation.name);
+				messageTransmitter.transmitMessage(networkMessage);
+			} catch (IOException e)
+			{
+				connectEvent.disconnect(e.getMessage());
+			}
+			startFileReceiving(fileInformation, fileOutput);
+		} else
 		{
-			connectEvent.disconnect(e.getMessage());
+			businessEvents.printMessageOnDisplay(checkOutput);
+			LOGGER.log(Level.FINE, "Could not request file: " + checkOutput);
 		}
-
-		startFileReceiver(fileInformation, downloadPath);
 	}
 
-	private void startFileReceiver(FileInformation fileInformation, String downloadPath)
+	private String basicFileCheck(FileOutput fileOutput, FileInformation fileInformation)
+	{
+		if (fileOutput.exists())
+			return "File already exists";
+
+		if (fileOutput.diskSpaceAtLocation() < fileInformation.sizeInBytes)
+			return "Not enough space on device";
+
+		return "Successful";
+	}
+
+	private void startFileReceiving(FileInformation fileInformation, FileOutput fileOutput)
 	{
 		new Thread(new Runnable()
 		{
@@ -108,10 +127,10 @@ public class MessageTransmitterController
 			{
 				businessEvents.setDownloadingState(true);
 
-				FileOutput fileOutput = new FileOutput(fileInformation.name, downloadPath);
+//				FileOutput fileOutput = new FileOutput(fileInformation.name, downloadPath);
 				FileReceiver fileReceiver = new FileReceiver((TransferInput) fileConnection.getMessageReceiver(),
-								(TransferOutput) fileConnection.getMessageTransmitter(),
-								fileOutput, fileInformation.sizeInBytes);
+						(TransferOutput) fileConnection.getMessageTransmitter(),
+						fileOutput, fileInformation.sizeInBytes);
 
 				LOGGER.log(Level.FINE, String.format("Starting file receiver with file: %s from address: %s, port%d",
 						fileInformation.name, fileConnection.getRemoteAddress(), fileConnection.getRemotePort()));
@@ -127,6 +146,7 @@ public class MessageTransmitterController
 				{
 					fileOutput.abort();
 					businessEvents.printMessageOnDisplay("File error: " + e.getMessage());
+					connectEvent.disconnect(e.getMessage());
 					LOGGER.log(Level.WARNING, e.toString() + e.getMessage());
 				} catch (TransferException e)
 				{
@@ -134,7 +154,7 @@ public class MessageTransmitterController
 					businessEvents.printMessageOnDisplay("Connection error: " + e.getMessage());
 					connectEvent.disconnect(e.getMessage());
 					LOGGER.log(Level.WARNING, e.toString() + e.getMessage());
-				}finally
+				} finally
 				{
 					fileOutput.close();
 					businessEvents.setDownloadingState(false);

@@ -46,7 +46,7 @@ public abstract class Controller implements Closeable
 		@Override
 		public void requestFileForDownload(FileInformation fileInformation, String downloadPath)
 		{
-			new Thread(() -> transmitterController.requestFileForDownload(
+			new Thread(() -> transmitterController.fileDownload(
 					fileInformation, downloadPath)).start();
 		}
 	}
@@ -102,12 +102,14 @@ public abstract class Controller implements Closeable
 		{
 			transmittingCounter.interrupt();
 			transmittingCounter = null;
+			businessEvents.printUploadSpeed(0);
 		}
 
 		if (null != receivingCounter)
 		{
 			receivingCounter.interrupt();
 			receivingCounter = null;
+			businessEvents.printDownloadSpeed(0);
 		}
 
 		try

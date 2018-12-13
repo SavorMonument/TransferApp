@@ -3,7 +3,7 @@ package logic.messaging;
 import com.sun.istack.internal.NotNull;
 import filesistem.FileInput;
 import filetransfer.FileTransmitter;
-import filetransfer.api.FileException;
+import filesistem.FileException;
 import filetransfer.api.TransferException;
 import filetransfer.api.TransferInput;
 import filetransfer.api.TransferOutput;
@@ -127,7 +127,7 @@ public class MessageReceiverController
 				} catch (TransferException e)
 				{
 					LOGGER.log(Level.WARNING, "Connection error: " + e.getMessage());
-					connectEvent.disconnect(e.getMessage());
+					connectEvent.disconnect("Connection error, disconnecting");
 				}finally
 				{
 					fileInput.close();

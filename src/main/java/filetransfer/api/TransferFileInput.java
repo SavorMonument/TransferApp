@@ -1,5 +1,7 @@
 package filetransfer.api;
 
+import filesistem.FileException;
+
 import java.io.Closeable;
 import java.io.FileNotFoundException;
 

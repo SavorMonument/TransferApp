@@ -1,6 +1,7 @@
 package filetransfer;
 
 import com.sun.istack.internal.NotNull;
+import filesistem.FileException;
 import filetransfer.api.*;
 import window.AppLogger;
 
@@ -46,6 +47,7 @@ public class FileReceiver
 			receiveBytesAndWriteToFile();
 		} catch (InterruptedException e)
 		{
+			e.printStackTrace();
 		} catch (FileException e)
 		{
 			output.transmitByte(ERROR_CODE);

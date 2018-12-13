@@ -43,6 +43,7 @@ public class SocketOutputStream extends SocketStream implements TransferOutput
 		try
 		{
 			outputStream.write(bytes, 0, numOfBytes);
+			System.out.println(socket.getSendBufferSize());
 //			outputStream.flush();
 		} catch (IOException e)
 		{

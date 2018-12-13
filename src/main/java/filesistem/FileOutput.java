@@ -1,6 +1,5 @@
 package filesistem;
 
-import filetransfer.api.FileException;
 import filetransfer.api.TransferFileOutput;
 
 import java.io.*;
@@ -10,29 +9,30 @@ public class FileOutput implements Closeable, TransferFileOutput
 	private File file;
 	private OutputStream outputStream;
 
-	private String fileName;
 	private String path;
 
 	public FileOutput(String fileName, String path)
 	{
-		this.fileName = fileName;
+		file = new File(path + "/" + fileName);
+
 		this.path = path;
 	}
 
-//	public boolean createTempFile() throws IOException
-//	{
-//		boolean successful;
-//		tempFile = new File(path + "/" + fileName + ".tmp");
-//
-//		successful = tempFile.createNewFile();
-//		outputStream = new FileOutputStream(tempFile);
-//
-//		return successful;
-//	}
+	@Override
+	public boolean exists()
+	{
+		return file.exists();
+	}
 
+	@Override
+	public long diskSpaceAtLocation()
+	{
+		return new File(path).getFreeSpace();
+	}
+
+	@Override
 	public void open() throws FileException
 	{
-		file = new File(path + "/" + fileName);
 
 		try
 		{
@@ -51,6 +51,7 @@ public class FileOutput implements Closeable, TransferFileOutput
 		writeToFile(bytes, bytes.length);
 	}
 
+	@Override
 	public void writeToFile(byte[] bytes, int amount) throws FileException
 	{
 		assert null != file : "The file has to be created";
