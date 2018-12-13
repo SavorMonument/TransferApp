@@ -1,8 +1,6 @@
-package logic.api;
+package logic.connection;
 
 import com.sun.istack.internal.NotNull;
-import logic.messaging.NetworkMessage;
-import logic.connection.ByteCounter;
 import logic.messaging.ConnectionException;
 
 import java.io.Closeable;
@@ -11,9 +9,9 @@ import java.net.InetAddress;
 public abstract class Connection implements Closeable
 {
 	private MessageTransmitter messageTransmitter;
-	private MessageReceiver messageReceiver;
+	private StringReceiver messageReceiver;
 
-	public Connection(@NotNull MessageTransmitter messageTransmitter, @NotNull MessageReceiver messageReceiver)
+	public Connection(@NotNull MessageTransmitter messageTransmitter, @NotNull StringReceiver messageReceiver)
 	{
 		assert null != messageTransmitter : "Invalid MessageTransmitter";
 		assert null != messageReceiver : "Invalid messageReceiver";
@@ -25,14 +23,14 @@ public abstract class Connection implements Closeable
 	//-------------------------------------------------------
 	public interface MessageTransmitter
 	{
-		void transmitMessage(NetworkMessage networkMessage) throws ConnectionException;
+		void transmitString(String message) throws ConnectionException;
 		void registerBytesCounter(ByteCounter bytesCounter);
 	}
 
-	public interface MessageReceiver
+	public interface StringReceiver
 	{
-		NetworkMessage pullMessage() throws ConnectionException;
-		NetworkMessage pullMessageBlocking() throws ConnectionException;
+		String pullLine() throws ConnectionException;
+		String pullLineBlocking() throws ConnectionException;
 		void registerBytesCounter(ByteCounter bytesCounter);
 	}
 	//-------------------------------------------------------
@@ -51,7 +49,7 @@ public abstract class Connection implements Closeable
 		return messageTransmitter;
 	}
 
-	public MessageReceiver getMessageReceiver()
+	public StringReceiver getMessageReceiver()
 	{
 		return messageReceiver;
 	}

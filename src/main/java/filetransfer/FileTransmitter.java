@@ -3,6 +3,7 @@ package filetransfer;
 import com.sun.istack.internal.NotNull;
 import filesistem.FileException;
 import filetransfer.api.*;
+import logic.messaging.ConnectionException;
 import window.AppLogger;
 
 import java.io.FileNotFoundException;
@@ -34,7 +35,7 @@ public class FileTransmitter
 		this.fileInput = fileInput;
 	}
 
-	public void transfer() throws FileException, TransferException, FileNotFoundException
+	public void transfer() throws FileException, ConnectionException, FileNotFoundException
 	{
 		LOGGER.log(Level.FINE, "File transmission starting");
 		fileInput.open();
@@ -48,7 +49,7 @@ public class FileTransmitter
 		LOGGER.log(Level.FINE, "File transmission done");
 	}
 
-	private boolean listenForStartCode() throws TransferException
+	private boolean listenForStartCode() throws ConnectionException
 	{
 		boolean gotStartByte = false;
 
@@ -74,7 +75,7 @@ public class FileTransmitter
 		return gotStartByte;
 	}
 
-	private void readBytesAndTransmitThemOverSocket() throws FileException, TransferException
+	private void readBytesAndTransmitThemOverSocket() throws FileException, ConnectionException
 	{
 		byte[] buffer = new byte[CHUNK_SIZE];
 		boolean hasMore;
@@ -98,7 +99,7 @@ public class FileTransmitter
 	}
 
 	private void transferChunk(TransferFileInput fileInput, TransferOutput transferOutput, byte[] buffer)
-			throws FileException, TransferException
+			throws FileException, ConnectionException
 	{
 		int bytesRead = fileInput.read(buffer, CHUNK_SIZE);
 		socketTransmitter.transmitBytes(buffer, bytesRead);

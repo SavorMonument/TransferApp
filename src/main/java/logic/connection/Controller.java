@@ -1,8 +1,7 @@
 package logic.connection;
 
 import logic.ConnectCloseEvent;
-import logic.api.BusinessEvents;
-import logic.api.Connection;
+import logic.BusinessEvents;
 import logic.messaging.FileInformation;
 import logic.messaging.MessageReceiverController;
 import logic.messaging.MessageTransmitterController;
@@ -57,7 +56,7 @@ public abstract class Controller implements Closeable
 		messageTransmitter.registerBytesCounter(transmittingCounter);
 	}
 
-	protected void registerReceivingCounter(Connection.MessageReceiver messageReceiver)
+	protected void registerReceivingCounter(Connection.StringReceiver messageReceiver)
 	{
 		receivingCounter = new ByteCounter(businessEvents::printDownloadSpeed, 500);
 		messageReceiver.registerBytesCounter(receivingCounter);

@@ -4,17 +4,18 @@ import com.sun.istack.internal.NotNull;
 import filesistem.FileException;
 import filesistem.FileOutput;
 import filetransfer.FileReceiver;
-import filetransfer.api.TransferException;
 import filetransfer.api.TransferInput;
 import filetransfer.api.TransferOutput;
-import logic.api.BusinessEvents;
+import logic.BusinessEvents;
 import logic.ConnectCloseEvent;
-import logic.api.Connection;
-import logic.api.Connection.MessageTransmitter;
+import logic.connection.Connection;
+import logic.connection.Connection.MessageTransmitter;
+import logic.messaging.messages.NetworkMessage;
+import logic.messaging.messages.DownloadRequestMessage;
+import logic.messaging.messages.UpdateFileListMessage;
 import window.AppLogger;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
@@ -55,25 +56,22 @@ public class MessageTransmitterController
 	{
 		LOGGER.log(Level.FINE, "Sending file update..." + files.toString());
 
-		Set<FileInformation> localFileInfo = getListOfFileInformation(files);
+		Set<FileInformation> localFileInfo = transformFilesToFilesInformation(files);
 
-		NetworkMessage networkMessage = new NetworkMessage(NetworkMessage.MessageType.UPDATE_FILE_LIST,
-				NetworkMessage.collectionCoder(localFileInfo));
-
+		NetworkMessage networkMessage = new UpdateFileListMessage(localFileInfo);
+		String message = networkMessage.getFormattedMessage();
 		try
 		{
-			messageTransmitter.transmitMessage(networkMessage);
-		} catch (IOException e)
+			messageTransmitter.transmitString(message);
+		} catch (ConnectionException e)
 		{
-			connectEvent.disconnect(e.getMessage());
+			connectEvent.disconnect("Connection error, disconnecting...");
 		}
-
 	}
 
-	private Set<FileInformation> getListOfFileInformation(Set<File> files)
+	private Set<FileInformation> transformFilesToFilesInformation(Set<File> files)
 	{
 		Set<FileInformation> fileInfo = new HashSet<>();
-
 		for (File file : files)
 		{
 			fileInfo.add(new FileInformation(file.getName(), file.length()));
@@ -90,14 +88,17 @@ public class MessageTransmitterController
 		if (checkOutput.equals("Successful"))
 		{
 			LOGGER.log(Level.FINE, "Sending file download request: " + fileInformation);
+			//Resolve message
+			NetworkMessage networkMessage = new DownloadRequestMessage(fileInformation.name);
+			String message = networkMessage.getFormattedMessage();
 			try
 			{
 				//Transmit message to remote to tell it to upload the file
-				NetworkMessage networkMessage = new NetworkMessage(NetworkMessage.MessageType.SEND_FILE, fileInformation.name);
-				messageTransmitter.transmitMessage(networkMessage);
-			} catch (IOException e)
+				messageTransmitter.transmitString(message);
+			} catch (ConnectionException e)
 			{
-				connectEvent.disconnect(e.getMessage());
+				LOGGER.log(Level.WARNING, e.getMessage());
+				connectEvent.disconnect("Connection error, disconnecting...");
 			}
 			startFileReceiving(fileInformation, fileOutput);
 		} else
@@ -145,15 +146,15 @@ public class MessageTransmitterController
 				} catch (FileException e)
 				{
 					fileOutput.abort();
-					businessEvents.printMessageOnDisplay("File error: " + e.getMessage());
-					connectEvent.disconnect(e.getMessage());
 					LOGGER.log(Level.WARNING, e.toString() + e.getMessage());
-				} catch (TransferException e)
+					businessEvents.printMessageOnDisplay("File error, disconnecting...");
+					connectEvent.disconnect(e.getMessage());
+				} catch (ConnectionException e)
 				{
 					fileOutput.abort();
-					businessEvents.printMessageOnDisplay("Connection error: " + e.getMessage());
-					connectEvent.disconnect(e.getMessage());
 					LOGGER.log(Level.WARNING, e.toString() + e.getMessage());
+					businessEvents.printMessageOnDisplay("Connection error, disconnecting...");
+					connectEvent.disconnect(e.getMessage());
 				} finally
 				{
 					fileOutput.close();
@@ -165,13 +166,5 @@ public class MessageTransmitterController
 
 	public void transmitDisconnectMessage()
 	{
-		try
-		{
-			NetworkMessage networkMessage = new NetworkMessage(NetworkMessage.MessageType.DISCONNECT, "");
-			messageTransmitter.transmitMessage(networkMessage);
-		} catch (IOException e)
-		{
-			connectEvent.disconnect(e.getMessage());
-		}
 	}
 }

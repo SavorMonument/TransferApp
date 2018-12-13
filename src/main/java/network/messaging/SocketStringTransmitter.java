@@ -1,8 +1,7 @@
 package network.messaging;
 
-import logic.api.Connection;
+import logic.connection.Connection;
 import logic.connection.ByteCounter;
-import logic.messaging.NetworkMessage;
 import logic.messaging.ConnectionException;
 import network.streaming.SocketOutputStream;
 import window.AppLogger;
@@ -14,29 +13,23 @@ import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class SocketMessageTransmitter extends SocketOutputStream implements Connection.MessageTransmitter
+public class SocketStringTransmitter extends SocketOutputStream implements Connection.MessageTransmitter
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 
 	private BufferedWriter outputWriter;
 
-	public SocketMessageTransmitter(Socket socket)
+	public SocketStringTransmitter(Socket socket)
 	{
 		super(socket);
 		this.outputWriter = new BufferedWriter(new OutputStreamWriter(outputStream));
 	}
 
-	public void transmitMessage(NetworkMessage networkMessage) throws ConnectionException
+	public void transmitString(String message) throws ConnectionException
 	{
-		StringBuilder message = new StringBuilder();
-		message.append(networkMessage.getType().toString())
-				.append("\n")
-				.append(networkMessage.getMessage())
-				.append("\n");
-
 		try
 		{
-			outputWriter.write(message.toString());
+			outputWriter.write(message);
 			outputWriter.flush();
 		} catch (IOException e)
 		{
@@ -44,6 +37,7 @@ public class SocketMessageTransmitter extends SocketOutputStream implements Conn
 			throw new ConnectionException("Error on socket write", getClass().getName(), e);
 		}
 	}
+
 
 	@Override
 	public void registerBytesCounter(ByteCounter bytesCounter)

@@ -1,21 +1,14 @@
 package logic.messaging;
 
 import com.sun.istack.internal.NotNull;
-import filesistem.FileInput;
-import filetransfer.FileTransmitter;
-import filesistem.FileException;
-import filetransfer.api.TransferException;
-import filetransfer.api.TransferInput;
-import filetransfer.api.TransferOutput;
-import logic.api.BusinessEvents;
+import logic.BusinessEvents;
 import logic.ConnectCloseEvent;
-import logic.api.Connection;
-import logic.api.Connection.MessageReceiver;
+import logic.connection.Connection;
+import logic.connection.Connection.StringReceiver;
+import logic.messaging.messages.MessageFactory;
+import logic.messaging.messages.NetworkMessage;
 import window.AppLogger;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,13 +20,12 @@ public class MessageReceiverController
 	private Connection mainConnection;
 	private Connection fileConnection;
 
-	private MessageReceiver messageReceiver;
+	private StringReceiver messageReceiver;
 	private BusinessEvents businessEvents;
 	private ConnectCloseEvent connectEvent;
 
 	private MessageReceiverThread listener;
-	private boolean isTransferring = false;
-
+	private MessageFactory messageFactory;
 
 	public MessageReceiverController(@NotNull Connection mainConnection,
 									 @NotNull Connection fileConnection,
@@ -51,93 +43,32 @@ public class MessageReceiverController
 		this.messageReceiver = mainConnection.getMessageReceiver();
 		this.businessEvents = businessEvents;
 		this.connectEvent = connectEvent;
+
+		messageFactory = new MessageFactory(fileConnection);
 	}
 
 	private void checkMessages()
 	{
-		NetworkMessage networkMessage = null;
+		String codedMessage;
 		try
 		{
-			networkMessage = messageReceiver.pullMessageBlocking();
-		} catch (IOException e)
-		{
-			stopListening();
-			connectEvent.disconnect(e.getMessage());
-//			e.printStackTrace();
-		}
-
-		if (null != networkMessage)
-		{
-			switch (networkMessage.getType())
+			codedMessage = messageReceiver.pullLineBlocking();
+			if (null != codedMessage)
 			{
-				case UPDATE_FILE_LIST:
-				{
-					LOGGER.log(Level.ALL, "Received remote file list update: " + networkMessage.getMessage());
-					businessEvents.printMessageOnDisplay("Updating file list");
-					String message = networkMessage.getMessage();
-					Set<FileInformation> remoteFiles = (Set<FileInformation>) NetworkMessage.collectionDecoder(message);
-
-					businessEvents.updateRemoteFileList(remoteFiles);
-				}
-				break;
-				case SEND_FILE:
-				{
-					String fileName = networkMessage.getMessage();
-					String filePath = businessEvents.getLocalFilePath(fileName);
-
-					initiateFileTransfer(filePath);
-				}
-				break;
-				case DISCONNECT:
-				{
-					stopListening();
-					connectEvent.disconnect("Disconnect received");
-				}
-				break;
+				NetworkMessage networkMessage = messageFactory.resolveMessage(codedMessage);
+				networkMessage.doAction(businessEvents);
 			}
-		}
-	}
-
-	private void initiateFileTransfer(String filePath)
-	{
-		if (!isTransferring)
-		{
-			isTransferring = true;
-			new Thread(() ->
+			else
 			{
-				FileInput fileInput = new FileInput(filePath);
-				FileTransmitter fileTransmitter = new FileTransmitter(
-						(TransferOutput) fileConnection.getMessageTransmitter(),
-						(TransferInput) fileConnection.getMessageReceiver(),
-						fileInput);
-				try
-				{
-					LOGGER.log(Level.FINE, String.format("Starting file transmitter with file: %s to address: %s, port%d",
-							filePath, fileConnection.getRemoteAddress(), fileConnection.getRemotePort()));
-					businessEvents.printMessageOnDisplay("Attempting file upload");
+				System.out.println("Null message");
+			}
 
-					fileTransmitter.transfer();
-
-					businessEvents.printMessageOnDisplay("File upload finished");
-					LOGGER.log(Level.FINE, "File upload finished");
-				} catch (FileNotFoundException | FileException e)
-				{
-					businessEvents.printMessageOnDisplay("File error: " + e.getMessage());
-					LOGGER.log(Level.WARNING, "Input file problem: " + e.getMessage());
-				} catch (TransferException e)
-				{
-					LOGGER.log(Level.WARNING, "Connection error: " + e.getMessage());
-					connectEvent.disconnect("Connection error, disconnecting");
-				}finally
-				{
-					fileInput.close();
-				}
-				isTransferring = false;
-				System.out.println("Done");
-			}).start();
-		} else
+		} catch (ConnectionException e)
 		{
-			throw new IllegalStateException("Could not start file transfer, already in progress");
+			LOGGER.log(Level.WARNING, "Connection error: " + e.getMessage());
+			connectEvent.disconnect("Connection error, disconnecting");
+			stopListening();
+//			e.printStackTrace();
 		}
 	}
 

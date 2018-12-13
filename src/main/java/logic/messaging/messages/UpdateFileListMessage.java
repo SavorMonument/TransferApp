@@ -1,31 +1,53 @@
 package logic.messaging.messages;
 
+import logic.BusinessEvents;
 import logic.messaging.FileInformation;
+import window.AppLogger;
 
 import java.util.*;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
-public class UpdateFileListMessage extends NetworkMessage
+public class UpdateFileListMessage implements NetworkMessage
 {
-	private static final String MESSAGE_CODE = "1234567";
+	private static final Logger LOGGER = AppLogger.getInstance();
+	static final String MESSAGE_CODE = "1234568";
+
+	Collection<FileInformation> filesInformation;
 
 	public UpdateFileListMessage(Collection<FileInformation> files)
 	{
+		filesInformation = files;
+	}
+
+	UpdateFileListMessage(String files)
+	{
+		filesInformation = collectionDecoder(files);
+	}
+
+	@Override
+	public String getFormattedMessage()
+	{
+		LOGGER.log(Level.FINE, "Sending file update..." + filesInformation.toString());
+
 		StringBuilder stringBuilder = new StringBuilder();
 
 		stringBuilder
 				.append(MESSAGE_CODE)
-				.append(' ')
-				.append(collectionCoder(files))
+				.append(CODE_DELIMITER)
+				.append(collectionCoder(filesInformation))
 				.append('\n');
 
-		message = stringBuilder.toString();
+		return stringBuilder.toString();
 	}
 
 	@Override
-	void doAction()
+	public void doAction(BusinessEvents businessEvents)
 	{
+		LOGGER.log(Level.ALL, "Received remote file list update: " + filesInformation.toString());
+		businessEvents.printMessageOnDisplay("Updating file list");
 
+		businessEvents.updateRemoteFileList((Set<FileInformation>) filesInformation);
 	}
 
 	public static String collectionCoder(Collection<FileInformation> collection)
@@ -53,7 +75,7 @@ public class UpdateFileListMessage extends NetworkMessage
 
 	public static Collection<FileInformation> collectionDecoder(String codedMessage)
 	{
-		Set<FileInformation> elem = new HashSet<FileInformation>();
+		Set<FileInformation> elem = new HashSet<>();
 
 		if (!codedMessage.equals("[]"))
 		{

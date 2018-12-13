@@ -9,6 +9,7 @@ import window.root.events.ConnectionStateEvent;
 import window.root.events.DisplayEvent;
 
 import java.net.URL;
+import java.util.LinkedList;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.ResourceBundle;
@@ -27,7 +28,7 @@ public class DisplayController implements Initializable, ConnectionStateEvent, D
 	@FXML
 	public Label downloadSpeedLabel;
 
-	private Queue<String> waitingMessages = new PriorityQueue<>();
+	private Queue<String> waitingMessages = new LinkedList<>();
 	private MessagePrinter messagePrinter;
 
 
@@ -35,7 +36,6 @@ public class DisplayController implements Initializable, ConnectionStateEvent, D
 	public void initialize(URL location, ResourceBundle resources)
 	{
 		messagePrinter = new MessagePrinter();
-
 	}
 
 	public void updateConnectionState(String status)

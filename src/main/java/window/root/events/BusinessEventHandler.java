@@ -1,6 +1,6 @@
 package window.root.events;
 
-import logic.api.BusinessEvents;
+import logic.BusinessEvents;
 import logic.messaging.FileInformation;
 import window.AppLogger;
 

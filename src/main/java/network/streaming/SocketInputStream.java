@@ -1,6 +1,5 @@
 package network.streaming;
 
-import filetransfer.api.TransferException;
 import filetransfer.api.TransferInput;
 import logic.messaging.ConnectionException;
 import window.AppLogger;
@@ -29,7 +28,7 @@ public class SocketInputStream extends SocketStream implements TransferInput
 		this.bytesCounter = bytesCounter;
 	}
 
-	public int read(byte[] b, int len) throws TransferException
+	public int read(byte[] b, int len) throws ConnectionException
 	{
 		int amount;
 		try
@@ -38,7 +37,7 @@ public class SocketInputStream extends SocketStream implements TransferInput
 		} catch (IOException e)
 		{
 			LOGGER.log(Level.WARNING, "Socket read exception: " + e.getMessage());
-			throw new TransferException("Error on socket read", getClass().getName(), e);
+			throw new ConnectionException("Error on socket read", getClass().getName(), e);
 		}
 
 		if (null != bytesCounter)
@@ -66,7 +65,7 @@ public class SocketInputStream extends SocketStream implements TransferInput
 		return amount;
 	}
 
-	public int read() throws TransferException
+	public int read() throws ConnectionException
 	{
 		if (null != bytesCounter)
 			bytesCounter.addToCount(1);
@@ -77,11 +76,11 @@ public class SocketInputStream extends SocketStream implements TransferInput
 		}catch (IOException e)
 		{
 			LOGGER.log(Level.WARNING, "Socket read exception: " + e.getMessage());
-			throw new TransferException("Error on socket read", getClass().getName(), e);
+			throw new ConnectionException("Error on socket read", getClass().getName(), e);
 		}
 	}
 
-	public int available() throws TransferException
+	public int available() throws ConnectionException
 	{
 		try
 		{
@@ -89,11 +88,11 @@ public class SocketInputStream extends SocketStream implements TransferInput
 		}catch (IOException e)
 		{
 			LOGGER.log(Level.WARNING, "Socket exception: " + e.getMessage());
-			throw new TransferException("Error on socket read", getClass().getName(), e);
+			throw new ConnectionException("Error on socket read", getClass().getName(), e);
 		}
 	}
 
-	public void skip(long n) throws TransferException
+	public void skip(long n) throws ConnectionException
 	{
 		try
 		{
@@ -101,7 +100,7 @@ public class SocketInputStream extends SocketStream implements TransferInput
 		}catch (IOException e)
 		{
 			LOGGER.log(Level.WARNING, "Socket exception: " + e.getMessage());
-			throw new TransferException("Error on socket read", getClass().getName(), e);
+			throw new ConnectionException("Error on socket read", getClass().getName(), e);
 		}
 	}
 }

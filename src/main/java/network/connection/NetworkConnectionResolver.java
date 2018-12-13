@@ -1,9 +1,9 @@
 package network.connection;
 
-import logic.api.Connection;
-import logic.api.ConnectionResolver;
-import network.messaging.SocketMessageReceiver;
-import network.messaging.SocketMessageTransmitter;
+import logic.connection.Connection;
+import logic.connection.ConnectionResolver;
+import network.messaging.SocketStringReceiver;
+import network.messaging.SocketStringTransmitter;
 import window.AppLogger;
 
 import java.io.IOException;
@@ -37,7 +37,7 @@ public class NetworkConnectionResolver implements ConnectionResolver
 		{
 			socket.connect(new InetSocketAddress(remoteAddress, currentPort), timeOut);
 			connection = new NetworkConnection
-					(socket, new SocketMessageTransmitter(socket), new SocketMessageReceiver(socket));
+					(socket, new SocketStringTransmitter(socket), new SocketStringReceiver(socket));
 
 			LOGGER.log(Level.ALL, String.format("Connection successful to URL: %s, port: %d",
 					remoteAddress, currentPort));
@@ -68,7 +68,7 @@ public class NetworkConnectionResolver implements ConnectionResolver
 			Socket socket = serverSocket.accept();
 			serverSocket.close();
 			connection = new NetworkConnection
-					(socket, new SocketMessageTransmitter(socket), new SocketMessageReceiver(socket));
+					(socket, new SocketStringTransmitter(socket), new SocketStringReceiver(socket));
 			LOGGER.log(Level.ALL, String.format("Connection successful from URL: %s, port: %d, to URL: %s, port: %d",
 					socket.getLocalAddress(), socket.getLocalPort(), socket.getInetAddress(), socket.getPort()));
 		} catch (IOException e)

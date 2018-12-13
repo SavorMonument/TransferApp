@@ -1,7 +1,6 @@
 package network;
 
-import logic.messaging.NetworkMessage;
-import network.messaging.SocketMessageTransmitter;
+import network.messaging.SocketStringTransmitter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,12 +10,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
-import static org.junit.Assert.*;
-
 public class SocketMessageTransmitterTest
 {
 	Socket socket;
-	SocketMessageTransmitter socketMessageTransmitter;
+	SocketStringTransmitter socketMessageTransmitter;
 	ByteArrayOutputStream outputStream;
 
 	@Before
@@ -28,7 +25,7 @@ public class SocketMessageTransmitterTest
 		Mockito.when(socket.getOutputStream()).thenReturn(outputStream);
 		Mockito.when(socket.isConnected()).thenReturn(true);
 
-		socketMessageTransmitter = new SocketMessageTransmitter(socket);
+		socketMessageTransmitter = new SocketStringTransmitter(socket);
 	}
 
 	@After
@@ -39,12 +36,5 @@ public class SocketMessageTransmitterTest
 	@Test
 	public void transmitMessage() throws IOException
 	{
-		NetworkMessage.MessageType type = NetworkMessage.MessageType.SEND_FILE;
-		String message = "Test";
-		NetworkMessage networkMessage = new NetworkMessage(type, message);
-
-		socketMessageTransmitter.transmitMessage(networkMessage);
-
-		assertEquals(networkMessage.toString(), outputStream.toString());
 	}
 }

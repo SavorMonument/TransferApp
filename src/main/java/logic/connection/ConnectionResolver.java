@@ -1,4 +1,6 @@
-package logic.api;
+package logic.connection;
+
+import logic.connection.Connection;
 
 import java.io.IOException;
 import java.net.InetAddress;

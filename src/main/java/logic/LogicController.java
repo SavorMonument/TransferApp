@@ -1,8 +1,7 @@
 package logic;
 
-import logic.api.BusinessEvents;
-import logic.api.Connection;
-import logic.api.ConnectionResolver;
+import logic.connection.Connection;
+import logic.connection.ConnectionResolver;
 import logic.connection.ClientController;
 import logic.connection.Controller;
 import logic.connection.ServerController;
@@ -45,7 +44,6 @@ public class LogicController extends Thread
 		ConnectionController.setConnectionEventHandler(new ConnectionEventsHandler());
 		updateState(State.DISCONNECTED);
 		setDaemon(true);
-
 
 
 	}
@@ -159,10 +157,11 @@ public class LogicController extends Thread
 		@Override
 		public void disconnect(String message)
 		{
-			businessEvents.printMessageOnDisplay(message);
 			if (programState != State.DISCONNECTING)
 			{
+				businessEvents.printMessageOnDisplay(message);
 				LOGGER.log(Level.WARNING, "Connection disrupted, resetting connections: " + message);
+
 				updateState(State.DISCONNECTING);
 				Thread disconnectThread = new Thread(() ->
 				{

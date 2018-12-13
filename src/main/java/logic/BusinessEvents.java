@@ -1,4 +1,4 @@
-package logic.api;
+package logic;
 
 import logic.messaging.FileInformation;
 

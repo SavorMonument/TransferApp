@@ -3,6 +3,7 @@ package filetransfer;
 import com.sun.istack.internal.NotNull;
 import filesistem.FileException;
 import filetransfer.api.*;
+import logic.messaging.ConnectionException;
 import window.AppLogger;
 
 import java.util.logging.Logger;
@@ -37,7 +38,7 @@ public class FileReceiver
 		this.fileSizeBytes = fileSizeBytes;
 	}
 
-	public void transfer() throws TransferException, FileException
+	public void transfer() throws ConnectionException, FileException
 	{
 		input.skip(input.available());
 		fileOutput.open();
@@ -57,7 +58,7 @@ public class FileReceiver
 		System.out.println(input.available());
 	}
 
-	private void receiveBytesAndWriteToFile() throws TransferException, FileException, InterruptedException
+	private void receiveBytesAndWriteToFile() throws ConnectionException, FileException, InterruptedException
 	{
 		byte[] buffer = new byte[CHUNK_SIZE];
 		long bytesLeftToReceive = fileSizeBytes;
@@ -74,10 +75,10 @@ public class FileReceiver
 				Thread.sleep(100);
 		}
 		if (bytesLeftToReceive != 0)
-			throw new TransferException("Did not receive full file, bytes missing: " + bytesLeftToReceive);
+			throw new ConnectionException("Did not receive full file, bytes missing: " + bytesLeftToReceive);
 	}
 
-	private int transferChunkOfData(byte[] buffer, int maxAmountToRead) throws TransferException, FileException
+	private int transferChunkOfData(byte[] buffer, int maxAmountToRead) throws ConnectionException, FileException
 	{
 		int amountRead = input.read(buffer, maxAmountToRead);
 		fileOutput.writeToFile(buffer, amountRead);

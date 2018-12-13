@@ -1,7 +1,7 @@
 package network.connection;
 
 import com.sun.istack.internal.NotNull;
-import logic.api.Connection;
+import logic.connection.Connection;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -11,7 +11,7 @@ public class NetworkConnection extends Connection
 {
 	private Socket socket;
 
-	public NetworkConnection(@NotNull Socket socket, @NotNull Connection.MessageTransmitter messageTransmitter, @NotNull Connection.MessageReceiver messageReceiver)
+	public NetworkConnection(@NotNull Socket socket, @NotNull Connection.MessageTransmitter messageTransmitter, @NotNull StringReceiver messageReceiver)
 	{
 		super(messageTransmitter, messageReceiver);
 

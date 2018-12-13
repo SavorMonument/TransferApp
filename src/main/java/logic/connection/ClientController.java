@@ -1,8 +1,7 @@
 package logic.connection;
 
 import logic.ConnectCloseEvent;
-import logic.api.BusinessEvents;
-import logic.api.ConnectionResolver;
+import logic.BusinessEvents;
 import logic.messaging.MessageReceiverController;
 import logic.messaging.MessageTransmitterController;
 import window.local.LocalController;

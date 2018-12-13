@@ -1,17 +1,21 @@
 package logic.messaging.messages;
 
-import network.messaging.SocketMessageTransmitter;
+import logic.BusinessEvents;
+import logic.messaging.ConnectionException;
 
-public abstract class NetworkMessage
+public interface NetworkMessage
 {
-	protected String message;
+	String CODE_DELIMITER = "<D:::::D>";
 
-	abstract void doAction();
+	/**
+	 * This is the message that is transmitted through  the network
+	 * If you pass this string to the MessageFactory it's going to construct
+	 * the same type of object
+	 */
+	String getFormattedMessage();
 
-	public String getMessageAsString()
-	{
-		return message;
-	}
-
-
+	/**
+	 * Does what each specific message is supposed to do
+	 */
+	void doAction(BusinessEvents businessEvents) throws ConnectionException;
 }

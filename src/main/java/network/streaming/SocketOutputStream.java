@@ -1,7 +1,7 @@
 package network.streaming;
 
-import filetransfer.api.TransferException;
 import filetransfer.api.TransferOutput;
+import logic.messaging.ConnectionException;
 import window.AppLogger;
 
 import java.io.*;
@@ -33,22 +33,21 @@ public class SocketOutputStream extends SocketStream implements TransferOutput
 		this.bytesCounter = bytesCounter;
 	}
 
-	public void transmitBytes(byte[] bytes) throws TransferException
+	public void transmitBytes(byte[] bytes) throws ConnectionException
 	{
 		transmitBytes(bytes, bytes.length);
 	}
 
-	public void transmitBytes(byte[] bytes, int numOfBytes) throws TransferException
+	public void transmitBytes(byte[] bytes, int numOfBytes) throws ConnectionException
 	{
 		try
 		{
 			outputStream.write(bytes, 0, numOfBytes);
-			System.out.println(socket.getSendBufferSize());
 //			outputStream.flush();
 		} catch (IOException e)
 		{
 			LOGGER.log(Level.WARNING, "Socket write exception: " + e.getMessage());
-			throw new TransferException("Error on socket write", getClass().getName(), e);
+			throw new ConnectionException("Error on socket write", getClass().getName(), e);
 		}
 
 		if (null != bytesCounter)
@@ -57,7 +56,7 @@ public class SocketOutputStream extends SocketStream implements TransferOutput
 		}
 	}
 
-	public void flush() throws TransferException
+	public void flush() throws ConnectionException
 	{
 		try
 		{
@@ -65,11 +64,11 @@ public class SocketOutputStream extends SocketStream implements TransferOutput
 		} catch (IOException e)
 		{
 			LOGGER.log(Level.WARNING, "Socket flush exception: " + e.getMessage());
-			throw new TransferException("Error on socket flush", getClass().getName(), e);
+			throw new ConnectionException("Error on socket flush", getClass().getName(), e);
 		}
 	}
 
-	public void transmitByte(int b) throws TransferException
+	public void transmitByte(int b) throws ConnectionException
 	{
 		try
 		{
@@ -78,7 +77,7 @@ public class SocketOutputStream extends SocketStream implements TransferOutput
 		} catch (IOException e)
 		{
 			LOGGER.log(Level.WARNING, "Socket write exception: " + e.getMessage());
-			throw new TransferException("Error on socket write", getClass().getName(), e);
+			throw new ConnectionException("Error on socket write", getClass().getName(), e);
 		}
 		if (null != bytesCounter)
 		{
