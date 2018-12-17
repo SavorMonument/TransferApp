@@ -20,33 +20,38 @@ public class FileTransmitter
 	private static final int ERROR_CODE = -1;
 	private static final int CHUNK_SIZE = 8192;
 
-	private TransferOutput socketTransmitter;
-	private TransferInput socketReceiver;
+	private TransferOutput transferOutput;
+	private TransferInput transferInput;
 	private TransferFileInput fileInput;
 
 	private boolean isTransferring = false;
 	private boolean isErrorState = false;
 
-	public FileTransmitter(@NotNull TransferOutput socketTransmitter, @NotNull TransferInput socketReceiver,
+	public FileTransmitter(@NotNull TransferOutput transferOutput, @NotNull TransferInput transferInput,
 						   @NotNull TransferFileInput fileInput)
 	{
-		this.socketTransmitter = socketTransmitter;
-		this.socketReceiver = socketReceiver;
+		this.transferOutput = transferOutput;
+		this.transferInput = transferInput;
 		this.fileInput = fileInput;
 	}
 
 	public void transfer() throws FileException, ConnectionException, FileNotFoundException
 	{
 		LOGGER.log(Level.FINE, "File transmission starting");
-		fileInput.open();
 
-		if (listenForStartCode())
+		try
 		{
-			isTransferring = true;
-			listenForError();
-			readBytesAndTransmitThemOverSocket();
+			fileInput.open();
+			if (listenForStartCode())
+			{
+				isTransferring = true;
+				listenForError();
+				readBytesAndTransmitThemOverSocket();
+			}
+		} finally
+		{
+			LOGGER.log(Level.FINE, "File transmission done");
 		}
-		LOGGER.log(Level.FINE, "File transmission done");
 	}
 
 	private boolean listenForStartCode() throws ConnectionException
@@ -56,9 +61,9 @@ public class FileTransmitter
 		DeltaTime dt = new DeltaTime();
 		while (!gotStartByte && hasTime(dt))
 		{
-			if (socketReceiver.available() > 0)
+			if (transferInput.available() > 0)
 			{
-				byte value = (byte) socketReceiver.read();
+				byte value = (byte) transferInput.read();
 				if (value == START_CODE)
 				{
 					gotStartByte = true;
@@ -86,7 +91,7 @@ public class FileTransmitter
 		{
 			while (hasMore = (fileInput.available() > 0) && !isErrorState)
 			{
-				transferChunk(fileInput, socketTransmitter, buffer);
+				transferChunk(buffer);
 			}
 		} finally
 		{
@@ -98,11 +103,11 @@ public class FileTransmitter
 		}
 	}
 
-	private void transferChunk(TransferFileInput fileInput, TransferOutput transferOutput, byte[] buffer)
+	private void transferChunk(byte[] buffer)
 			throws FileException, ConnectionException
 	{
 		int bytesRead = fileInput.read(buffer, CHUNK_SIZE);
-		socketTransmitter.transmitBytes(buffer, bytesRead);
+		transferOutput.transmitBytes(buffer, bytesRead);
 	}
 
 	private boolean hasTime(DeltaTime dt)
@@ -121,9 +126,9 @@ public class FileTransmitter
 				{
 					try
 					{
-						if (socketReceiver.available() > 0)
+						if (transferInput.available() > 0)
 						{
-							byte value = (byte) socketReceiver.read();
+							byte value = (byte) transferInput.read();
 							if (value == ERROR_CODE)
 							{
 								System.out.println("Setting error state to true");
