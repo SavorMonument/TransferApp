@@ -2,7 +2,7 @@ package network.messaging;
 
 import logic.connection.Connection;
 import logic.connection.ByteCounter;
-import logic.messaging.ConnectionException;
+import network.ConnectionException;
 import network.streaming.SocketInputStream;
 import window.AppLogger;
 

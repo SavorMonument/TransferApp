@@ -1,6 +1,7 @@
 package logic;
 
 import logic.messaging.FileInformation;
+import window.UIEvents;
 
 import java.util.Set;
 
@@ -17,4 +18,6 @@ public interface BusinessEvents
 	void printMessageOnDisplay(String message);
 	void printUploadSpeed(long speed);
 	void printDownloadSpeed(long speed);
+
+	void setFileEventHandler(UIEvents.FileEvents fileEvents);
 }

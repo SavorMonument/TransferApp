@@ -3,10 +3,11 @@ package logic.messaging;
 import com.sun.istack.internal.NotNull;
 import logic.BusinessEvents;
 import logic.ConnectCloseEvent;
-import logic.connection.Connection;
 import logic.connection.Connection.StringReceiver;
+import logic.connection.Connections;
 import logic.messaging.messages.MessageFactory;
 import logic.messaging.messages.NetworkMessage;
+import network.ConnectionException;
 import window.AppLogger;
 
 import java.util.logging.Level;
@@ -15,36 +16,27 @@ import java.util.logging.Logger;
 public class MessageReceiverController
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
-	//TODO: Have this passed trough the main socket(so you can have multiple file transferring at the sam time)
-
-	private Connection mainConnection;
-	private Connection fileConnection;
 
 	private StringReceiver messageReceiver;
 	private BusinessEvents businessEvents;
-	private ConnectCloseEvent connectEvent;
+	private ConnectCloseEvent connectCloseEvent;
 
 	private MessageReceiverThread listener;
 	private MessageFactory messageFactory;
 
-	public MessageReceiverController(@NotNull Connection mainConnection,
-									 @NotNull Connection fileConnection,
+	public MessageReceiverController(@NotNull Connections connections,
 									 @NotNull BusinessEvents businessEvents,
-									 @NotNull ConnectCloseEvent connectEvent)
+									 @NotNull ConnectCloseEvent connectCloseEvent)
 	{
-		assert null != mainConnection && mainConnection.isConnected() : "Invalid main connection";
-		assert null != fileConnection && fileConnection.isConnected() : "Invalid main connection";
+		assert null != connections : "Invalid connections";
 		assert null != businessEvents : "Invalid BusinessEvents";
-		assert null != connectEvent : "Need an actual event handler";
+		assert null != connectCloseEvent : "Need an actual event handler";
 
-		this.mainConnection = mainConnection;
-		this.fileConnection = fileConnection;
-
-		this.messageReceiver = mainConnection.getMessageReceiver();
+		this.messageReceiver = connections.getMainConnection().getMessageReceiver();
 		this.businessEvents = businessEvents;
-		this.connectEvent = connectEvent;
+		this.connectCloseEvent = connectCloseEvent;
 
-		messageFactory = new MessageFactory(fileConnection);
+		messageFactory = new MessageFactory(connections.getFileTransmittingConnection());
 	}
 
 	private void checkMessages()
@@ -53,22 +45,14 @@ public class MessageReceiverController
 		try
 		{
 			codedMessage = messageReceiver.pullLineBlocking();
-			if (null != codedMessage)
-			{
-				NetworkMessage networkMessage = messageFactory.resolveMessage(codedMessage);
-				networkMessage.doAction(businessEvents);
-			}
-			else
-			{
-				System.out.println("Null message");
-			}
+			NetworkMessage networkMessage = messageFactory.resolveMessage(codedMessage);
+			networkMessage.doAction(businessEvents);
 
 		} catch (ConnectionException e)
 		{
 			LOGGER.log(Level.WARNING, "Connection error: " + e.getMessage());
-			connectEvent.disconnect("Connection error, disconnecting");
+			connectCloseEvent.disconnect("Connection error, disconnecting");
 			stopListening();
-//			e.printStackTrace();
 		}
 	}
 

@@ -1,10 +1,8 @@
 package filetransfer.api;
 
-import logic.messaging.ConnectionException;
+import network.ConnectionException;
 
-import java.io.Closeable;
-
-public interface TransferInput extends Closeable
+public interface TransferInput
 {
 	int available() throws ConnectionException;
 	int read() throws ConnectionException;

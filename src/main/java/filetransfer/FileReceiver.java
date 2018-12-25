@@ -3,7 +3,7 @@ package filetransfer;
 import com.sun.istack.internal.NotNull;
 import filesistem.FileException;
 import filetransfer.api.*;
-import logic.messaging.ConnectionException;
+import network.ConnectionException;
 import window.AppLogger;
 
 import java.util.logging.Level;
@@ -41,7 +41,7 @@ public class FileReceiver
 
 	public void transfer() throws ConnectionException, FileException
 	{
-		LOGGER.log(Level.INFO, "Starting file receiving");
+		LOGGER.log(Level.INFO, "File receiving starting...");
 		try
 		{
 			transferInput.skip(transferInput.available());
@@ -58,7 +58,7 @@ public class FileReceiver
 			throw e;
 		}finally
 		{
-			LOGGER.log(Level.INFO, "File receiving done");
+			LOGGER.log(Level.INFO, "File receiving done.");
 		}
 	}
 

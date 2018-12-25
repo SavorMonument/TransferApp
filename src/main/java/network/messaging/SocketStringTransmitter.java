@@ -2,7 +2,7 @@ package network.messaging;
 
 import logic.connection.Connection;
 import logic.connection.ByteCounter;
-import logic.messaging.ConnectionException;
+import network.ConnectionException;
 import network.streaming.SocketOutputStream;
 import window.AppLogger;
 
@@ -13,7 +13,7 @@ import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class SocketStringTransmitter extends SocketOutputStream implements Connection.MessageTransmitter
+public class SocketStringTransmitter extends SocketOutputStream implements Connection.StringTransmitter
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 

@@ -1,7 +1,7 @@
 package network.streaming;
 
 import filetransfer.api.TransferInput;
-import logic.messaging.ConnectionException;
+import network.ConnectionException;
 import window.AppLogger;
 
 import java.io.*;

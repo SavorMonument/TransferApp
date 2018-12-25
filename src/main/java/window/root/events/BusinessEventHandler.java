@@ -3,6 +3,9 @@ package window.root.events;
 import logic.BusinessEvents;
 import logic.messaging.FileInformation;
 import window.AppLogger;
+import window.UIEvents;
+import window.local.LocalController;
+import window.remote.RemoteController;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -135,5 +138,12 @@ public class BusinessEventHandler implements BusinessEvents
 		if (null != localInformationHandler)
 			return localInformationHandler.getLocalFilePath(fileName);
 		return "";
+	}
+
+	@Override
+	public void setFileEventHandler(UIEvents.FileEvents fileEvents)
+	{
+		LocalController.setFileEvents(fileEvents);
+		RemoteController.setFileEvents(fileEvents);
 	}
 }

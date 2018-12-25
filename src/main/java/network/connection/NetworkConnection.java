@@ -11,7 +11,7 @@ public class NetworkConnection extends Connection
 {
 	private Socket socket;
 
-	public NetworkConnection(@NotNull Socket socket, @NotNull Connection.MessageTransmitter messageTransmitter, @NotNull StringReceiver messageReceiver)
+	public NetworkConnection(@NotNull Socket socket, @NotNull StringTransmitter messageTransmitter, @NotNull StringReceiver messageReceiver)
 	{
 		super(messageTransmitter, messageReceiver);
 

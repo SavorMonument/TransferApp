@@ -1,4 +1,4 @@
-package logic.messaging;
+package network;
 
 import java.io.IOException;
 

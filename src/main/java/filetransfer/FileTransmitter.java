@@ -3,11 +3,10 @@ package filetransfer;
 import com.sun.istack.internal.NotNull;
 import filesistem.FileException;
 import filetransfer.api.*;
-import logic.messaging.ConnectionException;
+import network.ConnectionException;
 import window.AppLogger;
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -24,9 +23,6 @@ public class FileTransmitter
 	private TransferInput transferInput;
 	private TransferFileInput fileInput;
 
-	private boolean isTransferring = false;
-	private boolean isErrorState = false;
-
 	public FileTransmitter(@NotNull TransferOutput transferOutput, @NotNull TransferInput transferInput,
 						   @NotNull TransferFileInput fileInput)
 	{
@@ -37,20 +33,18 @@ public class FileTransmitter
 
 	public void transfer() throws FileException, ConnectionException, FileNotFoundException
 	{
-		LOGGER.log(Level.FINE, "File transmission starting");
+		LOGGER.log(Level.FINE, "File transmission starting...");
 
 		try
 		{
 			fileInput.open();
 			if (listenForStartCode())
 			{
-				isTransferring = true;
-				listenForError();
 				readBytesAndTransmitThemOverSocket();
 			}
 		} finally
 		{
-			LOGGER.log(Level.FINE, "File transmission done");
+			LOGGER.log(Level.FINE, "File transmission done.");
 		}
 	}
 
@@ -85,22 +79,30 @@ public class FileTransmitter
 		byte[] buffer = new byte[CHUNK_SIZE];
 		boolean hasMore;
 
-		listenForError();
-
-		try
+		while (hasMore = (fileInput.available() > 0))
 		{
-			while (hasMore = (fileInput.available() > 0) && !isErrorState)
+			transferChunk(buffer);
+			if (transferInput.available() > 0)
 			{
-				transferChunk(buffer);
+				if (hasError())
+					break;
 			}
-		} finally
-		{
-			isTransferring = false;
 		}
+
 		if (hasMore)
 		{
 			throw new FileException("Could not transmit everything");
 		}
+	}
+
+	private boolean hasError() throws ConnectionException
+	{
+		byte value = (byte) transferInput.read();
+		if (value == ERROR_CODE)
+		{
+			return true;
+		}
+		return false;
 	}
 
 	private void transferChunk(byte[] buffer)
@@ -113,38 +115,5 @@ public class FileTransmitter
 	private boolean hasTime(DeltaTime dt)
 	{
 		return dt.getElapsedTimeMillis() <= CONNECTION_TIMEOUT_MILLIS;
-	}
-
-	private void listenForError()
-	{
-		Thread listeningThread = new Thread(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				while (isTransferring)
-				{
-					try
-					{
-						if (transferInput.available() > 0)
-						{
-							byte value = (byte) transferInput.read();
-							if (value == ERROR_CODE)
-							{
-								System.out.println("Setting error state to true");
-								isErrorState = true;
-							}
-						}
-						Thread.sleep(500);
-					} catch (InterruptedException | IOException e)
-					{
-//						e.printStackTrace();
-					}
-				}
-			}
-		});
-
-		listeningThread.setDaemon(true);
-		listeningThread.start();
 	}
 }

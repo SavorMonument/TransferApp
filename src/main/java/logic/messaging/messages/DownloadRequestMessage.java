@@ -7,7 +7,7 @@ import filetransfer.api.TransferInput;
 import filetransfer.api.TransferOutput;
 import logic.BusinessEvents;
 import logic.connection.Connection;
-import logic.messaging.ConnectionException;
+import network.ConnectionException;
 import window.AppLogger;
 
 import java.io.FileNotFoundException;
@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 public class DownloadRequestMessage implements NetworkMessage
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
-	static final String MESSAGE_CODE = "1234567";
+	static final String MESSAGE_ID = "1234567";
 
 	private String fileName;
 	private Connection fileConnection;
@@ -42,7 +42,7 @@ public class DownloadRequestMessage implements NetworkMessage
 		StringBuilder stringBuilder = new StringBuilder();
 
 		stringBuilder
-				.append(MESSAGE_CODE)
+				.append(MESSAGE_ID)
 				.append(CODE_DELIMITER)
 				.append(fileName)
 				.append('\n');

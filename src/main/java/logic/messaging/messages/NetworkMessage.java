@@ -1,7 +1,7 @@
 package logic.messaging.messages;
 
 import logic.BusinessEvents;
-import logic.messaging.ConnectionException;
+import network.ConnectionException;
 
 public interface NetworkMessage
 {

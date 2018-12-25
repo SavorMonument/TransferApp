@@ -43,7 +43,7 @@ public class NetworkConnectionResolver implements ConnectionResolver
 					remoteAddress, currentPort));
 		} catch (IOException e)
 		{
-			LOGGER.log(Level.WARNING, String.format("Connection unsuccessful to URL: %s, port: %s\n%s",
+			LOGGER.log(Level.WARNING, String.format("Connection unsuccessful to URL: %s, port: %s, message: %s",
 					remoteAddress, currentPort, e.getMessage()));
 			throw e;
 		}

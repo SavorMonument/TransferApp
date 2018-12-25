@@ -7,7 +7,7 @@ import filetransfer.api.TransferInput;
 import filetransfer.api.TransferOutput;
 import logic.connection.ByteCounter;
 import logic.connection.Connection;
-import logic.messaging.ConnectionException;
+import network.ConnectionException;
 import network.connection.NetworkConnectionResolver;
 import window.ByteMultipleFormatter;
 
@@ -16,10 +16,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetAddress;
 
-public class FileTransferTest
+public class FileTransferFunctionalTest
 {
-	private static final String INPUT_FILE_PATH = "C:\\Users\\Goia\\Desktop\\GitHub\\TransferApp\\src\\test\\java\\filetransfer\\test.mkv";
-	private static final String OUTPUT_FILE_PATH  = "C:\\Users\\Goia\\Desktop\\GitHub\\TransferApp\\src\\test\\java\\filetransfer\\";
+	private static final String INPUT_FILE_PATH = "src\\test\\resources\\filetransfer\\test.mkv";
+	private static final String OUTPUT_FILE_DIRECTORY = "src\\test\\resources\\filetransfer\\";
 	private static final String OUTPUT_FILE_NAME  = "test_output.mkv";
 
 	static Connection connection1;
@@ -28,15 +28,14 @@ public class FileTransferTest
 
 	public static void main(String[] args) throws IOException, InterruptedException
 	{
-		new File(OUTPUT_FILE_PATH + OUTPUT_FILE_NAME).delete();
+		new File(OUTPUT_FILE_DIRECTORY + OUTPUT_FILE_NAME).delete();
 		long fileLength = new File(INPUT_FILE_PATH).length();
-
 		resolveConnections();
 
 		startCounter();
 
 		FileInput fileInput = new FileInput(INPUT_FILE_PATH);
-		FileOutput fileOutput = new FileOutput(OUTPUT_FILE_NAME, OUTPUT_FILE_PATH);
+		FileOutput fileOutput = new FileOutput(OUTPUT_FILE_NAME, OUTPUT_FILE_DIRECTORY);
 
 		FileTransmitter fileTransmitter = new FileTransmitter((TransferOutput) connection1.getMessageTransmitter(),
 				(TransferInput) connection1.getMessageReceiver(), fileInput);
@@ -106,7 +105,7 @@ public class FileTransferTest
 			@Override
 			public void updateOnBytes(long bytes)
 			{
-				System.out.println(ByteMultipleFormatter.getFormattedBytes(bytes) + "\\s");
+				System.out.println(ByteMultipleFormatter.getFormattedBytes(bytes) + "/s");
 			}
 		}, 1000));
 	}

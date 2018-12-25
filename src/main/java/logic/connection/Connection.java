@@ -1,19 +1,19 @@
 package logic.connection;
 
 import com.sun.istack.internal.NotNull;
-import logic.messaging.ConnectionException;
+import network.ConnectionException;
 
 import java.io.Closeable;
 import java.net.InetAddress;
 
 public abstract class Connection implements Closeable
 {
-	private MessageTransmitter messageTransmitter;
+	private StringTransmitter messageTransmitter;
 	private StringReceiver messageReceiver;
 
-	public Connection(@NotNull MessageTransmitter messageTransmitter, @NotNull StringReceiver messageReceiver)
+	public Connection(@NotNull StringTransmitter messageTransmitter, @NotNull StringReceiver messageReceiver)
 	{
-		assert null != messageTransmitter : "Invalid MessageTransmitter";
+		assert null != messageTransmitter : "Invalid StringTransmitter";
 		assert null != messageReceiver : "Invalid messageReceiver";
 
 		this.messageTransmitter = messageTransmitter;
@@ -21,7 +21,7 @@ public abstract class Connection implements Closeable
 	}
 
 	//-------------------------------------------------------
-	public interface MessageTransmitter
+	public interface StringTransmitter
 	{
 		void transmitString(String message) throws ConnectionException;
 		void registerBytesCounter(ByteCounter bytesCounter);
@@ -44,7 +44,7 @@ public abstract class Connection implements Closeable
 	@Override
 	abstract public void close();
 
-	public MessageTransmitter getMessageTransmitter()
+	public StringTransmitter getMessageTransmitter()
 	{
 		return messageTransmitter;
 	}

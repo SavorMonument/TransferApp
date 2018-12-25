@@ -1,10 +1,7 @@
 package logic;
 
-import logic.connection.Connection;
-import logic.connection.ConnectionResolver;
-import logic.connection.ClientController;
-import logic.connection.Controller;
-import logic.connection.ServerController;
+import logic.connection.*;
+import logic.messaging.ControllerResolver;
 import network.connection.NetworkConnectionResolver;
 import window.AppLogger;
 import window.UIEvents;
@@ -30,8 +27,9 @@ public class LogicController extends Thread
 
 	private State programState;
 
-	private Controller currentController;
-	private ConnectionResolver connectionResolver;
+	private ControllerResolver currentController;
+	private ServerConnector serverConnector;
+
 	private BusinessEvents businessEvents;
 
 	private ConnectCloseEvent connectCloseEvent;
@@ -44,13 +42,10 @@ public class LogicController extends Thread
 		ConnectionController.setConnectionEventHandler(new ConnectionEventsHandler());
 		updateState(State.DISCONNECTED);
 		setDaemon(true);
-
-
 	}
 
 	public void run()
 	{
-
 		while (true)
 		{
 			try
@@ -58,23 +53,20 @@ public class LogicController extends Thread
 				if (programState == State.DISCONNECTED)
 				{
 					businessEvents.printMessageOnDisplay("Started listening for connections");
-					connectionResolver = new NetworkConnectionResolver();
-					Connection connection;
-					connection = connectionResolver.listenNextConnection();
 
+					serverConnector = new ServerConnector(new NetworkConnectionResolver());
+					Connections connections = serverConnector.listen();
 					updateState(State.CONNECTING);
 
-					currentController = new ServerController(connection, connectionResolver, businessEvents, new DisconnectEvent());
-					currentController.go();
-
-					if (programState == State.CONNECTING)
-						updateState(State.CONNECTED);
+					currentController = new ControllerResolver(connections, businessEvents, new DisconnectEvent());
+					currentController.initialize();
+					updateState(State.CONNECTED);
 				}
-
-				Thread.sleep(3000);
+				Thread.sleep(2000);
 			} catch (InterruptedException | IOException e)
 			{
-//				e.printStackTrace();
+				//I'm going to get exceptions here because if the user attempts an outgoing connection
+				//it's going to close the listening socket
 			}
 
 		}
@@ -90,33 +82,35 @@ public class LogicController extends Thread
 				@Override
 				public void run()
 				{
-					if (programState == State.DISCONNECTED)
+					if (programState == State.DISCONNECTED && null == currentController)
 					{
-						LOGGER.log(Level.ALL, "Connection request to: " + host);
+						serverConnector.stop();
+						updateState(State.CONNECTING);
 
+						LOGGER.log(Level.ALL, "Connection request to: " + host);
 						try
 						{
-							if (null != connectionResolver)
-								connectionResolver.stopListening();
-
-							updateState(State.CONNECTING);
 							businessEvents.printMessageOnDisplay("Attempting connection to host");
+							ClientConnector clientConnector = new ClientConnector(
+									new NetworkConnectionResolver(),
+									InetAddress.getByName(host));
 
-							currentController = new ClientController(businessEvents, new DisconnectEvent(),
-									new NetworkConnectionResolver(), InetAddress.getByName(host));
-							currentController.go();
+							Connections connections = clientConnector.connect();
+							currentController = new ControllerResolver(connections, businessEvents, new DisconnectEvent());
+							currentController.initialize();
 
-							if (programState == State.CONNECTING)
-							{
-								updateState(State.CONNECTED);
-							}
+							updateState(State.CONNECTED);
 						} catch (UnknownHostException e)
 						{
 							LOGGER.log(Level.WARNING, "Connection request denied: bad ip " + e.getMessage());
 							businessEvents.printMessageOnDisplay("Connection request denied: bad ip");
 							updateState(State.DISCONNECTED);
+						} catch (IOException e)
+						{
+							LOGGER.log(Level.WARNING, "Connection request denied: " + e.getMessage());
+							businessEvents.printMessageOnDisplay("Connection request denied");
+							updateState(State.DISCONNECTED);
 						}
-
 					} else
 						LOGGER.log(Level.WARNING, "Connection request denied: Already connected");
 				}
@@ -167,7 +161,7 @@ public class LogicController extends Thread
 				{
 					currentController.close();
 					updateState(State.DISCONNECTED);
-
+					currentController = null;
 				});
 
 				disconnectThread.setDaemon(true);

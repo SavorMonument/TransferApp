@@ -9,10 +9,12 @@ import filetransfer.api.TransferOutput;
 import logic.BusinessEvents;
 import logic.ConnectCloseEvent;
 import logic.connection.Connection;
-import logic.connection.Connection.MessageTransmitter;
+import logic.connection.Connection.StringTransmitter;
+import logic.connection.Connections;
 import logic.messaging.messages.NetworkMessage;
 import logic.messaging.messages.DownloadRequestMessage;
 import logic.messaging.messages.UpdateFileListMessage;
+import network.ConnectionException;
 import window.AppLogger;
 
 import java.io.File;
@@ -25,31 +27,27 @@ public class MessageTransmitterController
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 
-	private Connection mainConnection;
 	private Connection fileConnection;
 
-	private MessageTransmitter messageTransmitter;
-	private ConnectCloseEvent connectEvent;
+	private StringTransmitter messageTransmitter;
+	private ConnectCloseEvent connectCloseEvent;
 
 	private BusinessEvents businessEvents;
 
-	public MessageTransmitterController(@NotNull Connection mainConnection,
-										@NotNull Connection fileConnection,
+	public MessageTransmitterController(@NotNull Connections connections,
 										@NotNull BusinessEvents businessEvents,
-										@NotNull ConnectCloseEvent connectEvent)
+										@NotNull ConnectCloseEvent connectCloseEvent)
 	{
-		assert null != mainConnection && mainConnection.isConnected() : "Invalid main connection";
-		assert null != fileConnection && fileConnection.isConnected() : "Invalid main connection";
-		assert null != businessEvents : "Invalid BusinessEvents";
-		assert null != connectEvent : "Need an actual event handler";
+		assert null != connections : "Null connections";
+		assert null != businessEvents : "Null BusinessEvents";
+		assert null != connectCloseEvent : "Null handler";
 
-		this.mainConnection = mainConnection;
-		this.fileConnection = fileConnection;
-
-		this.messageTransmitter = mainConnection.getMessageTransmitter();
-		this.connectEvent = connectEvent;
-
+		this.fileConnection = connections.getFileReceivingConnection();
 		this.businessEvents = businessEvents;
+		this.connectCloseEvent = connectCloseEvent;
+
+		this.messageTransmitter = connections.getMainConnection().getMessageTransmitter();
+
 	}
 
 	public void updateAvailableFileList(Set<File> files)
@@ -65,7 +63,8 @@ public class MessageTransmitterController
 			messageTransmitter.transmitString(message);
 		} catch (ConnectionException e)
 		{
-			connectEvent.disconnect("Connection error, disconnecting...");
+			LOGGER.log(Level.WARNING, "Exception while transmitting file list: " + e.getMessage());
+			connectCloseEvent.disconnect("Connection error, disconnecting...");
 		}
 	}
 
@@ -98,7 +97,7 @@ public class MessageTransmitterController
 			} catch (ConnectionException e)
 			{
 				LOGGER.log(Level.WARNING, e.getMessage());
-				connectEvent.disconnect("Connection error, disconnecting...");
+				connectCloseEvent.disconnect("Connection error, disconnecting...");
 			}
 			startFileReceiving(fileInformation, fileOutput);
 		} else
@@ -148,13 +147,13 @@ public class MessageTransmitterController
 					fileOutput.abort();
 					LOGGER.log(Level.WARNING, e.toString() + e.getMessage());
 					businessEvents.printMessageOnDisplay("File error, disconnecting...");
-					connectEvent.disconnect(e.getMessage());
+					connectCloseEvent.disconnect(e.getMessage());
 				} catch (ConnectionException e)
 				{
 					fileOutput.abort();
 					LOGGER.log(Level.WARNING, e.toString() + e.getMessage());
 					businessEvents.printMessageOnDisplay("Connection error, disconnecting...");
-					connectEvent.disconnect(e.getMessage());
+					connectCloseEvent.disconnect(e.getMessage());
 				} finally
 				{
 					fileOutput.close();
@@ -162,9 +161,5 @@ public class MessageTransmitterController
 				}
 			}
 		}).start();
-	}
-
-	public void transmitDisconnectMessage()
-	{
 	}
 }

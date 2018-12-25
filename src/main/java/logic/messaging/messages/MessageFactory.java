@@ -20,13 +20,13 @@ public class MessageFactory
 
 		switch (ID)
 		{
-			case UpdateFileListMessage.MESSAGE_CODE:
+			case UpdateFileListMessage.MESSAGE_ID:
 			{
 				networkMessage = new UpdateFileListMessage(messageTokens[1]);
 			}
 			break;
 
-			case DownloadRequestMessage.MESSAGE_CODE:
+			case DownloadRequestMessage.MESSAGE_ID:
 			{
 				networkMessage = new DownloadRequestMessage(messageTokens[1], fileConnection);
 			}

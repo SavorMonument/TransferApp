@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 public class UpdateFileListMessage implements NetworkMessage
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
-	static final String MESSAGE_CODE = "1234568";
+	static final String MESSAGE_ID = "1234568";
 
 	Collection<FileInformation> filesInformation;
 
@@ -33,7 +33,7 @@ public class UpdateFileListMessage implements NetworkMessage
 		StringBuilder stringBuilder = new StringBuilder();
 
 		stringBuilder
-				.append(MESSAGE_CODE)
+				.append(MESSAGE_ID)
 				.append(CODE_DELIMITER)
 				.append(collectionCoder(filesInformation))
 				.append('\n');
