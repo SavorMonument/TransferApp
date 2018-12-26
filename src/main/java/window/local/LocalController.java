@@ -1,10 +1,13 @@
 package window.local;
 
-import com.sun.javafx.collections.ObservableListWrapper;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.ListView;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.ProgressBarTableCell;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.TransferMode;
 import window.AppLogger;
@@ -12,7 +15,6 @@ import window.UIEvents;
 import window.root.events.ConnectionStateEvent;
 import window.root.events.LocalInformationEvent;
 
-import java.io.File;
 import java.net.URL;
 import java.util.*;
 import java.util.logging.Level;
@@ -22,17 +24,37 @@ public class LocalController implements Initializable, ConnectionStateEvent, Loc
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 
+	private ObservableList<LocalFileInfo> availableFiles = FXCollections.observableArrayList();
+
 	private static UIEvents.FileEvents fileEvents;
-	private Set<File> availableFiles = new HashSet<>();
 	private String programState = "";
 
 	@FXML
-	private ListView fileList;
+	private TableView fileView;
+	@FXML
+	public TableColumn locationColumn;
+	@FXML
+	public TableColumn nameColumn;
+	@FXML
+	public TableColumn sizeColumn;
+	@FXML
+	public TableColumn progressColumn;
+	@FXML
+	public TableColumn speedColumn;
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources)
 	{
 		AppLogger.getInstance().log(Level.FINE, "Initializing " + getClass().getName());
+
+		nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+		sizeColumn.setCellValueFactory(new PropertyValueFactory<>("size"));
+		locationColumn.setCellValueFactory(new PropertyValueFactory<>("location"));
+//		progressColumn.setCellValueFactory(new PropertyValueFactory<>("uploadProgress"));
+//		progressColumn.setCellFactory(ProgressBarTableCell.forTableColumn());
+		speedColumn.setCellValueFactory(new PropertyValueFactory<>("uploadSpeed"));
+
+		fileView.setItems(availableFiles);
 	}
 
 	@FXML
@@ -40,7 +62,8 @@ public class LocalController implements Initializable, ConnectionStateEvent, Loc
 	{
 //		LOGGER.log(Level.FINE, "File drag over");
 
-		if (programState.equals("CONNECTED") && event.getDragboard().hasFiles())
+//		if (programState.equals("CONNECTED") && event.getDragboard().hasFiles())
+		if (event.getDragboard().hasFiles())
 			event.acceptTransferModes(TransferMode.ANY);
 	}
 
@@ -50,29 +73,17 @@ public class LocalController implements Initializable, ConnectionStateEvent, Loc
 		LOGGER.log(Level.FINE, "File drag dropped");
 		event.getDragboard().getFiles().forEach(file ->
 		{
+			LocalFileInfo fileInfo = new LocalFileInfo(file.getName(),
+					file.length(), file.getAbsolutePath());
+
 			if (!file.isDirectory())
 			{
-				//Checks if there is a file with the same name in the set
-				File found = null;
-				for (File f : availableFiles)
-				{
-					if (f.getName().equals(file.getName()))
-					{
-						found = f;
-					}
-				}
-				//If there is a file with the same name it removes it and adds the new one
-				//Don't want to send two files with same name to remote even if they are
-				//in different directories, it's not going to know the difference
-				if (null != found)
-					availableFiles.remove(found);
-				availableFiles.add(file);
+				if (!availableFiles.contains(fileInfo))
+					availableFiles.add(fileInfo);
 			}
 		});
 
-		fileList.setItems(new ObservableListWrapper(new ArrayList(availableFiles)));
-
-		fileEvents.updateAvailableFiles(availableFiles);
+		fileEvents.updateAvailableFiles(new ArrayList<>(availableFiles));
 	}
 
 	@FXML
@@ -86,15 +97,12 @@ public class LocalController implements Initializable, ConnectionStateEvent, Loc
 	{
 		int index;
 
-		if ((index = fileList.getSelectionModel().getSelectedIndex()) != -1)
+		if ((index = fileView.getSelectionModel().getSelectedIndex()) != -1)
 		{
-			File file = (File) fileList.getItems().get(index);
-			LOGGER.log(Level.ALL, "Removing file: " + file.getName());
+			LOGGER.log(Level.ALL, "Removing file");
+			availableFiles.remove(index);
 
-			if (availableFiles.remove(file))
-				fileList.getItems().remove(file);
-
-			fileEvents.updateAvailableFiles(availableFiles);
+			fileEvents.updateAvailableFiles(new ArrayList<>(availableFiles));
 		}
 	}
 
@@ -103,25 +111,24 @@ public class LocalController implements Initializable, ConnectionStateEvent, Loc
 		programState = state;
 		if (state.equals("DISCONNECTED"))
 		{
-			restFileListItems();
+			resetFileListItems();
 		}
 	}
 
-	private void restFileListItems()
+	private void resetFileListItems()
 	{
-		availableFiles = new HashSet<>();
-		Platform.runLater(() -> fileList.setItems(new ObservableListWrapper(new ArrayList())));
+		availableFiles.removeAll();
 	}
 
-	public String getLocalFilePath(String fileName)
+	public String getLocalHandler(String fileName)
 	{
 		String path = "";
 
-		for (File file : availableFiles)
-		{
-			if (file.getName().equals(fileName))
-				path = file.getAbsolutePath();
-		}
+//		for (File file : availableFiles)
+//		{
+//			if (file.getName().equals(fileName))
+//				path = file.getAbsolutePath();
+//		}
 
 		return path;
 	}

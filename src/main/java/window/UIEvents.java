@@ -1,16 +1,13 @@
 package window;
 
-import logic.messaging.FileInformation;
-
-import java.io.File;
-import java.util.Set;
+import java.util.List;
 
 public interface UIEvents
 {
 	interface FileEvents
 	{
-		void updateAvailableFiles(Set<File> file);
-		void requestFileForDownload(FileInformation fileInformation, String downloadPath);
+		void updateAvailableFiles(List<FileInfo> fileInfos);
+		void requestFileForDownload(FileInfo fileInfo, String downloadPath);
 	}
 
 	interface ConnectionEvents

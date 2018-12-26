@@ -1,7 +1,6 @@
 package network.messaging;
 
 import logic.connection.Connection;
-import logic.connection.ByteCounter;
 import network.ConnectionException;
 import network.streaming.SocketOutputStream;
 import window.AppLogger;
@@ -36,12 +35,5 @@ public class SocketStringTransmitter extends SocketOutputStream implements Conne
 			LOGGER.log(Level.WARNING, "Socket write exception: " + e.getMessage());
 			throw new ConnectionException("Error on socket write", getClass().getName(), e);
 		}
-	}
-
-
-	@Override
-	public void registerBytesCounter(ByteCounter bytesCounter)
-	{
-		super.registerBytesCounter(bytesCounter);
 	}
 }

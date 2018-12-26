@@ -19,6 +19,7 @@ import window.AppLogger;
 
 import java.io.File;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -50,13 +51,11 @@ public class MessageTransmitterController
 
 	}
 
-	public void updateAvailableFileList(Set<File> files)
+	public void updateAvailableFileList(List<FileInfo> fileInfos)
 	{
-		LOGGER.log(Level.FINE, "Sending file update..." + files.toString());
+		LOGGER.log(Level.FINE, "Sending file update..." + fileInfos.toString());
 
-		Set<FileInformation> localFileInfo = transformFilesToFilesInformation(files);
-
-		NetworkMessage networkMessage = new UpdateFileListMessage(localFileInfo);
+		NetworkMessage networkMessage = new UpdateFileListMessage(fileInfos);
 		String message = networkMessage.getFormattedMessage();
 		try
 		{
@@ -79,16 +78,16 @@ public class MessageTransmitterController
 		return fileInfo;
 	}
 
-	public void fileDownload(FileInformation fileInformation, String downloadPath)
+	public void fileDownload(FileInfo fileInfo, String downloadPath)
 	{
-		FileOutput fileOutput = new FileOutput(fileInformation.name, downloadPath);
-		String checkOutput = basicFileCheck(fileOutput, fileInformation);
+		FileOutput fileOutput = new FileOutput(fileInfo.getName(), downloadPath);
+		String checkOutput = basicFileCheck(fileOutput, fileInfo);
 
 		if (checkOutput.equals("Successful"))
 		{
-			LOGGER.log(Level.FINE, "Sending file download request: " + fileInformation);
+			LOGGER.log(Level.FINE, "Sending file download request: " + fileInfo);
 			//Resolve message
-			NetworkMessage networkMessage = new DownloadRequestMessage(fileInformation.name);
+			NetworkMessage networkMessage = new DownloadRequestMessage(fileInfo.getName());
 			String message = networkMessage.getFormattedMessage();
 			try
 			{
@@ -99,7 +98,7 @@ public class MessageTransmitterController
 				LOGGER.log(Level.WARNING, e.getMessage());
 				connectCloseEvent.disconnect("Connection error, disconnecting...");
 			}
-			startFileReceiving(fileInformation, fileOutput);
+			startFileReceiving(fileInfo, fileOutput);
 		} else
 		{
 			businessEvents.printMessageOnDisplay(checkOutput);
@@ -107,18 +106,18 @@ public class MessageTransmitterController
 		}
 	}
 
-	private String basicFileCheck(FileOutput fileOutput, FileInformation fileInformation)
+	private String basicFileCheck(FileOutput fileOutput, FileInfo fileInfo)
 	{
 		if (fileOutput.exists())
 			return "File already exists";
 
-		if (fileOutput.diskSpaceAtLocation() < fileInformation.sizeInBytes)
+		if (fileOutput.diskSpaceAtLocation() < fileInfo.getSizeInBytes())
 			return "Not enough space on device";
 
 		return "Successful";
 	}
 
-	private void startFileReceiving(FileInformation fileInformation, FileOutput fileOutput)
+	private void startFileReceiving(FileInfo fileInfo, FileOutput fileOutput)
 	{
 		new Thread(new Runnable()
 		{
@@ -130,10 +129,10 @@ public class MessageTransmitterController
 //				FileOutput fileOutput = new FileOutput(fileInformation.name, downloadPath);
 				FileReceiver fileReceiver = new FileReceiver((TransferInput) fileConnection.getMessageReceiver(),
 						(TransferOutput) fileConnection.getMessageTransmitter(),
-						fileOutput, fileInformation.sizeInBytes);
+						fileOutput, fileInfo.getSizeInBytes());
 
 				LOGGER.log(Level.FINE, String.format("Starting file receiver with file: %s from address: %s, port%d",
-						fileInformation.name, fileConnection.getRemoteAddress(), fileConnection.getRemotePort()));
+						fileInfo.getName(), fileConnection.getRemoteAddress(), fileConnection.getRemotePort()));
 
 				try
 				{

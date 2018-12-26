@@ -2,16 +2,17 @@ package window.remote;
 
 import com.sun.javafx.collections.ObservableListWrapper;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.stage.DirectoryChooser;
-import logic.messaging.FileInformation;
 import window.AppLogger;
-import window.ByteMultipleFormatter;
 import window.UIEvents;
 import window.root.events.ConnectionStateEvent;
 import window.root.events.RemoteInformationEvent;
@@ -26,14 +27,24 @@ public class RemoteController implements Initializable, ConnectionStateEvent, Re
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 
+	private ObservableList<RemoteFileInfo> availableFiles = FXCollections.observableArrayList();
+
+
 	private static UIEvents.FileEvents fileEvents;
-	private List<FileInformation> filesAvailableOnRemote;
+	private List<FileInfo> filesAvailableOnRemote;
 	private String connectionState = "";
 	private String downloadPath = "";
 
 	@FXML
-	private ListView fileList;
-
+	private TableView fileView;
+	@FXML
+	private TableColumn nameColumn;
+	@FXML
+	private TableColumn sizeColumn;
+	@FXML
+	private TableColumn speedColumn;
+	@FXML
+	private TableColumn progressColumn;
 	@FXML
 	private Button downloadButton;
 
@@ -47,15 +58,15 @@ public class RemoteController implements Initializable, ConnectionStateEvent, Re
 	@FXML
 	public void triggerDownload(ActionEvent actionEvent)
 	{
-		FileInformation fileInformation;
+		FileInfo fileInfo;
 		int index;
 
 		if ((index = fileList.getSelectionModel().getSelectedIndex()) != -1)
 		{
-			fileInformation = filesAvailableOnRemote.get(index);
+			fileInfo = filesAvailableOnRemote.get(index);
 
-			LOGGER.log(Level.ALL, "Download button pressed on: " + fileInformation);
-			fileEvents.requestFileForDownload(fileInformation, downloadPath);
+			LOGGER.log(Level.ALL, "Download button pressed on: " + fileInfo);
+			fileEvents.requestFileForDownload(fileInfo, downloadPath);
 		}
 	}
 
@@ -80,7 +91,7 @@ public class RemoteController implements Initializable, ConnectionStateEvent, Re
 	}
 
 	@Override
-	public void updateRemoteFileList(Set<FileInformation> fileNames)
+	public void updateRemoteFileList(List<FileInfo> fileNames)
 	{
 		filesAvailableOnRemote = new ArrayList<>(fileNames);
 
@@ -89,13 +100,13 @@ public class RemoteController implements Initializable, ConnectionStateEvent, Re
 	}
 
 
-	private ObservableList<String> getFormattedUiFileList(List<FileInformation> filesInformation)
+	private ObservableList<String> getFormattedUiFileList(List<FileInfo> filesInformation)
 	{
 		List<String> formattedFileList = new ArrayList<>();
 
-		for (FileInformation f : filesInformation)
+		for (FileInfo f : filesInformation)
 		{
-			formattedFileList.add(String.format("%s : %s", f.name, ByteMultipleFormatter.getFormattedBytes(f.sizeInBytes)));
+			formattedFileList.add(String.format("%s : %s", f.getName(), f.getSize()));
 		}
 		return new ObservableListWrapper<>(formattedFileList);
 	}

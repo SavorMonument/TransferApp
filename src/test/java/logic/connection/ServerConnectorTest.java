@@ -54,11 +54,10 @@ public class ServerConnectorTest
 			@Override
 			public Object answer(InvocationOnMock invocationOnMock) throws Throwable
 			{
-				Thread.sleep(2000);
+				Thread.sleep(5000);
 				return null;
 			}
 		});
-
 		new Thread(() ->
 		{
 			try

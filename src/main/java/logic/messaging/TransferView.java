@@ -1,11 +1,12 @@
-package logic.connection;
+package logic.messaging;
 
 import filetransfer.DeltaTime;
-import network.streaming.Counter;
+import filetransfer.TransferObserver;
+import logic.BusinessEvents;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class ByteCounter extends Thread implements Counter
+public class TransferView extends Thread implements TransferObserver
 {
 	private static final int MILLIS_iN_A_SECOND = 1_000;
 
@@ -17,12 +18,10 @@ public class ByteCounter extends Thread implements Counter
 
 
 
-	public ByteCounter(ByteCounterEvent event, int eventUpdateFrequencyMilli)
+	public TransferView(ByteCounterEvent event, BusinessEvents businessEvents)
 	{
 		this.event = event;
 		this.count = new AtomicInteger();
-
-		eventUpdateFrequency = eventUpdateFrequencyMilli;
 
 		setDaemon(true);
 		start();
@@ -72,7 +71,13 @@ public class ByteCounter extends Thread implements Counter
 		return (int) (bytes * ratio);
 	}
 
-	public void addToCount(int amount)
+	@Override
+	public void setProgress(float progressPercentage)
+	{
+
+	}
+
+	public void addBytesToCount(int amount)
 	{
 		count.addAndGet(amount);
 	}

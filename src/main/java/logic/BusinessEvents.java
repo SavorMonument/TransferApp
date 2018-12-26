@@ -1,13 +1,12 @@
 package logic;
 
-import logic.messaging.FileInformation;
 import window.UIEvents;
 
-import java.util.Set;
+import java.util.List;
 
 public interface BusinessEvents
 {
-	void updateRemoteFileList(Set<FileInformation> fileNames);
+	void updateRemoteFileList(List<FileInfo> fileNames);
 	void setDownloadingState(boolean isDownloading);
 
 	String getLocalFilePath(String fileName);

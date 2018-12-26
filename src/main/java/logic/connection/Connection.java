@@ -24,14 +24,12 @@ public abstract class Connection implements Closeable
 	public interface StringTransmitter
 	{
 		void transmitString(String message) throws ConnectionException;
-		void registerBytesCounter(ByteCounter bytesCounter);
 	}
 
 	public interface StringReceiver
 	{
 		String pullLine() throws ConnectionException;
 		String pullLineBlocking() throws ConnectionException;
-		void registerBytesCounter(ByteCounter bytesCounter);
 	}
 	//-------------------------------------------------------
 

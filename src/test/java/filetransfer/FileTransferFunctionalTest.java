@@ -5,7 +5,6 @@ import filesistem.FileInput;
 import filesistem.FileOutput;
 import filetransfer.api.TransferInput;
 import filetransfer.api.TransferOutput;
-import logic.connection.ByteCounter;
 import logic.connection.Connection;
 import network.ConnectionException;
 import network.connection.NetworkConnectionResolver;
@@ -31,8 +30,6 @@ public class FileTransferFunctionalTest
 		new File(OUTPUT_FILE_DIRECTORY + OUTPUT_FILE_NAME).delete();
 		long fileLength = new File(INPUT_FILE_PATH).length();
 		resolveConnections();
-
-		startCounter();
 
 		FileInput fileInput = new FileInput(INPUT_FILE_PATH);
 		FileOutput fileOutput = new FileOutput(OUTPUT_FILE_NAME, OUTPUT_FILE_DIRECTORY);
@@ -98,17 +95,17 @@ public class FileTransferFunctionalTest
 				+ " average speed");
 	}
 
-	private static void startCounter()
-	{
-		connection1.getMessageTransmitter().registerBytesCounter(new ByteCounter(new ByteCounter.ByteCounterEvent()
-		{
-			@Override
-			public void updateOnBytes(long bytes)
-			{
-				System.out.println(ByteMultipleFormatter.getFormattedBytes(bytes) + "/s");
-			}
-		}, 1000));
-	}
+//	private static void startCounter()
+//	{
+//		connection1.getMessageTransmitter().registerBytesCounter(new TransferView(new TransferView.ByteCounterEvent()
+//		{
+//			@Override
+//			public void updateOnBytes(long bytes)
+//			{
+//				System.out.println(ByteMultipleFormatter.getFormattedBytes(bytes) + "/s");
+//			}
+//		}, 1000));
+//	}
 
 	private static void resolveConnections() throws IOException, InterruptedException
 	{

@@ -1,7 +1,6 @@
 package window.root.events;
 
 import logic.BusinessEvents;
-import logic.messaging.FileInformation;
 import window.AppLogger;
 import window.UIEvents;
 import window.local.LocalController;
@@ -9,7 +8,6 @@ import window.remote.RemoteController;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -60,14 +58,13 @@ public class BusinessEventHandler implements BusinessEvents
 	}
 
 	@Override
-	public void updateRemoteFileList(Set<FileInformation> filesInformation)
+	public void updateRemoteFileList(List<FileInfo> filesInfo)
 	{
 		LOGGER.log(Level.ALL, String.format(
-				"Business event: %s with %s", this.getClass().getEnclosingMethod(), filesInformation.toString()));
+				"Business event: %s with %s", this.getClass().getEnclosingMethod(), filesInfo.toString()));
 		for(RemoteInformationEvent event: remoteHandlers)
 		{
-			event.updateRemoteFileList(filesInformation);
-
+			event.updateRemoteFileList(filesInfo);
 		}
 	}
 
@@ -136,7 +133,7 @@ public class BusinessEventHandler implements BusinessEvents
 		LOGGER.log(Level.ALL, String.format(
 				"Business event: %s with %s", this.getClass().getEnclosingMethod(), fileName));
 		if (null != localInformationHandler)
-			return localInformationHandler.getLocalFilePath(fileName);
+			return localInformationHandler.getLocalHandler(fileName);
 		return "";
 	}
 

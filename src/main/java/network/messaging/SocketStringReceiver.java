@@ -1,7 +1,6 @@
 package network.messaging;
 
 import logic.connection.Connection;
-import logic.connection.ByteCounter;
 import network.ConnectionException;
 import network.streaming.SocketInputStream;
 import window.AppLogger;
@@ -76,11 +75,5 @@ public class SocketStringReceiver extends SocketInputStream implements Connectio
 		}
 
 		return message;
-	}
-
-	@Override
-	public void registerBytesCounter(ByteCounter bytesCounter)
-	{
-		super.registerBytesCounter(bytesCounter);
 	}
 }

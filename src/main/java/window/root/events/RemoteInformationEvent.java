@@ -1,12 +1,10 @@
 package window.root.events;
 
-import logic.messaging.FileInformation;
-
-import java.util.Set;
+import java.util.List;
 
 public interface RemoteInformationEvent
 {
-	void updateRemoteFileList(Set<FileInformation> filesInformation);
+	void updateRemoteFileList(List<FileInfo> filesInfo);
 	void setDownloadDisabled(boolean isDisabled);
 
 }

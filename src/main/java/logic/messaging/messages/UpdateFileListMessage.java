@@ -1,7 +1,6 @@
 package logic.messaging.messages;
 
 import logic.BusinessEvents;
-import logic.messaging.FileInformation;
 import window.AppLogger;
 
 import java.util.*;
@@ -13,9 +12,9 @@ public class UpdateFileListMessage implements NetworkMessage
 	private static final Logger LOGGER = AppLogger.getInstance();
 	static final String MESSAGE_ID = "1234568";
 
-	Collection<FileInformation> filesInformation;
+	Collection<FileInfo> filesInformation;
 
-	public UpdateFileListMessage(Collection<FileInformation> files)
+	public UpdateFileListMessage(Collection<FileInfo> files)
 	{
 		filesInformation = files;
 	}
@@ -47,23 +46,23 @@ public class UpdateFileListMessage implements NetworkMessage
 		LOGGER.log(Level.ALL, "Received remote file list update: " + filesInformation.toString());
 		businessEvents.printMessageOnDisplay("Updating file list");
 
-		businessEvents.updateRemoteFileList((Set<FileInformation>) filesInformation);
+		businessEvents.updateRemoteFileList((List<FileInfo>) filesInformation);
 	}
 
-	public static String collectionCoder(Collection<FileInformation> collection)
+	public static String collectionCoder(Collection<FileInfo> collection)
 	{
 		StringBuilder convertedMessage = new StringBuilder("[");
 
 
-		Iterator<FileInformation> it = collection.iterator();
+		Iterator<FileInfo> it = collection.iterator();
 		while (it.hasNext())
 		{
-			FileInformation info = it.next();
+			FileInfo info = it.next();
 			convertedMessage
 					.append("\"")
-					.append(info.name)
+					.append(info.getName())
 					.append("|")
-					.append(info.sizeInBytes)
+					.append(info.getSize())
 					.append("\"");
 			if (it.hasNext())
 				convertedMessage.append(" ");
@@ -73,9 +72,9 @@ public class UpdateFileListMessage implements NetworkMessage
 		return convertedMessage.toString();
 	}
 
-	public static Collection<FileInformation> collectionDecoder(String codedMessage)
+	public static Collection<FileInfo> collectionDecoder(String codedMessage)
 	{
-		Set<FileInformation> elem = new HashSet<>();
+		List<FileInfo> elem = new ArrayList<>();
 
 		if (!codedMessage.equals("[]"))
 		{
@@ -85,7 +84,7 @@ public class UpdateFileListMessage implements NetworkMessage
 			for (int i = 0; i < tokens.length; i++)
 			{
 				String[] info = tokens[i].split("\\|");
-				elem.add(new FileInformation(info[0], Long.valueOf(info[1])));
+				elem.add(new FileInfo(info[0], Long.valueOf(info[1])));
 			}
 		}
 		return elem;

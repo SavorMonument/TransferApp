@@ -13,7 +13,6 @@ public class SocketOutputStream extends SocketStream implements TransferOutput
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 
-	private Counter bytesCounter;
 	protected OutputStream outputStream;
 
 	public SocketOutputStream(Socket socket)
@@ -26,11 +25,6 @@ public class SocketOutputStream extends SocketStream implements TransferOutput
 		{
 			e.printStackTrace();
 		}
-	}
-
-	public void registerBytesCounter(Counter bytesCounter)
-	{
-		this.bytesCounter = bytesCounter;
 	}
 
 	public void transmitBytes(byte[] bytes) throws ConnectionException
@@ -48,11 +42,6 @@ public class SocketOutputStream extends SocketStream implements TransferOutput
 		{
 			LOGGER.log(Level.WARNING, "Socket write exception: " + e.getMessage());
 			throw new ConnectionException("Error on socket write", getClass().getName(), e);
-		}
-
-		if (null != bytesCounter)
-		{
-			bytesCounter.addToCount(numOfBytes);
 		}
 	}
 
@@ -78,10 +67,6 @@ public class SocketOutputStream extends SocketStream implements TransferOutput
 		{
 			LOGGER.log(Level.WARNING, "Socket write exception: " + e.getMessage());
 			throw new ConnectionException("Error on socket write", getClass().getName(), e);
-		}
-		if (null != bytesCounter)
-		{
-			bytesCounter.addToCount(1);
 		}
 	}
 }

@@ -13,7 +13,6 @@ public class SocketInputStream extends SocketStream implements TransferInput
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 
-	private Counter bytesCounter;
 	protected BufferedInputStream inputStream;
 
 	public SocketInputStream(Socket socket) throws IOException
@@ -21,11 +20,6 @@ public class SocketInputStream extends SocketStream implements TransferInput
 		super(socket);
 
 		inputStream = new BufferedInputStream(socket.getInputStream());
-	}
-
-	public void registerBytesCounter(Counter bytesCounter)
-	{
-		this.bytesCounter = bytesCounter;
 	}
 
 	public int read(byte[] b, int len) throws ConnectionException
@@ -40,17 +34,12 @@ public class SocketInputStream extends SocketStream implements TransferInput
 			throw new ConnectionException("Error on socket read", getClass().getName(), e);
 		}
 
-		if (null != bytesCounter)
-			bytesCounter.addToCount(amount);
 		return amount;
 	}
 
 	public int read(byte[] b, int off, int len) throws IOException
 	{
 		int amount = inputStream.read(b, off, len);
-
-		if (null != bytesCounter)
-			bytesCounter.addToCount(amount);
 
 		return amount;
 	}
@@ -59,17 +48,11 @@ public class SocketInputStream extends SocketStream implements TransferInput
 	{
 		int amount = inputStream.read(b);
 
-		if (null != bytesCounter)
-			bytesCounter.addToCount(amount);
-
 		return amount;
 	}
 
 	public int read() throws ConnectionException
 	{
-		if (null != bytesCounter)
-			bytesCounter.addToCount(1);
-
 		try
 		{
 			return inputStream.read();

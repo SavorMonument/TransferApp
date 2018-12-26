@@ -2,14 +2,12 @@ package logic.messaging;
 
 import logic.ConnectCloseEvent;
 import logic.BusinessEvents;
-import logic.connection.ByteCounter;
 import logic.connection.Connection;
 import logic.connection.Connections;
 import window.UIEvents;
 
 import java.io.Closeable;
-import java.io.File;
-import java.util.Set;
+import java.util.List;
 
 public class ControllerResolver implements Closeable
 {
@@ -20,8 +18,8 @@ public class ControllerResolver implements Closeable
 	protected MessageTransmitterController transmitterController;
 	protected MessageReceiverController receiverController;
 
-	protected ByteCounter transmittingCounter;
-	protected ByteCounter receivingCounter;
+	protected TransferView transmittingCounter;
+	protected TransferView receivingCounter;
 
 	public ControllerResolver(Connections connections, BusinessEvents businessEvents, ConnectCloseEvent mainConnectCloseEvent)
 	{
@@ -43,36 +41,36 @@ public class ControllerResolver implements Closeable
 		businessEvents.setFileEventHandler(handler);
 
 		//TODO: move the counter in file transmitter/receiver and register them when download/upload starts
-		registerTransmittingCounter(fTransmittingConnection.getMessageTransmitter());
-		registerReceivingCounter(fReceivingConnection.getMessageReceiver());
+//		registerTransmittingCounter(fTransmittingConnection.getMessageTransmitter());
+//		registerReceivingCounter(fReceivingConnection.getMessageReceiver());
 	}
 
-	private void registerTransmittingCounter(Connection.StringTransmitter messageTransmitter)
-	{
-		transmittingCounter = new ByteCounter(businessEvents::printUploadSpeed, 1000);
-		messageTransmitter.registerBytesCounter(transmittingCounter);
-	}
-
-	private void registerReceivingCounter(Connection.StringReceiver messageReceiver)
-	{
-		receivingCounter = new ByteCounter(businessEvents::printDownloadSpeed, 1000);
-		messageReceiver.registerBytesCounter(receivingCounter);
-	}
+//	private void registerTransmittingCounter(Connection.StringTransmitter messageTransmitter)
+//	{
+//		transmittingCounter = new TransferView(businessEvents::printUploadSpeed, 1000);
+//		messageTransmitter.registerBytesCounter(transmittingCounter);
+//	}
+//
+//	private void registerReceivingCounter(Connection.StringReceiver messageReceiver)
+//	{
+//		receivingCounter = new TransferView(businessEvents::printDownloadSpeed, 1000);
+//		messageReceiver.registerBytesCounter(receivingCounter);
+//	}
 
 	class UIFileEventsHandler implements UIEvents.FileEvents
 	{
 		@Override
-		public void updateAvailableFiles(Set<File> files)
+		public void updateAvailableFiles(List<FileInfo> fileInfos)
 		{
 			System.out.println("Update");
-			new Thread(() -> transmitterController.updateAvailableFileList(files)).start();
+			new Thread(() -> transmitterController.updateAvailableFileList(fileInfos)).start();
 		}
 
 		@Override
-		public void requestFileForDownload(FileInformation fileInformation, String downloadPath)
+		public void requestFileForDownload(FileInfo fileInfo, String downloadPath)
 		{
 			new Thread(() -> transmitterController.fileDownload(
-					fileInformation, downloadPath)).start();
+					fileInfo, downloadPath)).start();
 		}
 	}
 
