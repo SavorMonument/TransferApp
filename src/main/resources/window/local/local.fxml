@@ -62,11 +62,10 @@
                   </Label>
                   <TableView fx:id="fileView" onDragDropped="#fileDragDropped" onDragOver="#fileDragOver" prefHeight="200.0" prefWidth="200.0" styleClass="file-list" GridPane.rowIndex="1">
                     <columns>
-                      <TableColumn fx:id="nameColumn" prefWidth="75.0" text="Name" />
-                      <TableColumn fx:id="sizeColumn" prefWidth="75.0" text="Size" />
-                        <TableColumn fx:id="speedColumn" prefWidth="75.0" text="Speed" />
-                        <TableColumn fx:id="progressColumn" prefWidth="75.0" text="Progress" />
-                        <TableColumn fx:id="locationColumn" prefWidth="75.0" text="Location" />
+                      <TableColumn fx:id="nameColumn" minWidth="300.0" prefWidth="-1.0" styleClass="columns" text="Name" />
+                      <TableColumn fx:id="sizeColumn" minWidth="75.0" prefWidth="-1.0" styleClass="columns" text="Size" />
+                        <TableColumn fx:id="speedColumn" editable="false" minWidth="75.0" prefWidth="-1.0" styleClass="speed-column" text="Speed" />
+                        <TableColumn fx:id="locationColumn" minWidth="200.0" prefWidth="-1.0" styleClass="columns" text="Location" />
                     </columns>
                   </TableView>
                </children>

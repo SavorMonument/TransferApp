@@ -52,3 +52,11 @@
 .button:pressed {
     -fx-translate-y: 1;
 }
+
+.columns{
+    /*-fx-text-fill: #5394ba;*/
+}
+
+.speed-column{
+    -fx-text-fill: #28a745;
+}

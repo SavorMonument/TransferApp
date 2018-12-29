@@ -1,8 +1,11 @@
 package window.root.events;
 
 import logic.BusinessEvents;
+import logic.FileHandle;
+import model.FileInfo;
 import window.AppLogger;
 import window.UIEvents;
+import window.connection.ConnectionController;
 import window.local.LocalController;
 import window.remote.RemoteController;
 
@@ -17,11 +20,12 @@ public class BusinessEventHandler implements BusinessEvents
 	private static final BusinessEventHandler INSTANCE = new BusinessEventHandler();
 
 	private List<ConnectionStateEvent> connectionStateHandlers = new ArrayList<>();
-	private List<RemoteInformationEvent> remoteHandlers = new ArrayList<>();
 	private List<DisplayEvent> displayHandlers = new ArrayList<>();
 
 	private ConnectionRequestEvent requestHandler;
 	private LocalInformationEvent localInformationHandler;
+	private RemoteInformationEvent remoteInformationHandler;
+
 
 	private BusinessEventHandler()
 	{
@@ -32,14 +36,27 @@ public class BusinessEventHandler implements BusinessEvents
 		return INSTANCE;
 	}
 
+	@Override
+	public void setFileEventHandler(UIEvents.FileEvents fileEvents)
+	{
+		LocalController.setFileEvents(fileEvents);
+		RemoteController.setFileEvents(fileEvents);
+	}
+
+	@Override
+	public void setConnectionEventHandler(UIEvents.ConnectionEvents connectionHandler)
+	{
+		ConnectionController.setConnectionEventHandler(connectionHandler);
+	}
+
 	public void addConnectionStateHandler(ConnectionStateEvent stateHandler)
 	{
 		connectionStateHandlers.add(stateHandler);
 	}
 
-	public void addRemoteInformationHandler(RemoteInformationEvent informationHandler)
+	public void setRemoteInformationHandler(RemoteInformationEvent informationHandler)
 	{
-		remoteHandlers.add(informationHandler);
+		remoteInformationHandler = informationHandler;
 	}
 
 	public void addDisplayHandler(DisplayEvent displayHandler)
@@ -62,10 +79,8 @@ public class BusinessEventHandler implements BusinessEvents
 	{
 		LOGGER.log(Level.ALL, String.format(
 				"Business event: %s with %s", this.getClass().getEnclosingMethod(), filesInfo.toString()));
-		for(RemoteInformationEvent event: remoteHandlers)
-		{
-			event.updateRemoteFileList(filesInfo);
-		}
+		if (null != remoteInformationHandler)
+			remoteInformationHandler.updateFileList(filesInfo);
 	}
 
 	@Override
@@ -73,10 +88,8 @@ public class BusinessEventHandler implements BusinessEvents
 	{
 		LOGGER.log(Level.ALL, String.format(
 				"Business event: isDownloading with %s", isDownloading));
-		for(RemoteInformationEvent event: remoteHandlers)
-		{
-			event.setDownloadDisabled(isDownloading);
-		}
+		if (null != remoteInformationHandler)
+			remoteInformationHandler.setDownloadDisabled(isDownloading);
 	}
 
 	@Override
@@ -128,19 +141,44 @@ public class BusinessEventHandler implements BusinessEvents
 	}
 
 	@Override
-	public String getLocalFilePath(String fileName)
+	public FileHandle getLocalFileHandle(FileInfo fileInfo)
 	{
 		LOGGER.log(Level.ALL, String.format(
-				"Business event: %s with %s", this.getClass().getEnclosingMethod(), fileName));
+				"Business event: %s with %s", this.getClass().getEnclosingMethod(), fileInfo.getName()));
 		if (null != localInformationHandler)
-			return localInformationHandler.getLocalHandler(fileName);
-		return "";
+			return localInformationHandler.getLocalHandler(fileInfo);
+		else
+			return null;
 	}
 
 	@Override
-	public void setFileEventHandler(UIEvents.FileEvents fileEvents)
+	public FileHandle getRemoteFileHandle(FileInfo fileInfo)
 	{
-		LocalController.setFileEvents(fileEvents);
-		RemoteController.setFileEvents(fileEvents);
+		LOGGER.log(Level.ALL, String.format(
+				"Business event: %s with %s", this.getClass().getEnclosingMethod(), fileInfo.getName()));
+		if (null != remoteInformationHandler)
+			return remoteInformationHandler.getRemoteFileHandle(fileInfo);
+		else
+			return null;
+	}
+
+	@Override
+	public String getDownloadLocation()
+	{
+		LOGGER.log(Level.ALL, String.format(
+				"Business event: %s", this.getClass().getEnclosingMethod()));
+		if (null != remoteInformationHandler)
+			return remoteInformationHandler.getDownloadLocation();
+		else
+			return null;
+	}
+
+	@Override
+	public String getLocalFilePath(FileInfo fileInfo)
+	{
+		if (null != localInformationHandler)
+			return localInformationHandler.getLocalFilePath(fileInfo);
+		else
+			return null;
 	}
 }

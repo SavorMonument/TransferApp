@@ -30,19 +30,9 @@ public class FileReceiverTest
 		transferInput = Mockito.mock(TransferInput.class);
 		transferOutput = Mockito.mock(TransferOutput.class);
 		fileOutput = Mockito.mock(TransferFileOutput.class);
-	}
 
-	@Test(expected = FileException.class)
-	public void fileOpenFailure() throws IOException
-	{
-		int size = 1;
-
-		FileReceiver fileReceiver = new FileReceiver(transferInput, transferOutput,
-				fileOutput, size);
-
-		fileReceiver.transfer();
-
-		Mockito.doThrow(IOException.class).when(fileOutput).open();
+		Mockito.when(fileOutput.diskSpaceAtLocation()).thenReturn(1000L);
+		Mockito.when(fileOutput.exists()).thenReturn(false);
 	}
 
 	@Test
@@ -98,19 +88,19 @@ public class FileReceiverTest
 		fileReceiver.transfer();
 	}
 
-	@Test(expected = ConnectionException.class)
-	public void notReceivingEnoughData_TimeOut() throws IOException
-	{
-		int size = 50;
-
-		FileReceiver fileReceiver = new FileReceiver(transferInput, transferOutput,
-				fileOutput, size);
-
-		Mockito.when(transferInput.available()).thenReturn(0);
-		Mockito.when(transferInput.read((byte[]) notNull(), anyInt())).thenReturn(size - 1);
-
-		fileReceiver.transfer();
-	}
+//	@Test(expected = ConnectionException.class)
+//	public void notReceivingEnoughData_TimeOut() throws IOException
+//	{
+//		int size = 50;
+//
+//		FileReceiver fileReceiver = new FileReceiver(transferInput, transferOutput,
+//				fileOutput, size);
+//
+//		Mockito.when(transferInput.available()).thenReturn(0);
+//		Mockito.when(transferInput.read((byte[]) notNull(), anyInt())).thenReturn(size - 1);
+//
+//		fileReceiver.transfer();
+//	}
 
 	@Test
 	public void successfulTransferMultipleReads() throws IOException
@@ -151,6 +141,31 @@ public class FileReceiverTest
 		}).when(fileOutput).writeToFile((byte[]) notNull(), anyInt());
 
 		Mockito.when(transferInput.read((byte[]) notNull(), anyInt())).thenReturn(size / 4);
+		fileReceiver.transfer();
+	}
+
+	@Test(expected = InvalidFilePath.class)
+	public void notEnoughSpaceOnDevice() throws ConnectionException, FileException, InvalidFilePath
+	{
+		Mockito.when(fileOutput.diskSpaceAtLocation()).thenReturn(1L);
+		int size = 100;
+
+		FileReceiver fileReceiver = new FileReceiver(transferInput, transferOutput,
+				fileOutput, size);
+
+		fileReceiver.transfer();
+	}
+
+	@Test(expected = InvalidFilePath.class)
+	public void fileAlreadyExists() throws ConnectionException, FileException, InvalidFilePath
+	{
+		Mockito.when(fileOutput.exists()).thenReturn(true);
+
+		int size = 100;
+
+		FileReceiver fileReceiver = new FileReceiver(transferInput, transferOutput,
+				fileOutput, size);
+
 		fileReceiver.transfer();
 	}
 }

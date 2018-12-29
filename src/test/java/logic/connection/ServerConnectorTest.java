@@ -36,6 +36,7 @@ public class ServerConnectorTest
 		Connection connection = Mockito.mock(Connection.class);
 		Mockito.when(connectionResolver.listenNextConnection()).thenReturn(connection);
 		Mockito.when(connectionResolver.listenNextConnection(anyInt())).thenReturn(connection);
+		Mockito.when(connection.isConnected()).thenReturn(true);
 
 		Connections connections = serverConnector.listen();
 
@@ -54,7 +55,7 @@ public class ServerConnectorTest
 			@Override
 			public Object answer(InvocationOnMock invocationOnMock) throws Throwable
 			{
-				Thread.sleep(5000);
+				Thread.sleep(2000);
 				return null;
 			}
 		});

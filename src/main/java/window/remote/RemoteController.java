@@ -1,17 +1,23 @@
 package window.remote;
 
-import com.sun.javafx.collections.ObservableListWrapper;
 import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
-import javafx.scene.control.ListView;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.cell.ProgressBarTableCell;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.DirectoryChooser;
+import javafx.util.Callback;
+import logic.FileHandle;
+import model.FileInfo;
 import window.AppLogger;
 import window.UIEvents;
 import window.root.events.ConnectionStateEvent;
@@ -27,11 +33,12 @@ public class RemoteController implements Initializable, ConnectionStateEvent, Re
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 
-	private ObservableList<RemoteFileInfo> availableFiles = FXCollections.observableArrayList();
+	private ObservableList<RemoteFileInfoObservable> availableFiles = FXCollections.observableArrayList(param -> new Observable[]{param});
 
 
 	private static UIEvents.FileEvents fileEvents;
-	private List<FileInfo> filesAvailableOnRemote;
+
+	private RefreshOnEventListener refreshOnEventListener = new RefreshOnEventListener();
 	private String connectionState = "";
 	private String downloadPath = "";
 
@@ -53,6 +60,20 @@ public class RemoteController implements Initializable, ConnectionStateEvent, Re
 	{
 		AppLogger.getInstance().log(Level.FINE, "Initializing " + getClass().getName());
 		downloadButton.setDisable(true);
+
+		nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+		sizeColumn.setCellValueFactory(new PropertyValueFactory<>("size"));
+		speedColumn.setCellValueFactory(new PropertyValueFactory<>("speed"));
+
+		progressColumn.setCellFactory(param -> new GreenWhenFullProgressBar());
+		progressColumn.setCellValueFactory(new PropertyValueFactory<>("progress"));
+
+		fileView.setItems(availableFiles);
+	}
+
+	public static void setFileEvents(UIEvents.FileEvents fileEvents)
+	{
+		RemoteController.fileEvents = fileEvents;
 	}
 
 	@FXML
@@ -61,21 +82,22 @@ public class RemoteController implements Initializable, ConnectionStateEvent, Re
 		FileInfo fileInfo;
 		int index;
 
-		if ((index = fileList.getSelectionModel().getSelectedIndex()) != -1)
+		if ((index = fileView.getSelectionModel().getSelectedIndex()) != -1)
 		{
-			fileInfo = filesAvailableOnRemote.get(index);
+			RemoteFileInfo remoteFileInfo = availableFiles.get(index);
+			fileInfo = new FileInfo(remoteFileInfo.getName(), remoteFileInfo.getSizeInBytes());
 
 			LOGGER.log(Level.ALL, "Download button pressed on: " + fileInfo);
-			fileEvents.requestFileForDownload(fileInfo, downloadPath);
+			fileEvents.requestFileForDownload(fileInfo);
 		}
 	}
 
 	@FXML
-	public void chooseFile(ActionEvent actionEvent)
+	public void chooseDownloadLocation(ActionEvent actionEvent)
 	{
 		DirectoryChooser chooser = new DirectoryChooser();
 		chooser.setTitle("Chose location");
-		File directory = chooser.showDialog(fileList.getScene().getWindow());
+		File directory = chooser.showDialog(fileView.getScene().getWindow());
 
 		if (null != directory)
 		{
@@ -90,25 +112,24 @@ public class RemoteController implements Initializable, ConnectionStateEvent, Re
 		downloadButton.setDisable(isDisabled);
 	}
 
-	@Override
-	public void updateRemoteFileList(List<FileInfo> fileNames)
+	public void updateFileList(List<FileInfo> fileInfos)
 	{
-		filesAvailableOnRemote = new ArrayList<>(fileNames);
-
-		//This makes the javafx thread update the list view so I don't get: -- Not on FX application thread exception --
-		Platform.runLater(() -> fileList.setItems(getFormattedUiFileList(filesAvailableOnRemote)));
+		availableFiles = constructNewObservableList(fileInfos);
+		Platform.runLater(() -> fileView.setItems(availableFiles));
 	}
 
-
-	private ObservableList<String> getFormattedUiFileList(List<FileInfo> filesInformation)
+	private ObservableList<RemoteFileInfoObservable> constructNewObservableList(List<FileInfo> fileInfos)
 	{
-		List<String> formattedFileList = new ArrayList<>();
+		ObservableList<RemoteFileInfoObservable> remoteFileInfos = FXCollections.observableArrayList(param -> new Observable[]{param});
 
-		for (FileInfo f : filesInformation)
+		for (FileInfo fInfo : fileInfos)
 		{
-			formattedFileList.add(String.format("%s : %s", f.getName(), f.getSize()));
+			RemoteFileInfoObservable observableInfo = new RemoteFileInfoObservable(fInfo.getName(), fInfo.getSizeInBytes());
+			observableInfo.addListener(refreshOnEventListener);
+			remoteFileInfos.add(observableInfo);
 		}
-		return new ObservableListWrapper<>(formattedFileList);
+
+		return remoteFileInfos;
 	}
 
 	public void updateConnectionState(String state)
@@ -117,7 +138,7 @@ public class RemoteController implements Initializable, ConnectionStateEvent, Re
 		if (state.equals("DISCONNECTED"))
 		{
 			downloadButton.setDisable(true);
-			restFileListItems();
+			resetFileListItems();
 		} else if (state.equals("CONNECTED"))
 		{
 			if (!downloadPath.equals(""))
@@ -127,13 +148,46 @@ public class RemoteController implements Initializable, ConnectionStateEvent, Re
 		}
 	}
 
-	private void restFileListItems()
+	private void resetFileListItems()
 	{
-		Platform.runLater(() -> fileList.setItems(new ObservableListWrapper(new ArrayList())));
+		availableFiles.remove(0, availableFiles.size());
 	}
 
-	public static void setFileEvents(UIEvents.FileEvents fileEvents)
+	@Override
+	public FileHandle getRemoteFileHandle(FileInfo fileInfo)
 	{
-		RemoteController.fileEvents = fileEvents;
+		for (RemoteFileInfoObservable fi : availableFiles)
+		{
+			if (fi.getName().equals(fileInfo.getName()) && (fi.getSizeInBytes() == fileInfo.getSizeInBytes()))
+				return fi;
+		}
+		return null;
+	}
+
+	@Override
+	public String getDownloadLocation()
+	{
+		return downloadPath;
+	}
+
+	class GreenWhenFullProgressBar extends ProgressBarTableCell
+	{
+		@Override
+		public void updateItem(Double item, boolean empty)
+		{
+			super.updateItem(item, empty);
+			if (!empty && null != item && item > 0.99)
+				setStyle("-fx-accent: green");
+		}
+	}
+
+	//Could not get the table to refresh on changes to LocalFileInfoObservable so used this
+	class RefreshOnEventListener implements InvalidationListener
+	{
+		@Override
+		public void invalidated(Observable observable)
+		{
+			fileView.refresh();
+		}
 	}
 }

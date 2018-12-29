@@ -1,10 +1,12 @@
 package logic.messaging;
 
-import com.sun.istack.internal.NotNull;
+import org.jetbrains.annotations.NotNull;
 import logic.BusinessEvents;
 import logic.ConnectCloseEvent;
 import logic.connection.Connection.StringReceiver;
 import logic.connection.Connections;
+import logic.messaging.actions.Action;
+import logic.messaging.actions.ActionFactory;
 import logic.messaging.messages.MessageFactory;
 import logic.messaging.messages.NetworkMessage;
 import network.ConnectionException;
@@ -22,7 +24,9 @@ public class MessageReceiverController
 	private ConnectCloseEvent connectCloseEvent;
 
 	private MessageReceiverThread listener;
+
 	private MessageFactory messageFactory;
+	private ActionFactory actionFactory;
 
 	public MessageReceiverController(@NotNull Connections connections,
 									 @NotNull BusinessEvents businessEvents,
@@ -36,7 +40,8 @@ public class MessageReceiverController
 		this.businessEvents = businessEvents;
 		this.connectCloseEvent = connectCloseEvent;
 
-		messageFactory = new MessageFactory(connections.getFileTransmittingConnection());
+		messageFactory = new MessageFactory();
+		actionFactory = new ActionFactory(businessEvents, connectCloseEvent, connections.getFileTransmittingConnection());
 	}
 
 	private void checkMessages()
@@ -46,7 +51,9 @@ public class MessageReceiverController
 		{
 			codedMessage = messageReceiver.pullLineBlocking();
 			NetworkMessage networkMessage = messageFactory.resolveMessage(codedMessage);
-			networkMessage.doAction(businessEvents);
+			Action action = actionFactory.getReceiverAction(networkMessage);
+
+			new Thread(() -> action.performAction()).start();
 
 		} catch (ConnectionException e)
 		{

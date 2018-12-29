@@ -12,7 +12,7 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 
-<AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="200.0" prefWidth="600.0" stylesheets="@remote.css" AnchorPane.BottomAnchor="0.0" AnchorPane.LeftAnchor="0.0" AnchorPane.RightAnchor="0.0" AnchorPane.topAnchor="0.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="window.remote.RemoteController">
+<AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="200.0" prefWidth="660.0" stylesheets="@remote.css" AnchorPane.BottomAnchor="0.0" AnchorPane.LeftAnchor="0.0" AnchorPane.RightAnchor="0.0" AnchorPane.topAnchor="0.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="window.remote.RemoteController">
 
     <children>
       <GridPane prefHeight="200.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
@@ -40,10 +40,10 @@
                   </Label>
                   <TableView fx:id="fileView" prefHeight="200.0" prefWidth="200.0" styleClass="file-list" GridPane.rowIndex="1">
                     <columns>
-                      <TableColumn fx:id="nameColumn" prefWidth="75.0" text="Name" />
-                      <TableColumn fx:id="sizeColumn" prefWidth="75.0" text="Size" />
-                        <TableColumn fx:id="speedColumn" prefWidth="75.0" text="Speed" />
-                        <TableColumn fx:id="progressColumn" prefWidth="75.0" text="Progress" />
+                      <TableColumn fx:id="nameColumn" minWidth="300.0" prefWidth="-1.0" text="Name" />
+                      <TableColumn fx:id="sizeColumn" minWidth="75.0" prefWidth="-1.0" text="Size" />
+                        <TableColumn fx:id="speedColumn" minWidth="75.0" prefWidth="-1.0" styleClass="speed-column" text="Speed" />
+                        <TableColumn fx:id="progressColumn" minWidth="150.0" prefWidth="-1.0" text="Progress" />
                     </columns>
                   </TableView>
                </children>
@@ -81,10 +81,10 @@
                       <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                     </rowConstraints>
                      <children>
-                        <Label styleClass="choose-label" text="Set download location" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
+                        <Label styleClass="choose-label" text="Set download path" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
                      </children>
                   </GridPane>
-                  <Button alignment="CENTER" contentDisplay="CENTER" maxHeight="30.0" maxWidth="110.0" mnemonicParsing="false" onAction="#chooseFile" text="Choose..." textAlignment="CENTER" textOverrun="WORD_ELLIPSIS" wrapText="true" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
+                  <Button alignment="CENTER" contentDisplay="CENTER" maxHeight="30.0" maxWidth="110.0" mnemonicParsing="false" onAction="#chooseDownloadLocation" text="Choose..." textAlignment="CENTER" textOverrun="WORD_ELLIPSIS" wrapText="true" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
                      <GridPane.margin>
                         <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
                      </GridPane.margin>

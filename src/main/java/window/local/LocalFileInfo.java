@@ -1,19 +1,22 @@
 package window.local;
 
+import model.FileInfo;
 import window.ByteMultipleFormatter;
+
+import java.util.Objects;
 
 public class LocalFileInfo
 {
 	private String name;
 	private long size;
-	private String location;
+	private String path;
 	private long uploadSpeed;
 
-	public LocalFileInfo(String name, long size, String location)
+	public LocalFileInfo(String name, long size, String path)
 	{
 		this.name = name;
 		this.size = size;
-		this.location = location;
+		this.path = path;
 	}
 
 	public String getName()
@@ -26,9 +29,9 @@ public class LocalFileInfo
 		this.name = name;
 	}
 
-	public long getSize()
+	public String getSize()
 	{
-		return size;
+		return ByteMultipleFormatter.getFormattedBytes(size);
 	}
 
 	public void setSize(long size)
@@ -36,19 +39,22 @@ public class LocalFileInfo
 		this.size = size;
 	}
 
-	public String getLocation()
+	public String getPath()
 	{
-		return location;
+		return path;
 	}
 
-	public void setLocation(String location)
+	public void setPath(String path)
 	{
-		this.location = location;
+		this.path = path;
 	}
 
 	public String getUploadSpeed()
 	{
-		return ByteMultipleFormatter.getFormattedBytes(uploadSpeed);
+		if (uploadSpeed == 0)
+			return "";
+		else
+			return ByteMultipleFormatter.getFormattedBytes(uploadSpeed);
 	}
 
 	public long getUploadSpeedAsBytes()
@@ -59,5 +65,45 @@ public class LocalFileInfo
 	public void setUploadSpeed(long uploadSpeed)
 	{
 		this.uploadSpeed = uploadSpeed;
+	}
+
+	public FileInfo getFileInfo()
+	{
+		return new FileInfo(name, size);
+	}
+
+	public String getFullPath()
+	{
+		return path;
+	}
+
+	public void setTransferSpeed(long bytesPerSecond)
+	{
+		uploadSpeed = bytesPerSecond;
+	}
+
+	public void setTransferProgress(double progress)
+	{
+	}
+
+	public long getSizeInBytes()
+	{
+		return size;
+	}
+
+	@Override
+	public boolean equals(Object o)
+	{
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		LocalFileInfo fileInfo = (LocalFileInfo) o;
+		return size == fileInfo.size &&
+				Objects.equals(name, fileInfo.name);
+	}
+
+	@Override
+	public int hashCode()
+	{
+		return Objects.hash(name, size);
 	}
 }

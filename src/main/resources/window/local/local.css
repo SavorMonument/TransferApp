@@ -43,3 +43,7 @@
 .button:pressed {
     -fx-translate-y: 1;
 }
+
+.speed-column{
+    -fx-text-fill: #dc3545;
+}

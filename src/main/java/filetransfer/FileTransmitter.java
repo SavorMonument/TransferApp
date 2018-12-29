@@ -1,6 +1,6 @@
 package filetransfer;
 
-import com.sun.istack.internal.NotNull;
+import org.jetbrains.annotations.NotNull;
 import filesistem.FileException;
 import filetransfer.api.*;
 import network.ConnectionException;
@@ -50,17 +50,18 @@ public class FileTransmitter
 
 	private boolean listenForStartCode() throws ConnectionException
 	{
-		boolean gotStartByte = false;
-
 		DeltaTime dt = new DeltaTime();
-		while (!gotStartByte && hasTime(dt))
+		while (hasTime(dt))
 		{
 			if (transferInput.available() > 0)
 			{
 				byte value = (byte) transferInput.read();
 				if (value == START_CODE)
 				{
-					gotStartByte = true;
+					return true;
+				} else if (value == ERROR_CODE)
+				{
+					return false;
 				}
 			}
 			try
@@ -71,7 +72,7 @@ public class FileTransmitter
 				e.printStackTrace();
 			}
 		}
-		return gotStartByte;
+		return false;
 	}
 
 	private void readBytesAndTransmitThemOverSocket() throws FileException, ConnectionException
@@ -105,11 +106,12 @@ public class FileTransmitter
 		return false;
 	}
 
-	private void transferChunk(byte[] buffer)
+	protected int transferChunk(byte[] buffer)
 			throws FileException, ConnectionException
 	{
 		int bytesRead = fileInput.read(buffer, CHUNK_SIZE);
 		transferOutput.transmitBytes(buffer, bytesRead);
+		return bytesRead;
 	}
 
 	private boolean hasTime(DeltaTime dt)

@@ -5,7 +5,9 @@ import filesistem.FileInput;
 import filesistem.FileOutput;
 import filetransfer.api.TransferInput;
 import filetransfer.api.TransferOutput;
+import logic.FileHandle;
 import logic.connection.Connection;
+import logic.messaging.actions.transfer.TransferUpdater;
 import network.ConnectionException;
 import network.connection.NetworkConnectionResolver;
 import window.ByteMultipleFormatter;
@@ -34,13 +36,26 @@ public class FileTransferFunctionalTest
 		FileInput fileInput = new FileInput(INPUT_FILE_PATH);
 		FileOutput fileOutput = new FileOutput(OUTPUT_FILE_NAME, OUTPUT_FILE_DIRECTORY);
 
-		FileTransmitter fileTransmitter = new FileTransmitter((TransferOutput) connection1.getMessageTransmitter(),
-				(TransferInput) connection1.getMessageReceiver(), fileInput);
+		TransferUpdater transferUpdater = new TransferUpdater(new FileHandle()
+		{
+			@Override
+			public void setTransferSpeed(long bytesPerSecond)
+			{
+				System.out.println(String.format("Transfer speed: %s/s", ByteMultipleFormatter.getFormattedBytes(bytesPerSecond)));
+			}
+
+			@Override
+			public void setTransferProgress(double progress)
+			{
+				System.out.println(String.format("Progress: %.2f", progress));
+			}
+		}, fileLength);
+
+		FileTransmitter fileTransmitter = new ObservableFileTransmitter((TransferOutput) connection1.getMessageTransmitter(),
+				(TransferInput) connection1.getMessageReceiver(), fileInput, transferUpdater);
 
 		FileReceiver fileReceiver = new FileReceiver((TransferInput) connection2.getMessageReceiver(),
-				(TransferOutput) connection2.getMessageTransmitter(), fileOutput,
-				fileLength);
-
+				(TransferOutput) connection2.getMessageTransmitter(), fileOutput, fileLength);
 
 		Thread transmitterThread = new Thread(new Runnable()
 		{
@@ -78,34 +93,27 @@ public class FileTransferFunctionalTest
 				} catch (FileException e)
 				{
 					e.printStackTrace();
+				} catch (InvalidFilePath invalidFilePath)
+				{
+					invalidFilePath.printStackTrace();
 				}
 			}
 		});
 		DeltaTime dt = new DeltaTime();
 
+		transferUpdater.start();
 		transmitterThread.start();
 		receiverThread.start();
 
 		transmitterThread.join();
 		receiverThread.join();
+		transferUpdater.interrupt();
 
 		double timePassed = dt.getElapsedTimeSeconds();
 		System.out.println(timePassed + " seconds");
 		System.out.println(ByteMultipleFormatter.getFormattedBytes((int)(fileLength / timePassed))
 				+ " average speed");
 	}
-
-//	private static void startCounter()
-//	{
-//		connection1.getMessageTransmitter().registerBytesCounter(new TransferView(new TransferView.ByteCounterEvent()
-//		{
-//			@Override
-//			public void updateOnBytes(long bytes)
-//			{
-//				System.out.println(ByteMultipleFormatter.getFormattedBytes(bytes) + "/s");
-//			}
-//		}, 1000));
-//	}
 
 	private static void resolveConnections() throws IOException, InterruptedException
 	{

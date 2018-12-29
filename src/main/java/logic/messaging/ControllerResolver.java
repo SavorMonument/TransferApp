@@ -4,6 +4,7 @@ import logic.ConnectCloseEvent;
 import logic.BusinessEvents;
 import logic.connection.Connection;
 import logic.connection.Connections;
+import model.FileInfo;
 import window.UIEvents;
 
 import java.io.Closeable;
@@ -17,9 +18,6 @@ public class ControllerResolver implements Closeable
 
 	protected MessageTransmitterController transmitterController;
 	protected MessageReceiverController receiverController;
-
-	protected TransferView transmittingCounter;
-	protected TransferView receivingCounter;
 
 	public ControllerResolver(Connections connections, BusinessEvents businessEvents, ConnectCloseEvent mainConnectCloseEvent)
 	{
@@ -39,23 +37,7 @@ public class ControllerResolver implements Closeable
 
 		UIFileEventsHandler handler = new UIFileEventsHandler();
 		businessEvents.setFileEventHandler(handler);
-
-		//TODO: move the counter in file transmitter/receiver and register them when download/upload starts
-//		registerTransmittingCounter(fTransmittingConnection.getMessageTransmitter());
-//		registerReceivingCounter(fReceivingConnection.getMessageReceiver());
 	}
-
-//	private void registerTransmittingCounter(Connection.StringTransmitter messageTransmitter)
-//	{
-//		transmittingCounter = new TransferView(businessEvents::printUploadSpeed, 1000);
-//		messageTransmitter.registerBytesCounter(transmittingCounter);
-//	}
-//
-//	private void registerReceivingCounter(Connection.StringReceiver messageReceiver)
-//	{
-//		receivingCounter = new TransferView(businessEvents::printDownloadSpeed, 1000);
-//		messageReceiver.registerBytesCounter(receivingCounter);
-//	}
 
 	class UIFileEventsHandler implements UIEvents.FileEvents
 	{
@@ -67,10 +49,10 @@ public class ControllerResolver implements Closeable
 		}
 
 		@Override
-		public void requestFileForDownload(FileInfo fileInfo, String downloadPath)
+		public void requestFileForDownload(FileInfo fileInfo)
 		{
 			new Thread(() -> transmitterController.fileDownload(
-					fileInfo, downloadPath)).start();
+					fileInfo)).start();
 		}
 	}
 
@@ -89,20 +71,6 @@ public class ControllerResolver implements Closeable
 		{
 			receiverController.stopListening();
 			receiverController = null;
-		}
-
-		if (null != transmittingCounter)
-		{
-			transmittingCounter.interrupt();
-			transmittingCounter = null;
-			businessEvents.printUploadSpeed(0);
-		}
-
-		if (null != receivingCounter)
-		{
-			receivingCounter.interrupt();
-			receivingCounter = null;
-			businessEvents.printDownloadSpeed(0);
 		}
 
 		if (null != connections)

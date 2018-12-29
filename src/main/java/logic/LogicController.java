@@ -39,7 +39,7 @@ public class LogicController extends Thread
 		this.businessEvents = businessEvents;
 		this.connectCloseEvent = new DisconnectEvent();
 
-		ConnectionController.setConnectionEventHandler(new ConnectionEventsHandler());
+		businessEvents.setConnectionEventHandler(new ConnectionEventsHandler());
 		updateState(State.DISCONNECTED);
 		setDaemon(true);
 	}

@@ -1,6 +1,6 @@
 package filetransfer;
 
-import com.sun.istack.internal.NotNull;
+import org.jetbrains.annotations.NotNull;
 import filesistem.FileException;
 import filetransfer.api.*;
 import network.ConnectionException;
@@ -39,19 +39,20 @@ public class FileReceiver
 		this.fileSizeBytes = fileSizeBytes;
 	}
 
-	public void transfer() throws ConnectionException, FileException
+	public void transfer() throws ConnectionException, FileException, InvalidFilePath
 	{
 		LOGGER.log(Level.INFO, "File receiving starting...");
 		try
 		{
 			transferInput.skip(transferInput.available());
+			basicFileCheck(fileOutput, fileSizeBytes);
 			fileOutput.open();
 			transferOutput.transmitByte(START_CODE);
 			receiveBytesAndWriteToFile();
 		} catch (InterruptedException e)
 		{
 			e.printStackTrace();
-		} catch (FileException e)
+		} catch (FileException | InvalidFilePath e)
 		{
 			transferOutput.transmitByte(ERROR_CODE);
 			transferInput.skip(transferInput.available());
@@ -72,7 +73,7 @@ public class FileReceiver
 		{
 			if ((available = transferInput.available()) > 0)
 			{
-				bytesLeftToReceive -= transferChunkOfData(buffer, Math.min(available, CHUNK_SIZE));
+				bytesLeftToReceive -= transferChunk(buffer, Math.min(available, CHUNK_SIZE));
 				dt.reset();
 			} else
 				Thread.sleep(100);
@@ -81,7 +82,7 @@ public class FileReceiver
 			throw new ConnectionException("Did not receive full file, bytes missing: " + bytesLeftToReceive);
 	}
 
-	private int transferChunkOfData(byte[] buffer, int maxAmountToRead) throws ConnectionException, FileException
+	protected int transferChunk(byte[] buffer, int maxAmountToRead) throws ConnectionException, FileException
 	{
 		int amountRead = transferInput.read(buffer, maxAmountToRead);
 		fileOutput.writeToFile(buffer, amountRead);
@@ -94,4 +95,12 @@ public class FileReceiver
 		return dt.getElapsedTimeMillis() <= CONNECTION_TIMEOUT_MILLIS;
 	}
 
+	private void basicFileCheck(TransferFileOutput fileOutput, long fileSizeBytes) throws InvalidFilePath
+	{
+		if (fileOutput.exists())
+			throw new InvalidFilePath("File already exists");
+
+		if (fileOutput.diskSpaceAtLocation() < fileSizeBytes)
+			throw new InvalidFilePath("Not enough space on device");
+	}
 }

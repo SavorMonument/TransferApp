@@ -1,5 +1,7 @@
 package window;
 
+import model.FileInfo;
+
 import java.util.List;
 
 public interface UIEvents
@@ -7,7 +9,7 @@ public interface UIEvents
 	interface FileEvents
 	{
 		void updateAvailableFiles(List<FileInfo> fileInfos);
-		void requestFileForDownload(FileInfo fileInfo, String downloadPath);
+		void requestFileForDownload(FileInfo fileInfo);
 	}
 
 	interface ConnectionEvents

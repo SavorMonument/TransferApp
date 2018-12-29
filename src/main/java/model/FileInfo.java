@@ -20,4 +20,10 @@ public class FileInfo
 	{
 		return sizeInBytes;
 	}
+
+	@Override
+	public String toString()
+	{
+		return String.format("FileInfo: [name: \"%s\", sizeInBytes: \"%s\"]", name, sizeInBytes);
+	}
 }

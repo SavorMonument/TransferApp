@@ -1,16 +1,7 @@
 package logic.messaging.messages;
 
-import logic.connection.Connection;
-
 public class MessageFactory
 {
-	private Connection fileConnection;
-
-	public MessageFactory(Connection fileConnection)
-	{
-		this.fileConnection = fileConnection;
-	}
-
 	public NetworkMessage resolveMessage(String messageWithCode)
 	{
 		NetworkMessage networkMessage = null;
@@ -26,9 +17,9 @@ public class MessageFactory
 			}
 			break;
 
-			case DownloadRequestMessage.MESSAGE_ID:
+			case TransferRequestMessage.MESSAGE_ID:
 			{
-				networkMessage = new DownloadRequestMessage(messageTokens[1], fileConnection);
+				networkMessage = new TransferRequestMessage(messageTokens[1]);
 			}
 			break;
 		}

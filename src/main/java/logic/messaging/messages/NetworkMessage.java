@@ -1,8 +1,5 @@
 package logic.messaging.messages;
 
-import logic.BusinessEvents;
-import network.ConnectionException;
-
 public interface NetworkMessage
 {
 	String CODE_DELIMITER = "<D:::::D>";
@@ -14,8 +11,5 @@ public interface NetworkMessage
 	 */
 	String getFormattedMessage();
 
-	/**
-	 * Does what each specific message is supposed to do
-	 */
-	void doAction(BusinessEvents businessEvents) throws ConnectionException;
+	String getMessageID();
 }

@@ -1,15 +1,18 @@
 package window.local;
 
 import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.ProgressBarTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.TransferMode;
+import logic.FileHandle;
+import model.FileInfo;
 import window.AppLogger;
 import window.UIEvents;
 import window.root.events.ConnectionStateEvent;
@@ -24,13 +27,15 @@ public class LocalController implements Initializable, ConnectionStateEvent, Loc
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
 
-	private ObservableList<LocalFileInfo> availableFiles = FXCollections.observableArrayList();
+	private ObservableList<LocalFileInfoObservable> availableFiles = FXCollections.observableArrayList(param -> new Observable[]{param});
 
 	private static UIEvents.FileEvents fileEvents;
+
+	private RefreshOnEventListener refreshOnEventListener = new RefreshOnEventListener();
 	private String programState = "";
 
 	@FXML
-	private TableView fileView;
+	public TableView<LocalFileInfoObservable> fileView;
 	@FXML
 	public TableColumn locationColumn;
 	@FXML
@@ -49,7 +54,7 @@ public class LocalController implements Initializable, ConnectionStateEvent, Loc
 
 		nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
 		sizeColumn.setCellValueFactory(new PropertyValueFactory<>("size"));
-		locationColumn.setCellValueFactory(new PropertyValueFactory<>("location"));
+		locationColumn.setCellValueFactory(new PropertyValueFactory<>("path"));
 //		progressColumn.setCellValueFactory(new PropertyValueFactory<>("uploadProgress"));
 //		progressColumn.setCellFactory(ProgressBarTableCell.forTableColumn());
 		speedColumn.setCellValueFactory(new PropertyValueFactory<>("uploadSpeed"));
@@ -60,10 +65,7 @@ public class LocalController implements Initializable, ConnectionStateEvent, Loc
 	@FXML
 	public void fileDragOver(DragEvent event)
 	{
-//		LOGGER.log(Level.FINE, "File drag over");
-
-//		if (programState.equals("CONNECTED") && event.getDragboard().hasFiles())
-		if (event.getDragboard().hasFiles())
+		if (programState.equals("CONNECTED") && event.getDragboard().hasFiles())
 			event.acceptTransferModes(TransferMode.ANY);
 	}
 
@@ -73,23 +75,33 @@ public class LocalController implements Initializable, ConnectionStateEvent, Loc
 		LOGGER.log(Level.FINE, "File drag dropped");
 		event.getDragboard().getFiles().forEach(file ->
 		{
-			LocalFileInfo fileInfo = new LocalFileInfo(file.getName(),
+			LocalFileInfoObservable fileInfo = new LocalFileInfoObservable(file.getName(),
 					file.length(), file.getAbsolutePath());
+			fileInfo.addListener(refreshOnEventListener);
 
 			if (!file.isDirectory())
 			{
 				if (!availableFiles.contains(fileInfo))
+				{
 					availableFiles.add(fileInfo);
+					System.out.println(availableFiles.size());
+
+				}
 			}
 		});
 
-		fileEvents.updateAvailableFiles(new ArrayList<>(availableFiles));
+		fileEvents.updateAvailableFiles(getListOfFileInfos(availableFiles));
 	}
 
-	@FXML
-	public void fileDragEntered()
+	private List<FileInfo> getListOfFileInfos(List<LocalFileInfoObservable> availableFiles)
 	{
-//		LOGGER.log(Level.FINE, "File drag entered");
+		List<FileInfo> fileInfos = new ArrayList<>();
+
+		for (LocalFileInfo availableFile : availableFiles)
+		{
+			fileInfos.add(availableFile.getFileInfo());
+		}
+		return fileInfos;
 	}
 
 	@FXML
@@ -102,7 +114,7 @@ public class LocalController implements Initializable, ConnectionStateEvent, Loc
 			LOGGER.log(Level.ALL, "Removing file");
 			availableFiles.remove(index);
 
-			fileEvents.updateAvailableFiles(new ArrayList<>(availableFiles));
+			fileEvents.updateAvailableFiles(getListOfFileInfos(availableFiles));
 		}
 	}
 
@@ -117,24 +129,42 @@ public class LocalController implements Initializable, ConnectionStateEvent, Loc
 
 	private void resetFileListItems()
 	{
-		availableFiles.removeAll();
+		availableFiles.remove(0, availableFiles.size());
 	}
 
-	public String getLocalHandler(String fileName)
+	public FileHandle getLocalHandler(FileInfo fileInfo)
 	{
-		String path = "";
+		for (LocalFileInfoObservable fi : availableFiles)
+		{
+			if (fi.getName().equals(fileInfo.getName()) && (fi.getSizeInBytes() == fileInfo.getSizeInBytes()))
+				return fi;
+		}
+		return null;
+	}
 
-//		for (File file : availableFiles)
-//		{
-//			if (file.getName().equals(fileName))
-//				path = file.getAbsolutePath();
-//		}
-
-		return path;
+	@Override
+	public String getLocalFilePath(FileInfo fileInfo)
+	{
+		for (LocalFileInfo fi : availableFiles)
+		{
+			if (fi.getName().equals(fileInfo.getName()) && (fi.getSizeInBytes() == fileInfo.getSizeInBytes()))
+				return fi.getFullPath();
+		}
+		return null;
 	}
 
 	public static void setFileEvents(UIEvents.FileEvents fileEvents)
 	{
 		LocalController.fileEvents = fileEvents;
+	}
+
+	//Could not get the table to refresh on changes to LocalFileInfoObservable so used this
+	class RefreshOnEventListener implements InvalidationListener
+	{
+		@Override
+		public void invalidated(Observable observable)
+		{
+			fileView.refresh();
+		}
 	}
 }

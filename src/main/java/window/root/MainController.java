@@ -6,8 +6,6 @@ import javafx.scene.layout.AnchorPane;
 import logic.LogicController;
 import window.AppLogger;
 import window.connection.ConnectionController;
-import window.display.DisplayController;
-import window.display.DisplayView;
 import window.local.LocalController;
 import window.local.LocalView;
 import window.connection.ConnectionView;
@@ -56,7 +54,7 @@ public class MainController implements Initializable
 		businessEventHandler.addConnectionStateHandler(connectionController);
 		businessEventHandler.addConnectionStateHandler(remoteController);
 
-		businessEventHandler.addRemoteInformationHandler(remoteController);
+		businessEventHandler.setRemoteInformationHandler(remoteController);
 
 		businessEventHandler.setConnectionRequestHandler(connectionController);
 

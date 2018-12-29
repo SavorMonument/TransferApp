@@ -1,6 +1,7 @@
 package logic.messaging.messages;
 
-import logic.BusinessEvents;
+import logic.messaging.messages.NetworkMessage;
+import model.FileInfo;
 import window.AppLogger;
 
 import java.util.*;
@@ -10,7 +11,7 @@ import java.util.logging.Logger;
 public class UpdateFileListMessage implements NetworkMessage
 {
 	private static final Logger LOGGER = AppLogger.getInstance();
-	static final String MESSAGE_ID = "1234568";
+	public static final String MESSAGE_ID = "1234568";
 
 	Collection<FileInfo> filesInformation;
 
@@ -27,8 +28,6 @@ public class UpdateFileListMessage implements NetworkMessage
 	@Override
 	public String getFormattedMessage()
 	{
-		LOGGER.log(Level.FINE, "Sending file update..." + filesInformation.toString());
-
 		StringBuilder stringBuilder = new StringBuilder();
 
 		stringBuilder
@@ -40,13 +39,9 @@ public class UpdateFileListMessage implements NetworkMessage
 		return stringBuilder.toString();
 	}
 
-	@Override
-	public void doAction(BusinessEvents businessEvents)
+	public String getMessageID()
 	{
-		LOGGER.log(Level.ALL, "Received remote file list update: " + filesInformation.toString());
-		businessEvents.printMessageOnDisplay("Updating file list");
-
-		businessEvents.updateRemoteFileList((List<FileInfo>) filesInformation);
+		return MESSAGE_ID;
 	}
 
 	public static String collectionCoder(Collection<FileInfo> collection)
@@ -62,7 +57,7 @@ public class UpdateFileListMessage implements NetworkMessage
 					.append("\"")
 					.append(info.getName())
 					.append("|")
-					.append(info.getSize())
+					.append(info.getSizeInBytes())
 					.append("\"");
 			if (it.hasNext())
 				convertedMessage.append(" ");
@@ -88,5 +83,10 @@ public class UpdateFileListMessage implements NetworkMessage
 			}
 		}
 		return elem;
+	}
+
+	public Collection<FileInfo> getFilesInfos()
+	{
+		return filesInformation;
 	}
 }

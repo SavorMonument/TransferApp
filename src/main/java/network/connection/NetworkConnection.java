@@ -1,6 +1,6 @@
 package network.connection;
 
-import com.sun.istack.internal.NotNull;
+import org.jetbrains.annotations.NotNull;
 import logic.connection.Connection;
 
 import java.io.IOException;

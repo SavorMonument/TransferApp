@@ -16,7 +16,7 @@ public class DeltaTimeTest
 
 		Thread.sleep(timeMilli);
 
-		assertEquals(1, (double)timeMilli / (double) dt.getElapsedTimeMillis(), 0.01);
+		assertEquals(1, (double)timeMilli / (double) dt.getElapsedTimeMillis(), 0.02);
 	}
 
 	@Test
@@ -28,6 +28,6 @@ public class DeltaTimeTest
 
 		Thread.sleep(timeMilli);
 
-		assertEquals(1, (double)timeNano / (double) dt.getElapsedTimeNano(), 0.01);
+		assertEquals(1, (double)timeNano / (double) dt.getElapsedTimeNano(), 0.02);
 	}
 }

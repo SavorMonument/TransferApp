@@ -1,0 +1,45 @@
+.file-list
+{
+    -fx-background-color: rgb(221, 221, 221);
+    -fx-effect: dropshadow(one-pass-box, rgba(36, 73, 56, 0.493), 2, 1, 0, 0);
+}
+
+.file-list-lable
+{
+    -fx-text-fill: #5394ba;
+    -fx-font-weight: 300;
+    -fx-font-size: 13;
+    -fx-effect: dropshadow( gaussian, #345d75, 0.5, 0.1, -0.1, 0.8 );
+}
+
+.mybutton
+{
+    -fx-text-fill: #FFFFFF;
+    -fx-font-family:  Arial;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+    -fx-border-radius : 5;
+    -fx-effect: dropshadow(one-pass-box, rgba(36, 73, 56, 0.493), 2, 1, 0.4, 0);
+}
+
+.file-list:focused
+{
+    -fx-background-color: rgb(221, 221, 221);
+    -fx-focus-color: rgba(255, 255, 255, 0);
+    -fx-background-insets: -1.4, 0, 1, 2;
+}
+
+.remove-button
+{
+    -fx-background-color: #6c757d;
+    -fx-border-color: #6c757d;
+}
+
+.remove-button:hover { 
+    -fx-background-color: #576b7c;
+
+}
+
+.button:pressed {
+    -fx-translate-y: 1;
+}
